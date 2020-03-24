@@ -1,0 +1,6 @@
+{
+    "commandDescription": "Preview Lightning Web Components in a mobile environment",
+    "platformFlagDescription": "specify platform [iOS,Android]",
+    "targetFlagDescription": "specify target simulator or emulator name",
+    "pathFlagDescription": "URL required"
+}  
