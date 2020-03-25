@@ -3,4 +3,4 @@
     "platformFlagDescription": "specify platform [iOS,Android]",
     "targetFlagDescription": "specify target simulator or emulator name",
     "pathFlagDescription": "URL required"
-}  
+ }
