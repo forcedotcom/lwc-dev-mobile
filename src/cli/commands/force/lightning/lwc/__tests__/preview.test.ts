@@ -12,19 +12,35 @@ describe('Preview Tests', () => {
         preview = new Preview([], new Config.Config(<Config.Options>{}));
 
     });
+    
     test('Checks that flags are passed correctly', async () => {
         setupFlags();
-        setupLogger();
-        const mockCall1= jest.fn((value) => {return true});
-        const mockCall2= jest.fn((value) => {return true});
-        const mockCall3= jest.fn((value) => {return true});
-        preview.validateComponentPathValue = mockCall1;
-        preview.validatePlatformValue = mockCall2;
-        preview.validateTargetValue = mockCall3;
+        let logger = new Logger('test-preview');
+        setupLogger(logger);
+        const compPathCalValidationlMock = jest.fn((value) => {return true});
+        const platformCallValidationMock = jest.fn((value) => {return true});
+        const targetValueValidationCallMock = jest.fn((value) => {return true});
+        preview.validateComponentPathValue = compPathCalValidationlMock;
+        preview.validatePlatformValue = platformCallValidationMock;
+        preview.validateTargetValue = targetValueValidationCallMock;
         await preview.run();
-        expect(mockCall1).toHaveBeenCalledWith('componentpath');
-        expect(mockCall2).toHaveBeenCalledWith('android');
-        return expect(mockCall3).toHaveBeenCalledWith('sfdxemu');
+        expect(compPathCalValidationlMock).toHaveBeenCalledWith('componentpath');
+        expect(platformCallValidationMock).toHaveBeenCalledWith('android');
+        return expect(targetValueValidationCallMock).toHaveBeenCalledWith('sfdxemu');
+    });
+
+    test('Logger must be initialized and invoked', async () => {
+        let logger = new Logger('test-preview');
+        setupLogger(logger);
+        setupFlags();
+        let loggerSpy = jest.spyOn(logger, 'info');
+        await preview.run();
+        return expect(loggerSpy).toHaveBeenCalled();
+    });
+
+    test('Messages folder should be loaded', async () => {
+        expect.assertions(1);
+        return expect(Preview.description !== null ).toBeTruthy();
     });
 
     function setupFlags() {
@@ -35,10 +51,10 @@ describe('Preview Tests', () => {
         });
     }
 
-    function setupLogger() {
+    function setupLogger(logger: Logger) {
         Object.defineProperty(preview, 'logger', {
             get: () => {
-                return new Logger('test');
+                return logger;
             },
             configurable: true,
             enumerable: false

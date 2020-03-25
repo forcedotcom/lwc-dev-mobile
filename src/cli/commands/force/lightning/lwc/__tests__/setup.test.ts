@@ -13,12 +13,27 @@ describe('Setup Tests', () => {
     });
 
     test('Checks that flags are passed correctly', async () => {
-        setupLogger();
+        let logger = new Logger('test-setup');
+        setupLogger(logger);
         setupFlags();
         const mockCall= jest.fn((value) => {return true});
         setup.validatePlatformValue = mockCall;
         await setup.run();
         return expect(mockCall).toHaveBeenCalledWith('android');
+    });
+
+    test('Logger must be initialized and invoked', async () => {
+        let logger = new Logger('test');
+        setupLogger(logger);
+        setupFlags();
+        let loggerSpy = jest.spyOn(logger, 'info');
+        await setup.run();
+        return expect(loggerSpy).toHaveBeenCalled();
+    });
+
+    test('Messages folder should be loaded', async () => {
+        expect.assertions(1);
+        return expect(Setup.description !== null ).toBeTruthy();
     });
 
     function setupFlags() {
@@ -29,10 +44,10 @@ describe('Setup Tests', () => {
         });
     }
 
-    function setupLogger() {
+    function setupLogger(logger: Logger) {
         Object.defineProperty(setup, 'logger', {
             get: () => {
-                return new Logger('test');
+                return logger;
             },
             configurable: true,
             enumerable: false
