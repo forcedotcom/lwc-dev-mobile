@@ -3,17 +3,21 @@ Plugin for sfdx lwc mobile development
 
 # Checkout & Build  Local
 
-In the root folder for the sfdx-mobile
+In the root folder for the lwc-dev-mobile
 ```sh-session
-$ npm install
-$ cd .. 
+$ yarn install && yarn build
+$ yarn te 
 ```
 
 # Install the plugin & Run preview command
 ```sh-session
-$ sfdx plugins:link ./sfdx-mobile
-$ sfdx force:lightning:lwc:preview -p Android -t LWCSimulator -f http://localhost:3333
-$ sfdx force:lightning:lwc:preview -p iOS -t LWCSimulator -f http://localhost:3333
+$ sfdx plugins:link .
+$ sfdx force:lightning:lwc:preview -p Android -t LWCSimulator -d http://localhost:3333
+$ sfdx force:lightning:lwc:preview -p iOS -t LWCSimulator -d http://localhost:3333
+```
+# Uninstall the plugin
+```
+$ sfdx plugins:uninstall . 
 ```
 # Setup
 ```
