@@ -6,7 +6,7 @@ Plugin for sfdx lwc mobile development
 In the root folder for the lwc-dev-mobile
 ```sh-session
 $ yarn install && yarn build
-$ yarn te 
+$ yarn test 
 ```
 
 # Install the plugin & Run preview command
