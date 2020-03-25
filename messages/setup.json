@@ -1,4 +1,4 @@
 {
-    "commandDescription": "Preview Lightning Web Components in a mobile environment",
-    "platformFlagDescription": "specify platform [iOS,Android]"
+    "commandDescription": "Setup Lightning Web Components in a mobile environment",
+    "platformFlagDescription": "Specify platform [iOS,Android]"
 }
