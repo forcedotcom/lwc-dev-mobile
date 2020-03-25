@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/lwc-dev-mobile",
-  "description": "Plugin for sfdx lwc local development on mobile platforms",
+  "description": "Salesforce CLI plugin for mobile extensions to Local Development",
   "version": "0.1.0",
   "author": "Raj Rao @trooper2013",
   "bugs": "https://github.com/forcedotcom/lwc-dev-mobile/issues",
