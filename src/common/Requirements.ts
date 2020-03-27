@@ -9,6 +9,7 @@ export interface Requirement {
     checkFunction: CheckRequirementsFunc;
     fulfilledMessage: string;
     unfulfilledMessage: string;
+    logger: Logger;
 }
 
 export interface SetupTestCase {

@@ -36,14 +36,14 @@ describe('IOS Environment Setup tests', () => {
         jest.restoreAllMocks();
     });
     it('Should attempt to validate supported OS environment', async () => {
-        jest.spyOn(IOSEnvironmentSetup.prototype, 'executeCommand').mockImplementation(myUnameMock);
+        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(myUnameMock);
         let setup = new IOSEnvironmentSetup(logger);
         await setup.isSupportedEnvironment();
         return expect(myUnameMock).toHaveBeenCalledWith('/usr/bin/uname');
     });
 
     it('Should throw an error for an unsupported OS environment', async () => {
-        jest.spyOn(IOSEnvironmentSetup.prototype, 'executeCommand').mockImplementation(badBadMock);
+        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(badBadMock);
         let setup = new IOSEnvironmentSetup(logger);
         return setup.isSupportedEnvironment().catch(error => {
             expect(error).toBeTruthy();
@@ -57,14 +57,14 @@ describe('IOS Environment Setup tests', () => {
     });
 
     it('Should attempt to validate supported Xcode environment', async () => {
-        jest.spyOn(IOSEnvironmentSetup.prototype, 'executeCommand').mockImplementation(myXcodeSelectMock);
+        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(myXcodeSelectMock);
         let setup = new IOSEnvironmentSetup(logger);
         await setup.isXcodeInstalled();
         return expect(myXcodeSelectMock).toHaveBeenCalledWith('/usr/bin/xcode-select -p');
     });
 
     it('Should throw an error for unsupported Xcode Env', async () => {
-        jest.spyOn(IOSEnvironmentSetup.prototype, 'executeCommand').mockImplementation(badBadMock);
+        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(badBadMock);
         let setup = new IOSEnvironmentSetup(logger);
         return setup.isXcodeInstalled().catch(error => {
             expect(error).toBeTruthy();
@@ -72,14 +72,14 @@ describe('IOS Environment Setup tests', () => {
     });
 
     it('Should attempt to validate supported Xcode runtime environments', async () => {
-        jest.spyOn(IOSEnvironmentSetup.prototype, 'executeCommand').mockImplementation(myXcodeSelectMock);
+        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(myXcodeSelectMock);
         let setup = new IOSEnvironmentSetup(logger);
         await setup.isXcodeInstalled();
         return expect(myXcodeSelectMock).toHaveBeenCalledWith('/usr/bin/xcode-select -p');
     });
 
     it('Should throw an error for unsupported Xcode Env', async () => {
-        jest.spyOn(IOSEnvironmentSetup.prototype, 'executeCommand').mockImplementation(badBadMock);
+        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(badBadMock);
         let setup = new IOSEnvironmentSetup(logger);
         return setup.isXcodeInstalled().catch(error => {
             expect(error).toBeTruthy();
@@ -87,7 +87,7 @@ describe('IOS Environment Setup tests', () => {
     });
 
     it('Should attempt to validate supported Xcode runtime environments', async () => {
-        jest.spyOn(IOSEnvironmentSetup.prototype, 'executeCommand').mockImplementation(runtimesMockBlock);
+        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(runtimesMockBlock);
         let setup = new IOSEnvironmentSetup(logger);
         await setup.hasSupportedSimulatorRuntime();
         return expect(myXcodeSelectMock).toHaveBeenCalled();

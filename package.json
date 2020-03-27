@@ -5,8 +5,8 @@
   "author": "Raj Rao @trooper2013",
   "bugs": "https://github.com/forcedotcom/lwc-dev-mobile/issues",
   "dependencies": {
-    "@oclif/command": "^1",
-    "@oclif/config": "^1",
+    "@oclif/command": "^1.5.16",
+    "@oclif/config": "^1.13.1",
     "@oclif/errors": "^1",
     "@salesforce/lwc-dev-server-dependencies": "1.0.53",
     "@salesforce/telemetry": "^1.2.2",
@@ -61,14 +61,15 @@
   "license": "MIT",
   "oclif": {
     "commands": "./lib/cli/commands",
-    "bin": "sfdx",
+    "bin": "lwc-dev-mobile",
     "topics": {
       "hello": {
         "description": "Sfdx Lightning local development for mobile platforms."
       }
     },
     "devPlugins": [
-      "@oclif/plugin-help"
+      "@oclif/plugin-help",
+      "@oclif/plugin-update"
     ]
   },
   "repository": "https://github.com/forcedotcom/lwc-dev-mobile",

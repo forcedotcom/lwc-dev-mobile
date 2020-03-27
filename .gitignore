@@ -9,6 +9,7 @@ junit.xml
 node_modules/
 
 # Build directories
+lib/
 dist/
 virtual-modules/
 .localdevserver

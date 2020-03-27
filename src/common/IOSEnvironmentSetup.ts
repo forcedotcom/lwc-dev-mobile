@@ -9,32 +9,35 @@ const exec = util.promisify(childProcess.exec);
 export class IOSEnvironmentSetup extends reqs.BaseSetup {
     constructor(logger: Logger) {
         super(logger);
-        this.requirements = [
+        super.requirements = [
             {
                 title: 'macOS Environment',
                 checkFunction: this.isSupportedEnvironment,
                 fulfilledMessage: 'Running macOS',
                 unfulfilledMessage:
-                    'You must be running macOS to install an iOS development environment'
+                    'You must be running macOS to install an iOS development environment',
+                logger: logger   
             },
             {
                 title: 'Xcode Installed',
                 checkFunction: this.isXcodeInstalled,
                 fulfilledMessage: 'Xcode is installed',
                 unfulfilledMessage:
-                    'You must install Xcode from the Mac App Store to get access to the mobile simulators.'
+                    'You must install Xcode from the Mac App Store to get access to the mobile simulators.',
+                logger: logger  
             },
             {
                 title: 'Supported Simulator Runtime',
                 checkFunction: this.hasSupportedSimulatorRuntime,
                 fulfilledMessage:
                     'Environment has a supported simulator runtime',
-                unfulfilledMessage: 'Your version of Xcode is not supported.'
+                unfulfilledMessage: 'Your version of Xcode is not supported.',
+                logger: logger  
             }
         ];
     }
 
-    async executeCommand(command: string): Promise<{stdout: string, stderr: string}> {
+    static executeCommand(command: string): Promise<{stdout: string, stderr: string}> {
         return XcodeUtils.executeCommand(command);
     }
 
@@ -42,7 +45,7 @@ export class IOSEnvironmentSetup extends reqs.BaseSetup {
         const unameCommand: string = '/usr/bin/uname';
         try {
             this.logger.info('Executing a check for supported environment');
-            const { stdout } = await this.executeCommand(unameCommand);
+            const { stdout } = await IOSEnvironmentSetup.executeCommand(unameCommand);
             const unameOutput = stdout.trim();
             if (unameOutput === 'Darwin') {
                 return new Promise<string>((resolve, reject) =>
@@ -68,7 +71,7 @@ export class IOSEnvironmentSetup extends reqs.BaseSetup {
         const xcodeSelectCommand: string = '/usr/bin/xcode-select -p';
         try {
             this.logger.info('Executing a check for Xcode environment');
-            const { stdout, stderr } = await this.executeCommand(xcodeSelectCommand);
+            const { stdout, stderr } = await IOSEnvironmentSetup.executeCommand(xcodeSelectCommand);
             if (stdout) {
                 const developmentLibraryPath = `${stdout}`.trim();
                 return new Promise<string>((resolve, reject) =>
