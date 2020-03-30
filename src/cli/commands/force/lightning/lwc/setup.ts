@@ -22,7 +22,6 @@ export default class Setup extends SfdxCommand {
         `$ sfdx force:lightning:lwc:setup -p Android`
     ];
 
-
     public static readonly flagsConfig: FlagsConfig = {
         platform: flags.string({
             char: 'p',
@@ -42,27 +41,32 @@ export default class Setup extends SfdxCommand {
         this.logger.setLevel(LoggerLevel.DEBUG);
         console.log(`Setup Command called for ${this.flags.platform}`);
         this.logger.info(`Setup Command called for ${this.flags.platform}`);
-        this.validatePlatformValue(this.flags.platform);
+        let valid = this.validatePlatformValue(this.flags.platform);
+        if (!valid) {
+            return Promise.reject({
+                hasMetAllRequirements: false,
+                tests: ['Pick a platform using -p [iOS|Android]']
+            })
+        }
         let setup = this.setup();
+        return this.executeSetup(setup);
+    }
+
+    public executeSetup(setup?: BaseSetup | null): Promise<any> {
         return setup == null
-            ? Promise.reject({
-                  hasMetAllRequirements: false,
-                  tests: ['Pick a platform using -p [iOS|Android]']
-              })
-            : setup.executeSetup();
+        ? Promise.reject({
+              hasMetAllRequirements: false,
+              tests: ['Pick a platform using -p [iOS|Android]']
+          })
+        : setup.executeSetup();
     }
 
     public validatePlatformValue(platform: string): boolean {
-        //stub
-        return true;
+        return CommandLineUtils.platformFlagIsIOS(platform);
     }
 
-    protected setup(): BaseSetup | null {
-        let setup: BaseSetup | null = null;
-        if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
-            console.log(`IOSEnvironmentSetup Command called for ${this.flags.platform}`);
-            setup = new IOSEnvironmentSetup(this.logger);
-        } 
+    protected setup(): BaseSetup  {
+        let setup: BaseSetup = new IOSEnvironmentSetup(this.logger);
         return setup;
     }
 
