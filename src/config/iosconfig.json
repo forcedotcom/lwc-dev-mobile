@@ -1,0 +1,5 @@
+{
+    "supportedRuntimes" : ["iOS-13"],
+    "supportedDevices": ["iPhone-11-Pro", "iPhone-X", "iPad-Pro--10-5-inch"],
+    "defaultSimulatorName" : "SFDXSimulator"
+ }
