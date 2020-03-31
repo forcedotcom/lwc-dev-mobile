@@ -10,13 +10,15 @@ class TruthyExtension extends reqs.BaseSetup {
                 checkFunction: this.testFunctionOne,
                 fulfilledMessage: 'Android SDK was detected.',
                 unfulfilledMessage:
-                    'You must install Android SDK add it to the path.'
+                    'You must install Android SDK add it to the path.',
+                logger:logger
             },
             {
                 title: 'ANDROID_HOME check',
                 checkFunction: this.testFunctionTwo,
                 fulfilledMessage: 'ANDROID_HOME has been detected.',
-                unfulfilledMessage: 'You must setup ANDROID_HOME.'
+                unfulfilledMessage: 'You must setup ANDROID_HOME.',
+                logger:logger
             }
         ];
     }
@@ -39,19 +41,22 @@ class FalsyExtension extends reqs.BaseSetup {
                 checkFunction: this.testFunctionOne,
                 fulfilledMessage: 'Android SDK was detected.',
                 unfulfilledMessage:
-                    'You must install Android SDK add it to the path.'
+                    'You must install Android SDK add it to the path.',
+                    logger:logger
             },
             {
                 title: 'ANDROID_HOME check',
                 checkFunction: this.testFunctionTwo,
                 fulfilledMessage: 'ANDROID_HOME has been detected.',
-                unfulfilledMessage: 'You must setup ANDROID_HOME.'
+                unfulfilledMessage: 'You must setup ANDROID_HOME.',
+                logger:logger
             },
             {
                 title: 'ANDROID_HOME check',
                 checkFunction: this.testFunctionThree,
                 fulfilledMessage: 'ANDROID_HOME has been detected.',
-                unfulfilledMessage: 'You must setup ANDROID_HOME.'
+                unfulfilledMessage: 'You must setup ANDROID_HOME.',
+                logger:logger
             }
         ];
     }

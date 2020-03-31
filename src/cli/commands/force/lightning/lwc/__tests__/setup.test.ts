@@ -1,6 +1,8 @@
 import Setup from '../setup';
+import { BaseSetup, SetupTestResult } from '../../../../../../common/Requirements';
 import * as Config from '@oclif/config';
 import { Logger } from '@salesforce/core';
+import { IOSEnvironmentSetup } from '../../../../../../common/IOSEnvironmentSetup';
 
 describe('Setup Tests', () => {
     let setup: Setup;
@@ -12,24 +14,41 @@ describe('Setup Tests', () => {
 
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
     test('Checks that flags are passed correctly', async () => {
         let logger = new Logger('test-setup');
         setupLogger(logger);
         setupFlags();
+        setupMockExecIOS();
         const mockCall= jest.fn((value) => {return true});
         setup.validatePlatformValue = mockCall;
         await setup.run();
-        return expect(mockCall).toHaveBeenCalledWith('android');
+        return expect(mockCall).toHaveBeenCalledWith('ios');
     });
 
     test('Logger must be initialized and invoked', async () => {
         let logger = new Logger('test');
         setupLogger(logger);
         setupFlags();
+        setupMockExecIOS();
         let loggerSpy = jest.spyOn(logger, 'info');
         await setup.run();
         return expect(loggerSpy).toHaveBeenCalled();
     });
+
+    test('Checks that flags are passed correctly', async () => {
+        let myExecImpl = setupMockExecIOS(); 
+        let logger = new Logger('test-setup');
+        setupLogger(logger);
+        setupFlags();
+        
+        await setup.run();
+        expect(myExecImpl).toHaveBeenCalled();
+      
+    });
+
 
     test('Messages folder should be loaded', async () => {
         expect.assertions(1);
@@ -39,7 +58,7 @@ describe('Setup Tests', () => {
     function setupFlags() {
         Object.defineProperty(setup, 'flags', {
             get: () => {
-                return {'platform' : 'android'};
+                return {'platform' : 'ios'};
             }
         });
     }
@@ -53,4 +72,21 @@ describe('Setup Tests', () => {
             enumerable: false
         });
     }
+
+    function setupMockExecIOS(): any  {
+        let myExecImpl = jest.fn((setup): Promise<boolean> => {
+            return new Promise((resolve, reject) => {
+                if (setup instanceof IOSEnvironmentSetup) {
+                    resolve(true);
+                }
+                else {
+                    reject(false);
+                }
+            });
+          });
+
+        setup.executeSetup = myExecImpl; 
+        return myExecImpl; 
+    }
+
 });
