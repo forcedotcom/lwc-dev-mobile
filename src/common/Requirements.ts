@@ -32,6 +32,12 @@ export interface Launcher {
     launchNativeBrowser(url: string): Promise<void>;
 }
 
+// This function wraps existing promises with the intention to allow the collection of promises 
+// to settle when used in conjunction with Promise.all(). Promise.all() by default executes until the first
+// rejection. We are looking for the equivalent of Promise.allSettled() which is scheduled for ES2020.
+// Once the functionality is  available  in the near future this function can be removed.  
+// See https://github.com/tc39/proposal-promise-allSettled
+
 export function WrappedPromise(promise: Promise<any>) {
     return promise.then(
         function(v) {

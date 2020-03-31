@@ -1,9 +1,9 @@
 import * as reqs from './Requirements';
 import { XcodeUtils } from './IOSUtils';
-import { DefaultLWCMobileConfig } from './Config';
 import { Logger } from '@salesforce/core';
 import util from 'util';
 import childProcess from 'child_process';
+import * as iOSConfig from '../config/iosconfig.json';
 const exec = util.promisify(childProcess.exec);
 
 export class IOSEnvironmentSetup extends reqs.BaseSetup {
@@ -100,8 +100,8 @@ export class IOSEnvironmentSetup extends reqs.BaseSetup {
         try {
             this.logger.info('Executing a check for iOS runtimes');
             const configuredRuntimes = await XcodeUtils.getSimulatorRuntimes();
-            const supportedRuntimes =
-                DefaultLWCMobileConfig.ios.supportedRuntimes;
+            const supportedRuntimes: Array<string> =
+            iOSConfig.supportedRuntimes;
             let rtIntersection = supportedRuntimes.filter(supportedRuntime => {
                 const responsiveRuntime = configuredRuntimes.find(
                     configuredRuntime =>
