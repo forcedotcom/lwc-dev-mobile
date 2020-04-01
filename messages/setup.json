@@ -5,7 +5,7 @@
     "remedy:invalidInputFlagsDescription": "Pick a platform using -p [iOS|Android]",
     "ios:reqs:macos:title" : "macOS Environment",
     "ios:reqs:macos:fulfilledMessage" : "Running macOS",
-    "ios:reqs:macos:unfulfilledMessage" : "You must be running macOS to install an iOS development environment '%s'",
+    "ios:reqs:macos:unfulfilledMessage" : "You must be running macOS to install an iOS development environment: '%s'",
     "ios:reqs:xcode:title" : "Xcode installed",
     "ios:reqs:xcode:fulfilledMessage" : "Xcode installed.  Configured development library path: %s",
     "ios:reqs:xcode:unfulfilledMessage" : "Xcode is not installed or configured. %s",
