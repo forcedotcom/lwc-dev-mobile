@@ -1,37 +1,44 @@
 import * as reqs from './Requirements';
 import { XcodeUtils } from './IOSUtils';
-import { Logger } from '@salesforce/core';
+import { Messages, Logger } from '@salesforce/core';
 import util from 'util';
 import childProcess from 'child_process';
 import * as iOSConfig from '../config/iosconfig.json';
+
 const exec = util.promisify(childProcess.exec);
+const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'setup');
 
 export class IOSEnvironmentSetup extends reqs.BaseSetup {
+
+    //NOTE: The following properties are just place holders to help with typescript compile.
+    private title: string = '';
+    private fulfilledMessage: string = '';
+    private unfulfilledMessage: string = '';
+    
     constructor(logger: Logger) {
         super(logger);
         super.requirements = [
             {
-                title: 'macOS Environment',
+                title: `${messages.getMessage('ios:reqs:macos:title')}`,
                 checkFunction: this.isSupportedEnvironment,
-                fulfilledMessage: 'Running macOS',
-                unfulfilledMessage:
-                    'You must be running macOS to install an iOS development environment',
+                fulfilledMessage: `${messages.getMessage('ios:reqs:macos:fulfilledMessage')}`,
+                unfulfilledMessage:`${messages.getMessage('ios:reqs:macos:unfulfilledMessage')}`,
                 logger: logger   
             },
             {
-                title: 'Xcode Installed',
+                title: `${messages.getMessage('ios:reqs:xcode:title')}`,
                 checkFunction: this.isXcodeInstalled,
-                fulfilledMessage: 'Xcode is installed',
+                fulfilledMessage: `${messages.getMessage('ios:reqs:xcode:fulfilledMessage')}`,
                 unfulfilledMessage:
-                    'You must install Xcode from the Mac App Store to get access to the mobile simulators.',
+                `${messages.getMessage('ios:reqs:xcode:unfulfilledMessage')}`,
                 logger: logger  
             },
             {
-                title: 'Supported Simulator Runtime',
+                title: `${messages.getMessage('ios:reqs:simulator:title')}`,
                 checkFunction: this.hasSupportedSimulatorRuntime,
                 fulfilledMessage:
-                    'Environment has a supported simulator runtime',
-                unfulfilledMessage: 'Your version of Xcode is not supported.',
+                `${messages.getMessage('ios:reqs:simulator:fulfilledMessage')}`,
+                unfulfilledMessage: `${messages.getMessage('ios:reqs:simulator:unfulfilledMessage')}`,
                 logger: logger  
             }
         ];
@@ -49,19 +56,19 @@ export class IOSEnvironmentSetup extends reqs.BaseSetup {
             const unameOutput = stdout.trim();
             if (unameOutput === 'Darwin') {
                 return new Promise<string>((resolve, reject) =>
-                    resolve('macOS detected.')
+                    resolve(this.fulfilledMessage)
                 );
             } else {
                 return new Promise<string>((resolve, reject) =>
                     reject(
-                        `'${unameOutput}' is not macOS, and is not supported for iOS development.`
+                        `'${unameOutput}' ${this.unfulfilledMessage}`
                     )
                 );
             }
         } catch (unameError) {
             return new Promise<string>((resolve, reject) =>
                 reject(
-                    `The command '${unameCommand}' failed: ${unameError}, error code: ${unameError.code}`
+                    `${this.unfulfilledMessage} The command '${unameCommand}' failed: ${unameError}, error code: ${unameError.code}`
                 )
             );
         }
@@ -76,13 +83,13 @@ export class IOSEnvironmentSetup extends reqs.BaseSetup {
                 const developmentLibraryPath = `${stdout}`.trim();
                 return new Promise<string>((resolve, reject) =>
                     resolve(
-                        `Xcode installed.  Configured development library path: ${developmentLibraryPath}`
+                        `${this.fulfilledMessage}: ${developmentLibraryPath}`
                     )
                 );
             } else {
                 return new Promise<string>((resolve, reject) =>
                     reject(
-                        `Did not receive expected output from xcode-select.  Error output: ${stderr ||
+                        `${this.unfulfilledMessage} Error output: ${stderr ||
                             'None'}`
                     )
                 );
@@ -90,7 +97,7 @@ export class IOSEnvironmentSetup extends reqs.BaseSetup {
         } catch (xcodeSelectError) {
             return new Promise<string>((resolve, reject) =>
                 reject(
-                    `Xcode is not installed: ${xcodeSelectError}, error code: ${xcodeSelectError.code}`
+                    `${this.unfulfilledMessage}: ${xcodeSelectError}, error code: ${xcodeSelectError.code}`
                 )
             );
         }
@@ -112,20 +119,19 @@ export class IOSEnvironmentSetup extends reqs.BaseSetup {
             if (rtIntersection.length > 0) {
                 return new Promise<string>((resolve, reject) =>
                     resolve(
-                        `One or more supported simulator runtimes are configured for ${rtIntersection}.`
+                        `${this.fulfilledMessage} ${rtIntersection}.`
                     )
                 );
             } else {
                 return new Promise<string>((resolve, reject) =>
                     reject(
-                        `No supported simulator runtimes found.  Supported runtimes include ${supportedRuntimes}.`
+                        `${this.unfulfilledMessage} ${supportedRuntimes}.`
                     )
                 );
             }
         } catch (supportedRuntimesError) {
             return new Promise<string>((resolve, reject) =>
-                reject(
-                    `Error retrieving supported runtimes: ${supportedRuntimesError}`
+                reject(`${this.unfulfilledMessage}. Error retrieving supported runtimes: ${supportedRuntimesError}`
                 )
             );
         }
