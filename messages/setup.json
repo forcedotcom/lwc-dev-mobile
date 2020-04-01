@@ -1,20 +1,15 @@
 {
     "commandDescription": "Setup Lightning Web Components in a mobile environment",
     "platformFlagDescription": "Specify platform [iOS,Android]",
-
-    "error:invalidInputFlagsDescription": "Failed to execute command setup. Invalid input value for platform",
+    "error:invalidInputFlagsDescription": "Invalid input value for platform.",
     "remedy:invalidInputFlagsDescription": "Pick a platform using -p [iOS|Android]",
-    
     "ios:reqs:macos:title" : "macOS Environment",
     "ios:reqs:macos:fulfilledMessage" : "Running macOS",
-    "ios:reqs:macos:unfulfilledMessage" : "You must be running macOS to install an iOS development environment",
-
+    "ios:reqs:macos:unfulfilledMessage" : "You must be running macOS to install an iOS development environment '%s'",
     "ios:reqs:xcode:title" : "Xcode installed",
-    "ios:reqs:xcode:fulfilledMessage" : "Xcode installed.  Configured development library path:",
-    "ios:reqs:xcode:unfulfilledMessage" : "You must install Xcode from the Mac App Store to get access to the mobile simulators.",
-
+    "ios:reqs:xcode:fulfilledMessage" : "Xcode installed.  Configured development library path: %s",
+    "ios:reqs:xcode:unfulfilledMessage" : "Xcode is not installed or configured. %s",
     "ios:reqs:simulator:title" : "Supported Simulator Runtime",
-    "ios:reqs:simulator:fulfilledMessage" : "One or more supported simulator runtimes are configured for",
+    "ios:reqs:simulator:fulfilledMessage" : "One or more supported simulator runtimes are configured for %s",
     "ios:reqs:simulator:unfulfilledMessage" : "No supported simulator runtimes found.  Supported runtimes include"
-
 }

@@ -5,6 +5,7 @@ import util from 'util';
 import childProcess from 'child_process';
 import * as iOSConfig from '../config/iosconfig.json';
 
+import nodeUtil from 'util';
 const exec = util.promisify(childProcess.exec);
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'setup');
 
@@ -60,17 +61,11 @@ export class IOSEnvironmentSetup extends reqs.BaseSetup {
                 );
             } else {
                 return new Promise<string>((resolve, reject) =>
-                    reject(
-                        `'${unameOutput}' ${this.unfulfilledMessage}`
-                    )
-                );
+                    reject(nodeUtil.format(this.unfulfilledMessage, unameOutput)));
             }
         } catch (unameError) {
             return new Promise<string>((resolve, reject) =>
-                reject(
-                    `${this.unfulfilledMessage} The command '${unameCommand}' failed: ${unameError}, error code: ${unameError.code}`
-                )
-            );
+                reject(nodeUtil.format(this.unfulfilledMessage, `command '${unameCommand}' failed: ${unameError}, error code: ${unameError.code}`)));
         }
     }
 
@@ -82,24 +77,15 @@ export class IOSEnvironmentSetup extends reqs.BaseSetup {
             if (stdout) {
                 const developmentLibraryPath = `${stdout}`.trim();
                 return new Promise<string>((resolve, reject) =>
-                    resolve(
-                        `${this.fulfilledMessage}: ${developmentLibraryPath}`
-                    )
-                );
+                    resolve(nodeUtil.format(this.fulfilledMessage, developmentLibraryPath)));
+              
             } else {
                 return new Promise<string>((resolve, reject) =>
-                    reject(
-                        `${this.unfulfilledMessage} Error output: ${stderr ||
-                            'None'}`
-                    )
-                );
+                    reject(nodeUtil.format(this.unfulfilledMessage, `${stderr || 'None'}`)));
             }
         } catch (xcodeSelectError) {
             return new Promise<string>((resolve, reject) =>
-                reject(
-                    `${this.unfulfilledMessage}: ${xcodeSelectError}, error code: ${xcodeSelectError.code}`
-                )
-            );
+                reject(nodeUtil.format(this.unfulfilledMessage, `${xcodeSelectError}, error code: ${xcodeSelectError.code}`)));
         }
     }
 
@@ -118,22 +104,14 @@ export class IOSEnvironmentSetup extends reqs.BaseSetup {
             });
             if (rtIntersection.length > 0) {
                 return new Promise<string>((resolve, reject) =>
-                    resolve(
-                        `${this.fulfilledMessage} ${rtIntersection}.`
-                    )
-                );
+                    resolve(nodeUtil.format(this.fulfilledMessage, rtIntersection)));
             } else {
                 return new Promise<string>((resolve, reject) =>
-                    reject(
-                        `${this.unfulfilledMessage} ${supportedRuntimes}.`
-                    )
-                );
+                    reject(nodeUtil.format(this.unfulfilledMessage, supportedRuntimes)));
             }
         } catch (supportedRuntimesError) {
             return new Promise<string>((resolve, reject) =>
-                reject(`${this.unfulfilledMessage}. Error retrieving supported runtimes: ${supportedRuntimesError}`
-                )
-            );
+                reject(nodeUtil.format(this.unfulfilledMessage, `${iOSConfig.supportedRuntimes} error:${supportedRuntimesError}`)));
         }
     }
 }
