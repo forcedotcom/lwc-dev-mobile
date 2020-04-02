@@ -58,6 +58,7 @@ describe('IOS Environment Setup tests', () => {
             expect(error).toBeTruthy();
         })
     });
+    
     it('Checks to see that the logger is set', async () => {
         let logInfo = jest.spyOn(logger, 'info');
         let setup = new IOSEnvironmentSetup(logger);

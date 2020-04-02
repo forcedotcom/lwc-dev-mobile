@@ -4,7 +4,6 @@ import * as Config from '@oclif/config';
 import { Messages, Logger, LoggerLevel } from '@salesforce/core';
 import { IOSEnvironmentSetup } from '../../../../../../common/IOSEnvironmentSetup';
 
-
 describe('Setup Tests', () => {
     let setup: Setup;
 
@@ -19,10 +18,6 @@ describe('Setup Tests', () => {
         jest.restoreAllMocks();
     });
     test('Checks that flags are passed correctly', async () => {
-        let rootLogegr = await Logger.root();
-        rootLogegr.setLevel(LoggerLevel.DEBUG);
-       
-       
         let logger = new Logger('test-setup');
         setupLogger(logger);
         setupFlags();
@@ -34,7 +29,7 @@ describe('Setup Tests', () => {
     });
 
     test('Logger must be initialized and invoked', async () => {
-        let logger = new Logger('test');
+        let logger = new Logger('test-setup');
         setupLogger(logger);
         setupFlags();
         setupMockExecIOS();
