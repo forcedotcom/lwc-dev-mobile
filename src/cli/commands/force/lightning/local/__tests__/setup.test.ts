@@ -1,7 +1,7 @@
 import Setup from '../setup';
 import { BaseSetup, SetupTestResult } from '../../../../../../common/Requirements';
 import * as Config from '@oclif/config';
-import { Logger } from '@salesforce/core';
+import { Messages, Logger, LoggerLevel } from '@salesforce/core';
 import { IOSEnvironmentSetup } from '../../../../../../common/IOSEnvironmentSetup';
 
 describe('Setup Tests', () => {
@@ -10,7 +10,7 @@ describe('Setup Tests', () => {
     afterEach(() => {});
 
     beforeEach(() => {
-        setup = new Setup([], new Config.Config(<Config.Options>{}));
+          setup = new Setup([], new Config.Config(<Config.Options>{}));
 
     });
 
@@ -29,7 +29,7 @@ describe('Setup Tests', () => {
     });
 
     test('Logger must be initialized and invoked', async () => {
-        let logger = new Logger('test');
+        let logger = new Logger('test-setup');
         setupLogger(logger);
         setupFlags();
         setupMockExecIOS();
@@ -48,7 +48,6 @@ describe('Setup Tests', () => {
         expect(myExecImpl).toHaveBeenCalled();
       
     });
-
 
     test('Messages folder should be loaded', async () => {
         expect.assertions(1);

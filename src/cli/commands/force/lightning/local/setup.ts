@@ -4,7 +4,6 @@ import { Messages, Logger, LoggerLevel, SfdxError} from '@salesforce/core';
 import { BaseSetup } from '../../../../../common/Requirements';
 import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSEnvironmentSetup} from '../../../../../common/IOSEnvironmentSetup';
-
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
 

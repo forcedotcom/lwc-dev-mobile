@@ -53,6 +53,8 @@ let badBlockMock = jest.fn((): Promise<{ stdout: string, stderr: string }> => {
 describe('IOS utils tests', () => {
 
   beforeEach(() => {
+      myCommandBlockMock.mockClear();
+      badBlockMock.mockClear();
   });
 
   afterEach(() => {
