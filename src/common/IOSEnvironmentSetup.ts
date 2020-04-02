@@ -4,10 +4,9 @@ import { Messages, Logger } from '@salesforce/core';
 import util from 'util';
 import childProcess from 'child_process';
 import * as iOSConfig from '../config/iosconfig.json';
-
 import nodeUtil from 'util';
+
 const exec = util.promisify(childProcess.exec);
-const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'setup');
 
 export class IOSEnvironmentSetup extends reqs.BaseSetup {
 
@@ -15,9 +14,11 @@ export class IOSEnvironmentSetup extends reqs.BaseSetup {
     private title: string = '';
     private fulfilledMessage: string = '';
     private unfulfilledMessage: string = '';
+    private setupMessages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'setup');
     
     constructor(logger: Logger) {
         super(logger);
+        let messages = this.setupMessages;
         super.requirements = [
             {
                 title: `${messages.getMessage('ios:reqs:macos:title')}`,
