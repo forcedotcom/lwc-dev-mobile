@@ -1,8 +1,9 @@
 import Setup from '../setup';
 import { BaseSetup, SetupTestResult } from '../../../../../../common/Requirements';
 import * as Config from '@oclif/config';
-import { Logger } from '@salesforce/core';
+import { Messages, Logger, LoggerLevel } from '@salesforce/core';
 import { IOSEnvironmentSetup } from '../../../../../../common/IOSEnvironmentSetup';
+
 
 describe('Setup Tests', () => {
     let setup: Setup;
@@ -10,7 +11,7 @@ describe('Setup Tests', () => {
     afterEach(() => {});
 
     beforeEach(() => {
-        setup = new Setup([], new Config.Config(<Config.Options>{}));
+          setup = new Setup([], new Config.Config(<Config.Options>{}));
 
     });
 
@@ -18,6 +19,10 @@ describe('Setup Tests', () => {
         jest.restoreAllMocks();
     });
     test('Checks that flags are passed correctly', async () => {
+        let rootLogegr = await Logger.root();
+        rootLogegr.setLevel(LoggerLevel.DEBUG);
+       
+       
         let logger = new Logger('test-setup');
         setupLogger(logger);
         setupFlags();
@@ -48,7 +53,6 @@ describe('Setup Tests', () => {
         expect(myExecImpl).toHaveBeenCalled();
       
     });
-
 
     test('Messages folder should be loaded', async () => {
         expect.assertions(1);
