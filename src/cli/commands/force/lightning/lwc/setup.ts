@@ -1,10 +1,9 @@
 #!/usr/bin/env ts-node
 import { flags, SfdxCommand, FlagsConfig } from '@salesforce/command';
-import { Messages, Logger, LoggerLevel } from '@salesforce/core';
+import { Messages, Logger, LoggerLevel, SfdxError} from '@salesforce/core';
 import { BaseSetup } from '../../../../../common/Requirements';
 import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSEnvironmentSetup} from '../../../../../common/IOSEnvironmentSetup';
-import { OutputArgs, OutputFlags } from '@oclif/parser';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -38,27 +37,17 @@ export default class Setup extends SfdxCommand {
     }
 
     public async run(): Promise<any> {
-        this.logger.setLevel(LoggerLevel.DEBUG);
-        console.log(`Setup Command called for ${this.flags.platform}`);
-        this.logger.info(`Setup Command called for ${this.flags.platform}`);
         let valid = this.validatePlatformValue(this.flags.platform);
         if (!valid) {
-            return Promise.reject({
-                hasMetAllRequirements: false,
-                tests: ['Pick a platform using -p [iOS|Android]']
-            })
+            throw new SfdxError(`${messages.getMessage('error:invalidInputFlagsDescription')}`, 'lwc-dev-mobile', [`${messages.getMessage('remedy:invalidInputFlagsDescription')}`]);
         }
+        this.logger.info(`Setup Command called for ${this.flags.platform}`);
         let setup = this.setup();
         return this.executeSetup(setup);
     }
 
-    public executeSetup(setup?: BaseSetup | null): Promise<any> {
-        return setup == null
-        ? Promise.reject({
-              hasMetAllRequirements: false,
-              tests: ['Pick a platform using -p [iOS|Android]']
-          })
-        : setup.executeSetup();
+    public executeSetup(setup: BaseSetup): Promise<any> {
+        return setup.executeSetup();
     }
 
     public validatePlatformValue(platform: string): boolean {

@@ -1,5 +1,5 @@
 
-import { Logger } from '@salesforce/core';
+import { Logger, Messages } from '@salesforce/core';
 
 let myUnameMock = jest.fn((): Promise<{ stdout: string, stderr: string }> => {
     return new Promise((resolve, reject) => {
