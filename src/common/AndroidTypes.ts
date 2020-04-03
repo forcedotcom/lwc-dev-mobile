@@ -13,7 +13,7 @@ export class AndroidPackage {
         this.location = location;
     }
 
-    platformAPI(): string {
+    get platformAPI(): string {
         let platformApi = '';
         if (this.path.startsWith('platforms') || this.path.startsWith('system-images')) {
             let tokens: string[] = this.path.split(';');

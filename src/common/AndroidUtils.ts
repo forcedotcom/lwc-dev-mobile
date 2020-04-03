@@ -74,7 +74,6 @@ export class AndroidSDKUtils {
                 return;
             }
             try {
-                let stdout = AndroidSDKUtils.executeCommand(AndroidSDKUtils.ADB_SHELL_COMMAND_VERSION);
                 resolve(true);
             } catch (err) {
                reject(err);
@@ -123,8 +122,6 @@ export class AndroidSDKUtils {
                 // use the first one.
                 let androidPackage = packages.get('platforms;' + filteredList[0]);
                 resolve(androidPackage);
-                return;
-
             } catch (error) {
                 reject(new Error(`Could not find android api packages. ${error.errorMessage}`));
             }
@@ -147,8 +144,8 @@ export class AndroidSDKUtils {
                 });
 
                 if (matchingKeys.length < 1) {
-                    reject(new Error(`Could not locate a matching build tools package. Requires any one of these [${range}]`));
-                    return;
+                    return reject(new Error(`Could not locate a matching build tools package. Requires any one of these [${range}]`));
+          
                 }
 
                 matchingKeys.sort();
@@ -157,8 +154,6 @@ export class AndroidSDKUtils {
                 // use the first one.
                 let androidPackage = packages.get(matchingKeys[0]);
                 resolve(androidPackage);
-                return;
-
             } catch (error) {
                 reject(new Error(`Could not find build tools packages. ${error.errorMessage}`));
             }
@@ -172,7 +167,8 @@ export class AndroidSDKUtils {
                 let installedAndroidPacakge = await AndroidSDKUtils.findRequiredAndroidAPIPackage();
                 let matchingKeys: Array<string> = [];
                 let platformAPI = installedAndroidPacakge.platformAPI();
-                let imagesRegex = androidConfig.supportedImages.reduce((previous , current) => `${platformAPI};${previous}|${platformAPI};${current}`);
+                let reducer = (accumalator:string, current: string) => accumalator.length > 0 ? `${accumalator}|${platformAPI};${current}` : `${platformAPI};${current}`;
+                let imagesRegex = androidConfig.supportedImages.reduce(reducer, '');
 
                 packages.forEach( (value,key) => { 
                     if (key.match(`(system-images;(${imagesRegex}))`) !== null) {
