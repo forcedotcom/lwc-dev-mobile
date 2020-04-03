@@ -145,7 +145,6 @@ export class AndroidSDKUtils {
 
                 if (matchingKeys.length < 1) {
                     return reject(new Error(`Could not locate a matching build tools package. Requires any one of these [${range}]`));
-          
                 }
 
                 matchingKeys.sort();
@@ -166,7 +165,7 @@ export class AndroidSDKUtils {
                 let packages = await AndroidSDKUtils.fetchInstalledPackages();
                 let installedAndroidPacakge = await AndroidSDKUtils.findRequiredAndroidAPIPackage();
                 let matchingKeys: Array<string> = [];
-                let platformAPI = installedAndroidPacakge.platformAPI();
+                let platformAPI = installedAndroidPacakge.platformAPI;
                 let reducer = (accumalator:string, current: string) => accumalator.length > 0 ? `${accumalator}|${platformAPI};${current}` : `${platformAPI};${current}`;
                 let imagesRegex = androidConfig.supportedImages.reduce(reducer, '');
 
