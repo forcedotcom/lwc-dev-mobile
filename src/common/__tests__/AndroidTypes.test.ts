@@ -14,7 +14,7 @@ let badBlockMock = jest.fn((): string  => {
     return AndroidMockData.badMockRawPacakagesString;
 });
 
-describe('Android utils', () => {
+describe('Android types tests', () => {
     beforeEach(() => {
         jest.resetModules();
         process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
