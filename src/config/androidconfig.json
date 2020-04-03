@@ -1,6 +1,6 @@
 {
     "supportedRuntimes" : ["android-29", "android-28", "android-27", "android-26", "android-25", "android-24", "android-23"],
-    "supportedBuildTools" : ["29", "28", "27", "26"],
+    "supportedBuildTools" : ["29","28","27","26","25","24","23"],
     "supportedImages" : ["default", "google-api"],
     "architectures" : ["x86_64"],
     "supportedDevices" : ["pixel", "pixel_xl"],
