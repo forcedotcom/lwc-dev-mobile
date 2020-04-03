@@ -7,8 +7,6 @@ import path from 'path';
 import util from 'util';
 
 const execSync = childProcess.execSync;
-const spawn = childProcess.spawn;
-const exec = util.promisify(childProcess.exec);
 
 export class AndroidSDKUtils {
 
@@ -200,7 +198,4 @@ export class AndroidSDKUtils {
         });
     }
 }
-
- //AndroidSDKUtils.testMethod().then();
-
 
