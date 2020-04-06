@@ -2,8 +2,7 @@
 import { flags, SfdxCommand } from '@salesforce/command';
 import { Messages, Logger } from '@salesforce/core';
 import { OutputArgs, OutputFlags } from '@oclif/parser';
-
-//import Setup from './setup';
+import Setup from './setup';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -50,12 +49,13 @@ export default class Preview extends SfdxCommand {
     public async init(): Promise<void>  {
         const logger = await Logger.child('mobile:preview', { tag: 'value' });
         this.logger = logger;
-        return await Promise.resolve();
+        return super.init();
     }
 
     public async run(): Promise<any> {
         this.logger.info('Preview Command called');
-        this.validatePlatformValue(this.flags.platform);
+        await Setup.run(['-p', this.flags.platform]);
+        this.logger.info('Preview Command ended');
         this.validateComponentPathValue(this.flags.path);
         this.validateTargetValue(this.flags.target);
     }

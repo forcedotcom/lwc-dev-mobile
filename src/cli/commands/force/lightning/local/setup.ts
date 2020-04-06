@@ -1,7 +1,8 @@
 #!/usr/bin/env ts-node
 import { flags, SfdxCommand, FlagsConfig } from '@salesforce/command';
 import { Messages, Logger, LoggerLevel, SfdxError} from '@salesforce/core';
-import { BaseSetup } from '../../../../../common/Requirements';
+import { AndroidEnvironmentSetup } from '../../../../../common/AndroidEnvironmentSetup';
+import { BaseSetup, SetupTestResult } from '../../../../../common/Requirements';
 import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSEnvironmentSetup} from '../../../../../common/IOSEnvironmentSetup';
 // Initialize Messages with the current plugin directory
@@ -42,19 +43,26 @@ export default class Setup extends SfdxCommand {
         }
         this.logger.info(`Setup Command called for ${this.flags.platform}`);
         let setup = this.setup();
-        return this.executeSetup(setup);
+        let result = await this.executeSetup(setup);
+        if (!result.hasMetAllRequirements) {
+            let actions = result.tests.filter( test => !test.hasPassed).map(test => test.message);
+            throw new SfdxError(`${messages.getMessage('error:setupFailed')}`, 'lwc-dev-mobile',actions);
+        }
     }
 
-    public executeSetup(setup: BaseSetup): Promise<any> {
+    public executeSetup(setup: BaseSetup): Promise<SetupTestResult> {
         return setup.executeSetup();
     }
 
     public validatePlatformValue(platform: string): boolean {
-        return CommandLineUtils.platformFlagIsIOS(platform);
+        return (CommandLineUtils.platformFlagIsIOS(platform) || CommandLineUtils.platformFlagIsAndroid(platform));
     }
 
     protected setup(): BaseSetup  {
         let setup: BaseSetup = new IOSEnvironmentSetup(this.logger);
+        if (CommandLineUtils.platformFlagIsAndroid(this.flags.platform)) {
+            setup = new AndroidEnvironmentSetup(this.logger);
+        }
         return setup;
     }
 

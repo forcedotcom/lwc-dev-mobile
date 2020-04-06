@@ -1,6 +1,7 @@
 import Preview from '../preview';
+import Setup from '../setup';
 import * as Config from '@oclif/config';
-import { Logger } from '@salesforce/core';
+import { Logger, SfdxError } from '@salesforce/core';
 
 describe('Preview Tests', () => {
 
@@ -13,20 +14,53 @@ describe('Preview Tests', () => {
 
     });
     
-    test('Checks that flags are passed correctly', async () => {
+    test('Checks that Comp Path flag is received', async () => {
         setupFlags();
         let logger = new Logger('test-preview');
         setupLogger(logger);
         const compPathCalValidationlMock = jest.fn((value) => {return true});
         const platformCallValidationMock = jest.fn((value) => {return true});
         const targetValueValidationCallMock = jest.fn((value) => {return true});
+        const setupMock = jest.fn((value) => {return Promise.resolve({hasMetAllRequirements:true, tests:[]})});
+        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
         preview.validateComponentPathValue = compPathCalValidationlMock;
-        preview.validatePlatformValue = platformCallValidationMock;
         preview.validateTargetValue = targetValueValidationCallMock;
         await preview.run();
-        expect(compPathCalValidationlMock).toHaveBeenCalledWith('componentpath');
-        expect(platformCallValidationMock).toHaveBeenCalledWith('android');
+        return expect(compPathCalValidationlMock).toHaveBeenCalledWith('componentpath');
+    });
+
+    test('Checks that target flag is received', async () => {
+        setupFlags();
+        let logger = new Logger('test-preview');
+        setupLogger(logger);
+        const compPathCalValidationlMock = jest.fn((value) => {return true});
+        const platformCallValidationMock = jest.fn((value) => {return true});
+        const targetValueValidationCallMock = jest.fn((value) => {return true});
+        const setupMock = jest.fn((value) => {return Promise.resolve({hasMetAllRequirements:true, tests:[]})});
+        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
+        preview.validateComponentPathValue = compPathCalValidationlMock;
+        preview.validateTargetValue = targetValueValidationCallMock;
+        await preview.run();
         return expect(targetValueValidationCallMock).toHaveBeenCalledWith('sfdxemu');
+    });
+
+    test('Checks that setup is invoked', async () => {
+        setupFlags();
+        let logger = new Logger('test-preview');
+        setupLogger(logger);
+        const setupMock = jest.fn((value) => {return Promise.resolve({hasMetAllRequirements:true, tests:[]})});
+        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
+        await preview.run();
+        return expect(setupMock);
+    });
+
+    test('Preview should throw an error if setup fails', async () => {
+        setupFlags();
+        let logger = new Logger('test-preview');
+        setupLogger(logger);
+        const setupMock = jest.fn((value) => {return Promise.resolve({hasMetAllRequirements:false, tests:['Mock Failure in tests!']})});
+        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
+        preview.run().catch ((error) => expect(error &&  (error instanceof SfdxError)).toBeTruthy);
     });
 
     test('Logger must be initialized and invoked', async () => {

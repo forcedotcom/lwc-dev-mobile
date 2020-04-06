@@ -34,27 +34,27 @@ describe('Android utils', () => {
     });
     test('Should attempt to look for android sdk tools (sdkmanager)', async () => {
       jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(myGenericVersionsCommandBlockMock);
-        let sdkToolsInstalled =  await AndroidSDKUtils.isAndroidSDKToolsInstalled();
+        await AndroidSDKUtils.fetchAndroidSDKToolsLocation();
         expect(myGenericVersionsCommandBlockMock).toHaveBeenCalledWith(MOCK_ANDROID_HOME + '/tools/bin/sdkmanager --version');
    });
 
     test('Should attempt to look for android sdk tools (sdkmanager)', async () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(myGenericVersionsCommandBlockMockThrows);
-        AndroidSDKUtils.isAndroidSDKToolsInstalled().catch((error) => {
+        AndroidSDKUtils.fetchAndroidSDKToolsLocation().catch((error) => {
             expect(error).toBeTruthy();
         });
        
     });
 
-    test('Should attempt to look for android sdk tools (sdkmanager)', async () => {
+    test('Should attempt to look for android sdk platform tools', async () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(myGenericVersionsCommandBlockMock);
-          let sdkToolsInstalled =  await AndroidSDKUtils.isAndroidSDKToolsInstalled();
-          expect(myGenericVersionsCommandBlockMock).toHaveBeenCalledWith(MOCK_ANDROID_HOME + '/tools/bin/sdkmanager --version');
+          await AndroidSDKUtils.fetchAndroidSDKPlatformToolsLocation();
+          expect(myGenericVersionsCommandBlockMock).toHaveBeenCalledWith(MOCK_ANDROID_HOME + '/platform-tools/adb --version');
      });
   
-      test('Should attempt to look for android sdk platform tools (sdkmanager)', async () => {
+      test('Should attempt to look for android sdk platform tools', async () => {
           jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(myGenericVersionsCommandBlockMockThrows);
-          AndroidSDKUtils.isAndroidSDKPlatformToolsInstalled().catch((error) => {
+          AndroidSDKUtils.fetchAndroidSDKPlatformToolsLocation().catch((error) => {
               expect(error).toBeTruthy();
           });
       });

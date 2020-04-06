@@ -2,6 +2,7 @@
     "commandDescription": "Setup Lightning Web Components in a mobile environment",
     "platformFlagDescription": "Specify platform [iOS,Android]",
     "error:invalidInputFlagsDescription": "Invalid input value for platform.",
+    "error:setupFailedMessage": "Setup for platform %s failed.",
     "remedy:invalidInputFlagsDescription": "Pick a platform using -p [iOS|Android]",
     "ios:reqs:macos:title" : "macOS Environment",
     "ios:reqs:macos:fulfilledMessage" : "Running macOS",
@@ -11,5 +12,21 @@
     "ios:reqs:xcode:unfulfilledMessage" : "Xcode is not installed or configured. %s",
     "ios:reqs:simulator:title" : "Supported Simulator Runtime",
     "ios:reqs:simulator:fulfilledMessage" : "One or more supported simulator runtimes are configured for %s",
-    "ios:reqs:simulator:unfulfilledMessage" : "No supported simulator runtimes found.  Supported runtimes include"
+    "ios:reqs:simulator:unfulfilledMessage" : "No supported simulator runtimes found.  Supported runtimes include %s",
+    
+    "android:reqs:androidhome:title" : "ANDROID_HOME check",
+    "android:reqs:androidhome:fulfilledMessage" : "ANDROID_HOME is set to '%s'",
+    "android:reqs:androidhome:unfulfilledMessage" : "ANDROID_HOME not found. Setup ANDROID_HOME in your environment.",
+    "android:reqs:sdktools:title" : "SDK Tools Check",
+    "android:reqs:sdktools:fulfilledMessage" : "Android SDK tools were detected at '%s'",
+    "android:reqs:sdktools:unfulfilledMessage" : "Install any one of the SDK tools for [%s - %s]",
+    "android:reqs:platformtools:title" : "SDK Platform Tools Check",
+    "android:reqs:platformtools:fulfilledMessage" : "Android SDK Platform tools were detected at '%s'",
+    "android:reqs:platformtools:unfulfilledMessage" : "Install any one of the Android SDK Platform tools for [%s - %s]",
+    "android:reqs:platformapi:title" : "SDK Platform Platform API check",
+    "android:reqs:platformapi:fulfilledMessage" : "%s was detected",
+    "android:reqs:platformapi:unfulfilledMessage" : "Install any one of these Android API packages [%s - %s]",
+    "android:reqs:emulatorimages:title" : "SDK Platform Emulator images Check",
+    "android:reqs:emulatorimages:fulfilledMessage" : "Android SDK emulator image [%s] was detected.",
+    "android:reqs:emulatorimages:unfulfilledMessage" : "Should install any one of these emulator images [%s]"
 }
