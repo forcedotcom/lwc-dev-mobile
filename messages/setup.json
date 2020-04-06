@@ -2,7 +2,7 @@
     "commandDescription": "Setup Lightning Web Components in a mobile environment",
     "platformFlagDescription": "Specify platform [iOS,Android]",
     "error:invalidInputFlagsDescription": "Invalid input value for platform.",
-    "error:setupFailedMessage": "Setup for platform %s failed.",
+    "error:setupFailed": "Setup for platform %s failed.",
     "remedy:invalidInputFlagsDescription": "Pick a platform using -p [iOS|Android]",
     "ios:reqs:macos:title" : "macOS Environment",
     "ios:reqs:macos:fulfilledMessage" : "Running macOS",

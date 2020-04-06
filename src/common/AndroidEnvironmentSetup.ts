@@ -56,8 +56,8 @@ export class AndroidEnvironmentSetup extends reqs.BaseSetup {
     public async isAndroidHomeSet(): Promise<string> {
         return new Promise<string> ( (resolve,reject) => {
             if (AndroidSDKUtils.isAndroidHomeSet()) {
-            } else {
                 resolve(nodeUtil.format(this.fulfilledMessage,AndroidSDKUtils.androidHome));
+            } else {
                 reject(this.unfulfilledMessage);
             }
         });
