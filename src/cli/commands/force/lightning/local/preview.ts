@@ -1,7 +1,6 @@
 #!/usr/bin/env ts-node
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Messages, Logger } from '@salesforce/core';
-import { OutputArgs, OutputFlags } from '@oclif/parser';
+import { Logger, Messages } from '@salesforce/core';
 import Setup from './setup';
 
 // Initialize Messages with the current plugin directory
@@ -46,7 +45,7 @@ export default class Preview extends SfdxCommand {
     // Set this to true if your command requires a project workspace; 'requiresProject' is false by default
     protected static requiresProject = false;
 
-    public async init(): Promise<void>  {
+    public async init(): Promise<void> {
         const logger = await Logger.child('mobile:preview', { tag: 'value' });
         this.logger = logger;
         return super.init();
@@ -60,18 +59,13 @@ export default class Preview extends SfdxCommand {
         this.validateTargetValue(this.flags.target);
     }
 
-    public validatePlatformValue(platform: string): boolean {
-        //stub
-        return true;
-    }
-
     public validateComponentPathValue(path: string): boolean {
-        //stub
+        this.logger.debug('Invoked validate validateComponent in preview');
         return true;
     }
 
     public validateTargetValue(target: string): boolean {
-        //stub
+        this.logger.debug('Invoked validate validateTargetValue in preview');
         return true;
     }
 }
