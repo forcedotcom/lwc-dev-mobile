@@ -67,6 +67,9 @@
         "description": "Sfdx Lightning local development for mobile platforms."
       }
     },
+    "plugins": [
+      "@salesforce/lwc-dev-server"
+    ],
     "devPlugins": [
       "@oclif/plugin-help",
       "@oclif/plugin-update"

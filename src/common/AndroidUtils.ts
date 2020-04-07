@@ -12,13 +12,15 @@ export class AndroidSDKUtils {
 
     static ANDROID_HOME = process.env.ANDROID_HOME ? process.env.ANDROID_HOME : '';
     static EMULATOR_COMMAND = path.join(AndroidSDKUtils.ANDROID_HOME, 'emulator', 'emulator');
-    static AVDMANAGER_COMMAND = path.join(AndroidSDKUtils.ANDROID_HOME, 'tools', 'bin',  'avdmanager');
+    static ANDROID_TOOLS_BIN = path.join(AndroidSDKUtils.ANDROID_HOME, 'tools', 'bin');
+    static ANDROID_PLATFORM_TOOLS = path.join(AndroidSDKUtils.ANDROID_HOME ,'platform-tools');
+    static AVDMANAGER_COMMAND = path.join(AndroidSDKUtils.ANDROID_TOOLS_BIN,  'avdmanager');
     static ANDROID_LIST_TARGETS_COMMAND = AndroidSDKUtils.AVDMANAGER_COMMAND + ' list ' + 'target';
     static ANDROID_LIST_DEVICES_COMMAND = AndroidSDKUtils.AVDMANAGER_COMMAND + ' list ' + 'devices';
     static ANDROID_LIST_AVDS_COMMAND = AndroidSDKUtils.AVDMANAGER_COMMAND + ' list ' + 'avd';
-    static ADB_SHELL_COMMAND = path.join(AndroidSDKUtils.ANDROID_HOME ,'platform-tools', 'adb');
+    static ADB_SHELL_COMMAND = path.join(AndroidSDKUtils.ANDROID_PLATFORM_TOOLS, 'adb');
     static ANDROID_SDK_MANAGER_NAME = 'sdkmanager';
-    static ANDROID_SDK_MANAGER_CMD = path.join(AndroidSDKUtils.ANDROID_HOME, 'tools', 'bin', AndroidSDKUtils.ANDROID_SDK_MANAGER_NAME);
+    static ANDROID_SDK_MANAGER_CMD = path.join(AndroidSDKUtils.ANDROID_TOOLS_BIN, AndroidSDKUtils.ANDROID_SDK_MANAGER_NAME);
     static ANDROID_SDK_MANAGER_LIST_COMMAND = AndroidSDKUtils.ANDROID_SDK_MANAGER_CMD + ' --list';
     static ANDROID_SDK_MANAGER_VERSION_COMMAND = AndroidSDKUtils.ANDROID_SDK_MANAGER_CMD + ' --version';
     static ADB_SHELL_COMMAND_VERSION = AndroidSDKUtils.ADB_SHELL_COMMAND + ' --version';
@@ -47,11 +49,15 @@ export class AndroidSDKUtils {
             : false;
     }
 
+    static get androidHome(): String {
+        return process.env.ANDROID_HOME?process.env.ANDROID_HOME.trim():'';
+    }
+
     static clearCaches() {
         AndroidSDKUtils.packageCache.clear();
     }
 
-    static async isAndroidSDKToolsInstalled(): Promise<boolean> {
+    static async fetchAndroidSDKToolsLocation(): Promise<string> {
         return new Promise( async (resolve,reject) => {
             if (!AndroidSDKUtils.isAndroidHomeSet()) {
                 reject(new Error('ANDROID_HOME is not set.'));
@@ -59,7 +65,7 @@ export class AndroidSDKUtils {
             }
             try {
                 AndroidSDKUtils.executeCommand(AndroidSDKUtils.ANDROID_SDK_MANAGER_VERSION_COMMAND);
-                resolve(true);
+                resolve(AndroidSDKUtils.ANDROID_TOOLS_BIN);
             } catch (err) {
                reject(err);
                return;
@@ -67,17 +73,16 @@ export class AndroidSDKUtils {
         });
     }
 
-    static async isAndroidSDKPlatformToolsInstalled(): Promise<boolean> {
+    static async fetchAndroidSDKPlatformToolsLocation(): Promise<string> {
         return new Promise( async (resolve,reject) => {
             if (!AndroidSDKUtils.isAndroidHomeSet()) {
-                reject(new Error('ANDROID_HOME is not set.'));
-                return;
+                return reject(new Error('ANDROID_HOME is not set.'));
             }
             try {
-                resolve(true);
+                AndroidSDKUtils.executeCommand(AndroidSDKUtils.ADB_SHELL_COMMAND_VERSION);
+                resolve(AndroidSDKUtils.ANDROID_PLATFORM_TOOLS);
             } catch (err) {
                reject(err);
-               return;
             }
         });
     }
@@ -85,8 +90,7 @@ export class AndroidSDKUtils {
     static async fetchInstalledPackages(): Promise<Map<string, AndroidPackage>> {
         return new Promise<Map<string, AndroidPackage>>( (resolve, reject) => { 
             if (!AndroidSDKUtils.isAndroidHomeSet()) {
-                reject(new Error('ANDROID_HOME is not set.'));
-                return;
+                return reject(new Error('ANDROID_HOME is not set.'));
             }
 
             if (!AndroidSDKUtils.isCached()) {
@@ -97,8 +101,7 @@ export class AndroidSDKUtils {
                         AndroidSDKUtils.packageCache = packages;
                     }
                 } catch (err) {
-                   reject(err);
-                   return;
+                   return reject(err);
                 }
             }
             resolve(AndroidSDKUtils.packageCache)
@@ -110,14 +113,13 @@ export class AndroidSDKUtils {
             try {
                 let packages = await AndroidSDKUtils.fetchInstalledPackages();
                 if (packages.size < 1) {
-                    reject(new Error(`Could not find android api packages. Requires any one of these [${androidConfig.supportedRuntimes[0]} - ${androidConfig.supportedRuntimes[androidConfig.supportedRuntimes.length - 1]}]`));
-                    return;
+                    return reject(new Error(`Could not find android api packages. Requires any one of these [${androidConfig.supportedRuntimes[0]} - ${androidConfig.supportedRuntimes[androidConfig.supportedRuntimes.length - 1]}]`));
+                    
                 }
 
                 let filteredList: Array<string> = androidConfig.supportedRuntimes.filter((runtimeString) =>  packages.get('platforms;' + runtimeString) !== null);
                 if (filteredList.length < 1) {
-                    reject(new Error(`Could not locate a matching android api package. Requires any one of these [${androidConfig.supportedRuntimes[0]} - ${androidConfig.supportedRuntimes[androidConfig.supportedRuntimes.length - 1]}]`));
-                    return;
+                    return reject(new Error(`Could not locate a matching android api package. Requires any one of these [${androidConfig.supportedRuntimes[0]} - ${androidConfig.supportedRuntimes[androidConfig.supportedRuntimes.length - 1]}]`));
                 }
                 // use the first one.
                 let androidPackage = packages.get('platforms;' + filteredList[0]);
@@ -163,9 +165,9 @@ export class AndroidSDKUtils {
         return new Promise<AndroidPackage>( async (resolve, reject) => {
             try {
                 let packages = await AndroidSDKUtils.fetchInstalledPackages();
-                let installedAndroidPacakge = await AndroidSDKUtils.findRequiredAndroidAPIPackage();
+                let installedAndroidPackage = await AndroidSDKUtils.findRequiredAndroidAPIPackage();
                 let matchingKeys: Array<string> = [];
-                let platformAPI = installedAndroidPacakge.platformAPI;
+                let platformAPI = installedAndroidPackage.platformAPI;
                 let reducer = (accumalator:string, current: string) => accumalator.length > 0 ? `${accumalator}|${platformAPI};${current}` : `${platformAPI};${current}`;
                 let imagesRegex = androidConfig.supportedImages.reduce(reducer, '');
 
@@ -185,8 +187,6 @@ export class AndroidSDKUtils {
                 // use the first one.
                 let androidPackage = packages.get(matchingKeys[0]);
                 resolve(androidPackage);
-                return;
-
             } catch (error) {
                 reject(new Error(`Could not find android emulator packages. ${error.errorMessage}`));
             }

@@ -44,7 +44,7 @@ export function WrappedPromise(promise: Promise<any>) {
             return { v: v, status: 'fulfilled' };
         },
         function(e) {
-            return { e: e.message, status: 'rejected' };
+            return { e: e, status: 'rejected' };
         }
     );
 }
@@ -72,14 +72,14 @@ export abstract class BaseSetup implements RequirementList {
             results.forEach(function(result) {
                 if (result.status === 'fulfilled') {
                     testResult.tests.push({
-                        testResult: '✅',
+                        testResult: `✅`,
                         hasPassed: true,
                         message: result.v
                     });
                 } else if (result.status === 'rejected') {
                     testResult.hasMetAllRequirements = false;
                     testResult.tests.push({
-                        testResult: '❌',
+                        testResult: `❌`,
                         hasPassed: false,
                         message: result.e
                     });
