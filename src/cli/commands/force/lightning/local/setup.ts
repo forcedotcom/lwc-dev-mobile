@@ -1,11 +1,13 @@
 #!/usr/bin/env ts-node
-import { flags, SfdxCommand, FlagsConfig } from '@salesforce/command';
-import { Messages, Logger, LoggerLevel, SfdxError} from '@salesforce/core';
+import * as nodeUtil from 'util';
 import { AndroidEnvironmentSetup } from '../../../../../common/AndroidEnvironmentSetup';
 import { BaseSetup, SetupTestResult } from '../../../../../common/Requirements';
 import { CommandLineUtils } from '../../../../../common/Common';
-import { IOSEnvironmentSetup} from '../../../../../common/IOSEnvironmentSetup';
-import * as nodeUtil from 'util';
+import { flags, SfdxCommand, FlagsConfig } from '@salesforce/command';
+import { GlobalConfig } from '../../../../../common/GlobalConfig';
+import { IOSEnvironmentSetup } from '../../../../../common/IOSEnvironmentSetup';
+import { Messages, Logger, LoggerLevel, SfdxError } from '@salesforce/core';
+
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
 
@@ -14,9 +16,8 @@ Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'setup');
 
 export default class Setup extends SfdxCommand {
-    
     public static description = messages.getMessage('commandDescription');
-    
+
     public static examples = [
         `$ sfdx force:lightning:lwc:setup -p iOS`,
         `$ sfdx force:lightning:lwc:setup -p Android`
@@ -29,7 +30,7 @@ export default class Setup extends SfdxCommand {
             longDescription: messages.getMessage('platformFlagDescription'),
             required: true
         })
-    }
+    };
 
     public async init(): Promise<void> {
         const logger = await Logger.child('mobile:setup', {});
@@ -40,14 +41,31 @@ export default class Setup extends SfdxCommand {
     public async run(): Promise<any> {
         let valid = this.validatePlatformValue(this.flags.platform);
         if (!valid) {
-            throw new SfdxError(messages.getMessage('error:invalidInputFlagsDescription'), 'lwc-dev-mobile', [`${messages.getMessage('remedy:invalidInputFlagsDescription')}`]);
+            throw new SfdxError(
+                messages.getMessage('error:invalidInputFlagsDescription'),
+                'lwc-dev-mobile',
+                [
+                    `${messages.getMessage(
+                        'remedy:invalidInputFlagsDescription'
+                    )}`
+                ]
+            );
         }
         this.logger.info(`Setup Command called for ${this.flags.platform}`);
         let setup = this.setup();
         let result = await this.executeSetup(setup);
         if (!result.hasMetAllRequirements) {
-            let actions = result.tests.filter( test => !test.hasPassed).map(test => test.message);
-            throw new SfdxError(nodeUtil.format(messages.getMessage('error:setupFailed'),this.flags.platform), 'lwc-dev-mobile',actions);
+            let actions = result.tests
+                .filter((test) => !test.hasPassed)
+                .map((test) => test.message);
+            throw new SfdxError(
+                nodeUtil.format(
+                    messages.getMessage('error:setupFailed'),
+                    this.flags.platform
+                ),
+                'lwc-dev-mobile',
+                actions
+            );
         }
     }
 
@@ -56,7 +74,10 @@ export default class Setup extends SfdxCommand {
     }
 
     public validatePlatformValue(platform: string): boolean {
-        return (CommandLineUtils.platformFlagIsIOS(platform) || CommandLineUtils.platformFlagIsAndroid(platform));
+        return (
+            CommandLineUtils.platformFlagIsIOS(platform) ||
+            CommandLineUtils.platformFlagIsAndroid(platform)
+        );
     }
 
     protected setup(): BaseSetup {
@@ -68,5 +89,4 @@ export default class Setup extends SfdxCommand {
         }
         return setup;
     }
-
 }

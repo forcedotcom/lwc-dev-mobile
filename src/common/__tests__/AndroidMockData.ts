@@ -1,6 +1,4 @@
-
-export class AndroidMockData  {
-
+export class AndroidMockData {
     static mockRawPacakgesString = `Warning: File test string.........       
     Installed packages:=====================] 100% Computing updates...             
       Path                                                | Version      | Description                                     | Location                                            
@@ -21,8 +19,9 @@ export class AndroidMockData  {
     Available Packages:
       Path                                                                                     | Version      | Description                                                         
     `;
-    
-    static badMockRawPacakagesString = 'Installed packages:=====================]';
-    
+
+    static badMockRawPacakagesString =
+        'Installed packages:=====================]';
+
     static mockRawStringPackageLength = 13;
 }

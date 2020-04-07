@@ -1,6 +1,6 @@
-import * as reqs from '../Requirements';
 import { Logger } from '@salesforce/core';
-var logger = new Logger('test');
+import * as reqs from '../Requirements';
+const logger = new Logger('test');
 class TruthyExtension extends reqs.BaseSetup {
     constructor() {
         super(logger);
@@ -11,27 +11,28 @@ class TruthyExtension extends reqs.BaseSetup {
                 fulfilledMessage: 'Android SDK was detected.',
                 unfulfilledMessage:
                     'You must install Android SDK add it to the path.',
-                logger:logger
+                logger
             },
             {
                 title: 'ANDROID_HOME check',
                 checkFunction: this.testFunctionTwo,
                 fulfilledMessage: 'ANDROID_HOME has been detected.',
                 unfulfilledMessage: 'You must setup ANDROID_HOME.',
-                logger:logger
+                logger
             }
         ];
     }
 
-    async testFunctionOne(): Promise<string> {
+    public async testFunctionOne(): Promise<string> {
         return new Promise((resolve, reject) => resolve('Done'));
     }
 
-    async testFunctionTwo(): Promise<string> {
+    public async testFunctionTwo(): Promise<string> {
         return new Promise((resolve, reject) => resolve('Done'));
     }
 }
 
+// tslint:disable-next-line: max-classes-per-file
 class FalsyExtension extends reqs.BaseSetup {
     constructor() {
         super(logger);
@@ -42,34 +43,34 @@ class FalsyExtension extends reqs.BaseSetup {
                 fulfilledMessage: 'Android SDK was detected.',
                 unfulfilledMessage:
                     'You must install Android SDK add it to the path.',
-                    logger:logger
+                logger
             },
             {
                 title: 'ANDROID_HOME check',
                 checkFunction: this.testFunctionTwo,
                 fulfilledMessage: 'ANDROID_HOME has been detected.',
                 unfulfilledMessage: 'You must setup ANDROID_HOME.',
-                logger:logger
+                logger
             },
             {
                 title: 'ANDROID_HOME check',
                 checkFunction: this.testFunctionThree,
                 fulfilledMessage: 'ANDROID_HOME has been detected.',
                 unfulfilledMessage: 'You must setup ANDROID_HOME.',
-                logger:logger
+                logger
             }
         ];
     }
 
-    async testFunctionOne(): Promise<string> {
+    public async testFunctionOne(): Promise<string> {
         return new Promise((resolve, reject) => resolve('Done'));
     }
 
-    async testFunctionTwo(): Promise<string> {
+    public async testFunctionTwo(): Promise<string> {
         return new Promise((resolve, reject) => reject('failed'));
     }
 
-    async testFunctionThree(): Promise<string> {
+    public async testFunctionThree(): Promise<string> {
         return new Promise((resolve, reject) => reject('failed'));
     }
 }
@@ -83,10 +84,10 @@ describe('Requirements Processing', () => {
 
     test('Executes all true requirements', async () => {
         expect.assertions(1);
-        let extension = new TruthyExtension();
+        const extension = new TruthyExtension();
         const setupResult = await extension.executeSetup();
         return expect(
-            setupResult.tests.length == extension.requirements.length
+            setupResult.tests.length === extension.requirements.length
         ).toBeTruthy();
     });
 
@@ -98,10 +99,10 @@ describe('Requirements Processing', () => {
 
     test('Executes all passed and failed requirements', async () => {
         expect.assertions(1);
-        let extension = new TruthyExtension();
+        const extension = new TruthyExtension();
         const setupResult = await extension.executeSetup();
         return expect(
-            setupResult.tests.length == extension.requirements.length
+            setupResult.tests.length === extension.requirements.length
         ).toBeTruthy();
     });
 });
