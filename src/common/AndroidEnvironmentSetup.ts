@@ -1,8 +1,9 @@
-import * as reqs from './Requirements';
-import { AndroidSDKUtils } from './AndroidUtils';
 import * as androidConfig from '../config/androidconfig.json';
+import * as reqs from './Requirements';
+import * as nodeUtil from 'util';
+import { AndroidSDKUtils } from './AndroidUtils';
 import { Messages,Logger } from '@salesforce/core';
-import nodeUtil from 'util';
+
 
 export class AndroidEnvironmentSetup extends reqs.BaseSetup {
     //NOTE: The following properties are just place holders to help with typescript compile.
@@ -16,38 +17,38 @@ export class AndroidEnvironmentSetup extends reqs.BaseSetup {
         let messages = this.setupMessages;
         super.requirements = [
             {
-                title: `${messages.getMessage('android:reqs:androidhome:title')}`,
+                title: messages.getMessage('android:reqs:androidhome:title'),
                 checkFunction: this.isAndroidHomeSet,
-                fulfilledMessage:  `${messages.getMessage('android:reqs:androidhome:fulfilledMessage')}`,
-                unfulfilledMessage: `${messages.getMessage('android:reqs:androidhome:unfulfilledMessage')}`,
+                fulfilledMessage: messages.getMessage('android:reqs:androidhome:fulfilledMessage'),
+                unfulfilledMessage: messages.getMessage('android:reqs:androidhome:unfulfilledMessage'),
                 logger: logger
             },
             {
-                title: `${messages.getMessage('android:reqs:sdktools:title')}`,
+                title: messages.getMessage('android:reqs:sdktools:title'),
                 checkFunction: this.isAndroidSDKToolsInstalled,
-                fulfilledMessage: `${messages.getMessage('android:reqs:sdktools:fulfilledMessage')}`,
-                unfulfilledMessage: `${messages.getMessage('android:reqs:sdktools:unfulfilledMessage')}`,
+                fulfilledMessage: messages.getMessage('android:reqs:sdktools:fulfilledMessage'),
+                unfulfilledMessage: messages.getMessage('android:reqs:sdktools:unfulfilledMessage'),
                 logger: logger
             },
             {
-                title: `${messages.getMessage('android:reqs:platformtools:title')}`,
+                title: messages.getMessage('android:reqs:platformtools:title'),
                 checkFunction: this.isAndroidSDKPlatformToolsInstalled,
-                fulfilledMessage: `${messages.getMessage('android:reqs:platformtools:fulfilledMessage')}`,
-                unfulfilledMessage: `${messages.getMessage('android:reqs:platformtools:unfulfilledMessage')}`,
+                fulfilledMessage: messages.getMessage('android:reqs:platformtools:fulfilledMessage'),
+                unfulfilledMessage: messages.getMessage('android:reqs:platformtools:unfulfilledMessage'),
                 logger: logger
             },
             {
-                title: `${messages.getMessage('android:reqs:platformapi:title')}`,
+                title: messages.getMessage('android:reqs:platformapi:title'),
                 checkFunction: this.hasRequiredPlatformAPIPackage,
-                fulfilledMessage: `${messages.getMessage('android:reqs:platformapi:fulfilledMessage')}`,
-                unfulfilledMessage: `${messages.getMessage('android:reqs:platformapi:unfulfilledMessage')}`,
+                fulfilledMessage: messages.getMessage('android:reqs:platformapi:fulfilledMessage'),
+                unfulfilledMessage: messages.getMessage('android:reqs:platformapi:unfulfilledMessage'),
                 logger: logger
             },
             {
-                title: `${messages.getMessage('android:reqs:emulatorimages:title')}`,
+                title: messages.getMessage('android:reqs:emulatorimages:title'),
                 checkFunction: this.hasRequiredEmulatorImages,
-                fulfilledMessage: `${messages.getMessage('android:reqs:emulatorimages:fulfilledMessage')}`,
-                unfulfilledMessage: `${messages.getMessage('android:reqs:emulatorimages:unfulfilledMessage')}`,
+                fulfilledMessage: messages.getMessage('android:reqs:emulatorimages:fulfilledMessage'),
+                unfulfilledMessage: messages.getMessage('android:reqs:emulatorimages:unfulfilledMessage'),
                 logger: logger
             }
         ];

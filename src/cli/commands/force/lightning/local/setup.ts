@@ -5,6 +5,7 @@ import { AndroidEnvironmentSetup } from '../../../../../common/AndroidEnvironmen
 import { BaseSetup, SetupTestResult } from '../../../../../common/Requirements';
 import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSEnvironmentSetup} from '../../../../../common/IOSEnvironmentSetup';
+import * as nodeUtil from 'util';
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
 
@@ -39,14 +40,14 @@ export default class Setup extends SfdxCommand {
     public async run(): Promise<any> {
         let valid = this.validatePlatformValue(this.flags.platform);
         if (!valid) {
-            throw new SfdxError(`${messages.getMessage('error:invalidInputFlagsDescription')}`, 'lwc-dev-mobile', [`${messages.getMessage('remedy:invalidInputFlagsDescription')}`]);
+            throw new SfdxError(messages.getMessage('error:invalidInputFlagsDescription'), 'lwc-dev-mobile', [`${messages.getMessage('remedy:invalidInputFlagsDescription')}`]);
         }
         this.logger.info(`Setup Command called for ${this.flags.platform}`);
         let setup = this.setup();
         let result = await this.executeSetup(setup);
         if (!result.hasMetAllRequirements) {
             let actions = result.tests.filter( test => !test.hasPassed).map(test => test.message);
-            throw new SfdxError(`${messages.getMessage('error:setupFailed')}`, 'lwc-dev-mobile',actions);
+            throw new SfdxError(nodeUtil.format(messages.getMessage('error:setupFailed'),this.flags.platform), 'lwc-dev-mobile',actions);
         }
     }
 
