@@ -59,10 +59,12 @@ export default class Setup extends SfdxCommand {
         return (CommandLineUtils.platformFlagIsIOS(platform) || CommandLineUtils.platformFlagIsAndroid(platform));
     }
 
-    protected setup(): BaseSetup  {
-        let setup: BaseSetup = new IOSEnvironmentSetup(this.logger);
+    protected setup(): BaseSetup {
+        let setup: BaseSetup = {} as BaseSetup; // should not be the case due to prior validation.
         if (CommandLineUtils.platformFlagIsAndroid(this.flags.platform)) {
             setup = new AndroidEnvironmentSetup(this.logger);
+        } else if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
+            setup = new IOSEnvironmentSetup(this.logger);
         }
         return setup;
     }
