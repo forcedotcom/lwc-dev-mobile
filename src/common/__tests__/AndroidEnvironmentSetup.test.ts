@@ -11,8 +11,8 @@ import { Messages, Logger } from '@salesforce/core';
 let myCommandBlockMock = jest.fn((): string => {
     return AndroidMockData.mockRawPacakgesString;
 });
-  
-let badBlockMock = jest.fn((): string  => {
+
+let badBlockMock = jest.fn((): string => {
     return AndroidMockData.badMockRawPacakagesString;
 });
 
@@ -26,45 +26,64 @@ describe('Android enviroment setup tests', () => {
         andrEnvironment = new AndroidEnvironmentSetup(logger);
     });
 
-    afterEach( () => {
+    afterEach(() => {
         myCommandBlockMock.mockClear();
-        badBlockMock.mockClear();      
+        badBlockMock.mockClear();
     });
 
     test('Should resolve when ANDROID_HOME is set', async () => {
-        jest.spyOn(AndroidSDKUtils, 'isAndroidHomeSet').mockImplementation(() =>  true);
+        jest.spyOn(AndroidSDKUtils, 'isAndroidHomeSet').mockImplementation(
+            () => true
+        );
         let aPromise = andrEnvironment.isAndroidHomeSet().catch((error) => {});
         expect(aPromise).resolves;
     });
 
     test('Should reject when ANDROID_HOME is not set', async () => {
-        jest.spyOn(AndroidSDKUtils, 'isAndroidHomeSet').mockImplementation(() =>  false);
-        let aPromise = andrEnvironment.isAndroidHomeSet().catch( (error) => {});
+        jest.spyOn(AndroidSDKUtils, 'isAndroidHomeSet').mockImplementation(
+            () => false
+        );
+        let aPromise = andrEnvironment.isAndroidHomeSet().catch((error) => {});
         expect(aPromise).rejects;
     });
 
     test('Should resolve when Android sdk tools are present', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(() =>  MOCK_ANDROID_HOME);
-        let aPromise = andrEnvironment.isAndroidSDKToolsInstalled().catch((error) => {});
+        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+            () => MOCK_ANDROID_HOME
+        );
+        let aPromise = andrEnvironment
+            .isAndroidSDKToolsInstalled()
+            .catch((error) => {});
         expect(aPromise).resolves;
     });
 
     test('Should reject when Android sdk tools are missing', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(() =>  {throw new Error('None')});
-        let aPromise = andrEnvironment.isAndroidSDKToolsInstalled().catch((error) => {});
+        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(() => {
+            throw new Error('None');
+        });
+        let aPromise = andrEnvironment
+            .isAndroidSDKToolsInstalled()
+            .catch((error) => {});
         expect(aPromise).rejects;
     });
 
     test('Should resolve when Android sdk platform tools are present', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(() =>  MOCK_ANDROID_HOME);
-        let aPromise = andrEnvironment.isAndroidSDKPlatformToolsInstalled().catch((error) => {});
+        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+            () => MOCK_ANDROID_HOME
+        );
+        let aPromise = andrEnvironment
+            .isAndroidSDKPlatformToolsInstalled()
+            .catch((error) => {});
         expect(aPromise).resolves;
     });
 
     test('Should reject when Android sdk platform tools are missing', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(() =>  {throw new Error('None')});
-        let aPromise = andrEnvironment.isAndroidSDKPlatformToolsInstalled().catch((error) => {});
+        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(() => {
+            throw new Error('None');
+        });
+        let aPromise = andrEnvironment
+            .isAndroidSDKPlatformToolsInstalled()
+            .catch((error) => {});
         expect(aPromise).rejects;
     });
-
 });

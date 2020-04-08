@@ -1,60 +1,74 @@
-import * as reqs from './Requirements';
-import { XcodeUtils } from './IOSUtils';
-import { Messages, Logger } from '@salesforce/core';
-import util from 'util';
+import { BaseSetup } from './Requirements';
 import childProcess from 'child_process';
-import * as iOSConfig from '../config/iosconfig.json';
-import nodeUtil from 'util';
+import iOSConfig from '../config/iosconfig.json';
+import { Logger, Messages } from '@salesforce/core';
+import util from 'util';
+import { XcodeUtils } from './IOSUtils';
 
 const exec = util.promisify(childProcess.exec);
 
-export class IOSEnvironmentSetup extends reqs.BaseSetup {
-
-    //NOTE: The following properties are just place holders to help with typescript compile.
+export class IOSEnvironmentSetup extends BaseSetup {
+    public static executeCommand(
+        command: string
+    ): Promise<{ stdout: string; stderr: string }> {
+        return XcodeUtils.executeCommand(command);
+    }
+    // NOTE: The following properties are just place holders to help with typescript compile.
     private title: string = '';
     private fulfilledMessage: string = '';
     private unfulfilledMessage: string = '';
-    private setupMessages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'setup');
-    
+    private setupMessages = Messages.loadMessages(
+        '@salesforce/lwc-dev-mobile',
+        'setup'
+    );
+
     constructor(logger: Logger) {
         super(logger);
-        let messages = this.setupMessages;
+        const messages = this.setupMessages;
         super.requirements = [
             {
                 title: `${messages.getMessage('ios:reqs:macos:title')}`,
                 checkFunction: this.isSupportedEnvironment,
-                fulfilledMessage: `${messages.getMessage('ios:reqs:macos:fulfilledMessage')}`,
-                unfulfilledMessage:`${messages.getMessage('ios:reqs:macos:unfulfilledMessage')}`,
-                logger: logger   
+                fulfilledMessage: `${messages.getMessage(
+                    'ios:reqs:macos:fulfilledMessage'
+                )}`,
+                unfulfilledMessage: `${messages.getMessage(
+                    'ios:reqs:macos:unfulfilledMessage'
+                )}`,
+                logger
             },
             {
                 title: `${messages.getMessage('ios:reqs:xcode:title')}`,
                 checkFunction: this.isXcodeInstalled,
-                fulfilledMessage: `${messages.getMessage('ios:reqs:xcode:fulfilledMessage')}`,
-                unfulfilledMessage:
-                `${messages.getMessage('ios:reqs:xcode:unfulfilledMessage')}`,
-                logger: logger  
+                fulfilledMessage: `${messages.getMessage(
+                    'ios:reqs:xcode:fulfilledMessage'
+                )}`,
+                unfulfilledMessage: `${messages.getMessage(
+                    'ios:reqs:xcode:unfulfilledMessage'
+                )}`,
+                logger
             },
             {
                 title: `${messages.getMessage('ios:reqs:simulator:title')}`,
                 checkFunction: this.hasSupportedSimulatorRuntime,
-                fulfilledMessage:
-                `${messages.getMessage('ios:reqs:simulator:fulfilledMessage')}`,
-                unfulfilledMessage: `${messages.getMessage('ios:reqs:simulator:unfulfilledMessage')}`,
-                logger: logger  
+                fulfilledMessage: `${messages.getMessage(
+                    'ios:reqs:simulator:fulfilledMessage'
+                )}`,
+                unfulfilledMessage: `${messages.getMessage(
+                    'ios:reqs:simulator:unfulfilledMessage'
+                )}`,
+                logger
             }
         ];
     }
 
-    static executeCommand(command: string): Promise<{stdout: string, stderr: string}> {
-        return XcodeUtils.executeCommand(command);
-    }
-
-    async isSupportedEnvironment(): Promise<string> {
+    public async isSupportedEnvironment(): Promise<string> {
         const unameCommand: string = '/usr/bin/uname';
         try {
             this.logger.info('Executing a check for supported environment');
-            const { stdout } = await IOSEnvironmentSetup.executeCommand(unameCommand);
+            const { stdout } = await IOSEnvironmentSetup.executeCommand(
+                unameCommand
+            );
             const unameOutput = stdout.trim();
             if (unameOutput === 'Darwin') {
                 return new Promise<string>((resolve, reject) =>
@@ -62,57 +76,94 @@ export class IOSEnvironmentSetup extends reqs.BaseSetup {
                 );
             } else {
                 return new Promise<string>((resolve, reject) =>
-                    reject(nodeUtil.format(this.unfulfilledMessage, unameOutput)));
+                    reject(util.format(this.unfulfilledMessage, unameOutput))
+                );
             }
         } catch (unameError) {
             return new Promise<string>((resolve, reject) =>
-                reject(nodeUtil.format(this.unfulfilledMessage, `command '${unameCommand}' failed: ${unameError}, error code: ${unameError.code}`)));
+                reject(
+                    util.format(
+                        this.unfulfilledMessage,
+                        `command '${unameCommand}' failed: ${unameError}, error code: ${unameError.code}`
+                    )
+                )
+            );
         }
     }
 
-    async isXcodeInstalled(): Promise<string> {
+    public async isXcodeInstalled(): Promise<string> {
         const xcodeSelectCommand: string = '/usr/bin/xcode-select -p';
         try {
             this.logger.info('Executing a check for Xcode environment');
-            const { stdout, stderr } = await IOSEnvironmentSetup.executeCommand(xcodeSelectCommand);
+            const { stdout, stderr } = await IOSEnvironmentSetup.executeCommand(
+                xcodeSelectCommand
+            );
             if (stdout) {
                 const developmentLibraryPath = `${stdout}`.trim();
                 return new Promise<string>((resolve, reject) =>
-                    resolve(nodeUtil.format(this.fulfilledMessage, developmentLibraryPath)));
-              
+                    resolve(
+                        util.format(
+                            this.fulfilledMessage,
+                            developmentLibraryPath
+                        )
+                    )
+                );
             } else {
                 return new Promise<string>((resolve, reject) =>
-                    reject(nodeUtil.format(this.unfulfilledMessage, `${stderr || 'None'}`)));
+                    reject(
+                        util.format(
+                            this.unfulfilledMessage,
+                            `${stderr || 'None'}`
+                        )
+                    )
+                );
             }
         } catch (xcodeSelectError) {
             return new Promise<string>((resolve, reject) =>
-                reject(nodeUtil.format(this.unfulfilledMessage, `${xcodeSelectError}, error code: ${xcodeSelectError.code}`)));
+                reject(
+                    util.format(
+                        this.unfulfilledMessage,
+                        `${xcodeSelectError}, error code: ${xcodeSelectError.code}`
+                    )
+                )
+            );
         }
     }
 
-    async hasSupportedSimulatorRuntime(): Promise<string> {
+    public async hasSupportedSimulatorRuntime(): Promise<string> {
         try {
             this.logger.info('Executing a check for iOS runtimes');
             const configuredRuntimes = await XcodeUtils.getSimulatorRuntimes();
-            const supportedRuntimes: Array<string> =
-            iOSConfig.supportedRuntimes;
-            let rtIntersection = supportedRuntimes.filter(supportedRuntime => {
-                const responsiveRuntime = configuredRuntimes.find(
-                    configuredRuntime =>
-                        configuredRuntime.startsWith(supportedRuntime)
-                );
-                return responsiveRuntime !== undefined;
-            });
+            const supportedRuntimes: string[] = iOSConfig.supportedRuntimes;
+            const rtIntersection = supportedRuntimes.filter(
+                (supportedRuntime) => {
+                    const responsiveRuntime = configuredRuntimes.find(
+                        (configuredRuntime) =>
+                            configuredRuntime.startsWith(supportedRuntime)
+                    );
+                    return responsiveRuntime !== undefined;
+                }
+            );
             if (rtIntersection.length > 0) {
                 return new Promise<string>((resolve, reject) =>
-                    resolve(nodeUtil.format(this.fulfilledMessage, rtIntersection)));
+                    resolve(util.format(this.fulfilledMessage, rtIntersection))
+                );
             } else {
                 return new Promise<string>((resolve, reject) =>
-                    reject(nodeUtil.format(this.unfulfilledMessage, supportedRuntimes)));
+                    reject(
+                        util.format(this.unfulfilledMessage, supportedRuntimes)
+                    )
+                );
             }
         } catch (supportedRuntimesError) {
             return new Promise<string>((resolve, reject) =>
-                reject(nodeUtil.format(this.unfulfilledMessage, `${iOSConfig.supportedRuntimes} error:${supportedRuntimesError}`)));
+                reject(
+                    util.format(
+                        this.unfulfilledMessage,
+                        `${iOSConfig.supportedRuntimes} error:${supportedRuntimesError}`
+                    )
+                )
+            );
         }
     }
 }

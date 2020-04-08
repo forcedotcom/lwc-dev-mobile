@@ -1,12 +1,15 @@
 export class MapUtils {
-    static filter<K, V>(map: Map<K, V>, predicate: (k: K, v: V) => boolean) {
+    public static filter<K, V>(
+        map: Map<K, V>,
+        predicate: (k: K, v: V) => boolean
+    ) {
         const aMap = new Map<K, V>();
         if (map == null) {
             return aMap;
         }
         const entries = Array.from(map.entries());
-        for (let [key, value] of entries) {
-            if (predicate(key, value) == true) {
+        for (const [key, value] of entries) {
+            if (predicate(key, value) === true) {
                 aMap.set(key, value);
             }
         }
@@ -14,29 +17,33 @@ export class MapUtils {
     }
 }
 
+// tslint:disable-next-line: max-classes-per-file
 export class SetUtils {
-    static filter<V>(set: Set<V>, predicate: (v: V) => boolean) {
+    public static filter<V>(set: Set<V>, predicate: (v: V) => boolean) {
         const aSet = new Set<V>();
         if (set == null) {
             return aSet;
         }
         const entries = Array.from(set.entries());
         for (const [value] of entries) {
-            if (predicate(value) == true) aSet.add(value);
+            if (predicate(value) === true) {
+                aSet.add(value);
+            }
         }
         return aSet;
     }
 }
 
+// tslint:disable-next-line: max-classes-per-file
 export class CommandLineUtils {
-    static platformFlagIsIOS(input: string): boolean {
+    public static platformFlagIsIOS(input: string): boolean {
         if (input) {
             return input.toLowerCase() === 'ios';
         }
         return false;
     }
 
-    static platformFlagIsAndroid(input: string): boolean {
+    public static platformFlagIsAndroid(input: string): boolean {
         if (input) {
             return input.toLowerCase() === 'android';
         }
