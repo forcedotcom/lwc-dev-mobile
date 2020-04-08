@@ -1,10 +1,8 @@
-import { Logger } from '@salesforce/core';
-import childProcess from 'child_process';
-import path from 'path';
-import util from 'util';
-import * as androidConfig from '../config/androidconfig.json';
+import androidConfig from '../config/androidconfig.json';
 import { AndroidPackage } from './AndroidTypes';
-import { MapUtils } from './Common';
+import childProcess from 'child_process';
+import { Logger } from '@salesforce/core';
+import path from 'path';
 
 const execSync = childProcess.execSync;
 

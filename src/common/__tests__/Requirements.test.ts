@@ -1,7 +1,9 @@
+import { BaseSetup } from '../Requirements';
 import { Logger } from '@salesforce/core';
-import * as reqs from '../Requirements';
+
 const logger = new Logger('test');
-class TruthyExtension extends reqs.BaseSetup {
+
+class TruthyExtension extends BaseSetup {
     constructor() {
         super(logger);
         super.requirements = [
@@ -33,7 +35,7 @@ class TruthyExtension extends reqs.BaseSetup {
 }
 
 // tslint:disable-next-line: max-classes-per-file
-class FalsyExtension extends reqs.BaseSetup {
+class FalsyExtension extends BaseSetup {
     constructor() {
         super(logger);
         super.requirements = [

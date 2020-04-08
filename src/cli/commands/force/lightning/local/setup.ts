@@ -1,12 +1,11 @@
 #!/usr/bin/env ts-node
-import * as nodeUtil from 'util';
 import { AndroidEnvironmentSetup } from '../../../../../common/AndroidEnvironmentSetup';
 import { BaseSetup, SetupTestResult } from '../../../../../common/Requirements';
 import { CommandLineUtils } from '../../../../../common/Common';
 import { flags, SfdxCommand, FlagsConfig } from '@salesforce/command';
-import { GlobalConfig } from '../../../../../common/GlobalConfig';
 import { IOSEnvironmentSetup } from '../../../../../common/IOSEnvironmentSetup';
-import { Messages, Logger, LoggerLevel, SfdxError } from '@salesforce/core';
+import { Messages, Logger, SfdxError } from '@salesforce/core';
+import util from 'util';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -59,7 +58,7 @@ export default class Setup extends SfdxCommand {
                 .filter((test) => !test.hasPassed)
                 .map((test) => test.message);
             throw new SfdxError(
-                nodeUtil.format(
+                util.format(
                     messages.getMessage('error:setupFailed'),
                     this.flags.platform
                 ),

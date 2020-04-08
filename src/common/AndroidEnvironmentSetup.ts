@@ -1,10 +1,10 @@
-import { Logger, Messages } from '@salesforce/core';
-import * as nodeUtil from 'util';
-import * as androidConfig from '../config/androidconfig.json';
+import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
-import * as reqs from './Requirements';
+import { BaseSetup } from './Requirements';
+import { Logger, Messages } from '@salesforce/core';
+import util from 'util';
 
-export class AndroidEnvironmentSetup extends reqs.BaseSetup {
+export class AndroidEnvironmentSetup extends BaseSetup {
     // NOTE: The following properties are just place holders to help with typescript compile.
     private title: string = '';
     private fulfilledMessage: string = '';
@@ -79,7 +79,7 @@ export class AndroidEnvironmentSetup extends reqs.BaseSetup {
         return new Promise<string>((resolve, reject) => {
             if (AndroidSDKUtils.isAndroidHomeSet()) {
                 resolve(
-                    nodeUtil.format(
+                    util.format(
                         this.fulfilledMessage,
                         AndroidSDKUtils.androidHome
                     )
@@ -94,11 +94,11 @@ export class AndroidEnvironmentSetup extends reqs.BaseSetup {
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.fetchAndroidSDKToolsLocation()
                 .then((result) =>
-                    resolve(nodeUtil.format(this.fulfilledMessage, result))
+                    resolve(util.format(this.fulfilledMessage, result))
                 )
                 .catch((error) =>
                     reject(
-                        nodeUtil.format(
+                        util.format(
                             this.unfulfilledMessage,
                             androidConfig.supportedRuntimes[0],
                             androidConfig.supportedRuntimes[
@@ -114,11 +114,11 @@ export class AndroidEnvironmentSetup extends reqs.BaseSetup {
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.fetchAndroidSDKPlatformToolsLocation()
                 .then((result) => {
-                    resolve(nodeUtil.format(this.fulfilledMessage, result));
+                    resolve(util.format(this.fulfilledMessage, result));
                 })
                 .catch((error) => {
                     reject(
-                        nodeUtil.format(
+                        util.format(
                             this.unfulfilledMessage,
                             androidConfig.supportedRuntimes[0],
                             androidConfig.supportedRuntimes[
@@ -135,15 +135,12 @@ export class AndroidEnvironmentSetup extends reqs.BaseSetup {
             AndroidSDKUtils.findRequiredAndroidAPIPackage()
                 .then((result) =>
                     resolve(
-                        nodeUtil.format(
-                            this.fulfilledMessage,
-                            result.platformAPI
-                        )
+                        util.format(this.fulfilledMessage, result.platformAPI)
                     )
                 )
                 .catch((error) =>
                     reject(
-                        nodeUtil.format(
+                        util.format(
                             this.unfulfilledMessage,
                             androidConfig.supportedRuntimes[0],
                             androidConfig.supportedRuntimes[
@@ -159,11 +156,11 @@ export class AndroidEnvironmentSetup extends reqs.BaseSetup {
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.findRequiredEmulatorImages()
                 .then((result) =>
-                    resolve(nodeUtil.format(this.fulfilledMessage, result.path))
+                    resolve(util.format(this.fulfilledMessage, result.path))
                 )
                 .catch((error) =>
                     reject(
-                        nodeUtil.format(
+                        util.format(
                             this.unfulfilledMessage,
                             androidConfig.supportedImages.join(',')
                         )

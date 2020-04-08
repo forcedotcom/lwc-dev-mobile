@@ -2,7 +2,6 @@ const ORIG_ANDROID_HOME = process.env.ANDROID_HOME;
 const MOCK_ANDROID_HOME = '/mock-android-home';
 process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 
-import { AndroidPackage } from '../AndroidTypes';
 import { AndroidSDKUtils } from '../AndroidUtils';
 import { AndroidMockData } from './AndroidMockData';
 

@@ -1,13 +1,13 @@
-import { Logger, Messages } from '@salesforce/core';
+import { BaseSetup } from './Requirements';
 import childProcess from 'child_process';
+import iOSConfig from '../config/iosconfig.json';
+import { Logger, Messages } from '@salesforce/core';
 import util from 'util';
-import * as iOSConfig from '../config/iosconfig.json';
-import * as reqs from './Requirements';
 import { XcodeUtils } from './IOSUtils';
 
 const exec = util.promisify(childProcess.exec);
 
-export class IOSEnvironmentSetup extends reqs.BaseSetup {
+export class IOSEnvironmentSetup extends BaseSetup {
     public static executeCommand(
         command: string
     ): Promise<{ stdout: string; stderr: string }> {
