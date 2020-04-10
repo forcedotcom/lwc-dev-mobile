@@ -133,20 +133,12 @@ export class IOSEnvironmentSetup extends BaseSetup {
     public async hasSupportedSimulatorRuntime(): Promise<string> {
         try {
             this.logger.info('Executing a check for iOS runtimes');
-            const configuredRuntimes = await XcodeUtils.getSimulatorRuntimes();
-            const supportedRuntimes: string[] = iOSConfig.supportedRuntimes;
-            const rtIntersection = supportedRuntimes.filter(
-                (supportedRuntime) => {
-                    const responsiveRuntime = configuredRuntimes.find(
-                        (configuredRuntime) =>
-                            configuredRuntime.startsWith(supportedRuntime)
-                    );
-                    return responsiveRuntime !== undefined;
-                }
-            );
-            if (rtIntersection.length > 0) {
+            const supportedRuntimes = await XcodeUtils.getSupportedRuntimes();
+            if (supportedRuntimes.length > 0) {
                 return new Promise<string>((resolve, reject) =>
-                    resolve(util.format(this.fulfilledMessage, rtIntersection))
+                    resolve(
+                        util.format(this.fulfilledMessage, supportedRuntimes)
+                    )
                 );
             } else {
                 return new Promise<string>((resolve, reject) =>

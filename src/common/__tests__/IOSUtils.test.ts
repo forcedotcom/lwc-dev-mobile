@@ -1,48 +1,15 @@
 import childProcess from 'child_process';
+import { IOSMockData } from './IOSMockData';
 import { XcodeUtils } from '../IOSUtils';
 
-const mockRuntimes = {
-    runtimes: [
-        {
-            version: '13.3',
-            bundlePath: 'mockruntime',
-            isAvailable: true,
-            name: 'iOS 13.3',
-            identifier: 'com.apple.CoreSimulator.SimRuntime.iOS-13-3',
-            buildversion: '17C45'
-        },
-        {
-            version: '13.2',
-            bundlePath: 'mockruntime',
-            isAvailable: true,
-            name: 'iOS 13.2',
-            identifier: 'com.apple.CoreSimulator.SimRuntime.iOS-13-2',
-            buildversion: '17C46'
-        },
-        {
-            version: '13.3',
-            bundlePath: 'mockruntime',
-            isAvailable: true,
-            name: 'tvOS 13.3',
-            identifier: 'com.apple.CoreSimulator.SimRuntime.tvOS-13-3',
-            buildversion: '17K446'
-        },
-        {
-            version: '6.1.1',
-            bundlePath: 'mockruntime',
-            isAvailable: true,
-            name: 'watchOS 6.1',
-            identifier: 'com.apple.CoreSimulator.SimRuntime.watchOS-6-1',
-            buildversion: '17S445'
-        }
-    ]
-};
-
-const myCommandBlockMock = jest.fn(
-    (): Promise<{ stdout: string; stderr: string }> => {
+const myCommandRouterBlock = jest.fn(
+    (command: string): Promise<{ stdout: string; stderr: string }> => {
         return new Promise((resolve, reject) => {
             resolve({
-                stdout: JSON.stringify(mockRuntimes),
+                stdout:
+                    command.indexOf('devices') < 0
+                        ? JSON.stringify(IOSMockData.mockRuntimes)
+                        : JSON.stringify(IOSMockData.mockRuntimeDevices),
                 stderr: 'mockError'
             });
         });
@@ -59,7 +26,7 @@ const badBlockMock = jest.fn(
 
 describe('IOS utils tests', () => {
     beforeEach(() => {
-        myCommandBlockMock.mockClear();
+        myCommandRouterBlock.mockClear();
         badBlockMock.mockClear();
     });
 
@@ -69,22 +36,47 @@ describe('IOS utils tests', () => {
 
     test('Should attempt to invoke the xcrun for fetching sim runtimes', async () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
-            myCommandBlockMock
+            myCommandRouterBlock
         );
         await XcodeUtils.getSimulatorRuntimes();
-        return expect(myCommandBlockMock).toHaveBeenCalled();
+        return expect(myCommandRouterBlock).toHaveBeenCalled();
     });
 
     test('Should attempt to invoke the xcrun for fetching sim runtimes and return an array of values', async () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
-            myCommandBlockMock
+            myCommandRouterBlock
         );
         return XcodeUtils.getSimulatorRuntimes().then((returnedValues) => {
             expect(
                 returnedValues !== null &&
-                    returnedValues.length == mockRuntimes.runtimes.length
+                    returnedValues.length ==
+                        IOSMockData.mockRuntimes.runtimes.length
             ).toBeTruthy();
         });
+    });
+
+    test('Should attempt to invoke the xcrun for fetching sim runtimes and return white listed values', async () => {
+        jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
+            myCommandRouterBlock
+        );
+        return XcodeUtils.getSupportedRuntimes().then((returnedValues) => {
+            expect(
+                returnedValues !== null && returnedValues.length > 0
+            ).toBeTruthy();
+        });
+    });
+
+    test('Should attempt to invoke the xcrun for fetching sim runtimes and return white listed values', async () => {
+        jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
+            myCommandRouterBlock
+        );
+        return XcodeUtils.getSupportedDevicesThatMatch().then(
+            (returnedValues) => {
+                expect(
+                    returnedValues !== null && returnedValues.length > 0
+                ).toBeTruthy();
+            }
+        );
     });
 
     test('Should handle Bad JSON', async () => {
