@@ -1,6 +1,9 @@
 #!/usr/bin/env ts-node
+import { CommandLineUtils } from '../../../../../common/Common';
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Logger, Messages } from '@salesforce/core';
+import { IOSLauncher } from '../../../../../common/IOSLauncher';
+import iOSConfig from '../../../../../config/iosconfig.json';
+import { Logger, Messages, SfdxError } from '@salesforce/core';
 import Setup from './setup';
 
 // Initialize Messages with the current plugin directory
@@ -57,6 +60,11 @@ export default class Preview extends SfdxCommand {
         this.logger.info('Preview Command ended');
         this.validateComponentPathValue(this.flags.path);
         this.validateTargetValue(this.flags.target);
+        if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
+            this.launchIOS();
+        } else if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
+            this.launchAndroid();
+        }
     }
 
     public validateComponentPathValue(path: string): boolean {
@@ -67,5 +75,19 @@ export default class Preview extends SfdxCommand {
     public validateTargetValue(target: string): boolean {
         this.logger.debug('Invoked validate validateTargetValue in preview');
         return true;
+    }
+
+    public launchIOS(): Promise<boolean> {
+        this.logger.debug('Invoked validate validateTargetValue in preview');
+        const simName = this.flags.target
+            ? this.flags.target
+            : iOSConfig.defaultSimulatorName;
+        const launcher = new IOSLauncher(iOSConfig.defaultSimulatorName);
+        const compPath = this.flags.path;
+        return launcher.launchNativeBrowser(compPath);
+    }
+
+    public launchAndroid(): Promise<boolean> {
+        throw new SfdxError('Coming soon. Try again later ...');
     }
 }

@@ -4,33 +4,40 @@ import { XcodeUtils } from './IOSUtils';
 const exec = util.promisify(childProcess.exec);
 
 export class IOSLauncher {
-    deviceType: string;
     simulatorName: string;
-    runtime: string;
 
-    deviceList: Array<JSON>;
-    currentSimulator: any[];
-
-    constructor(simulatorName: string, deviceType: string, runtime: string) {
+    constructor(simulatorName: string) {
         this.simulatorName = simulatorName;
-        this.deviceType = deviceType;
-        this.runtime = runtime;
-        this.deviceList = [];
-        this.currentSimulator = [];
+    }
+
+    private typeFromIdentifier(name: string): string {
+        if (name && name.length > 0) {
+            const tokens = name.split('.');
+            if (tokens.length > 4) {
+                return tokens[4];
+            }
+        }
+        return '';
     }
 
     public async launchNativeBrowser(url: string): Promise<boolean> {
         const simName = this.simulatorName;
-        const supportedDevices = await XcodeUtils.getSupportedDevicesThatMatch();
+        const supportedDevices: any = await XcodeUtils.getSupportedDevicesThatMatch();
         const currentSimulator: any = supportedDevices.filter((entry: any) => {
             return simName == entry.name;
         });
         let deviceUDID = '';
         if (!currentSimulator || currentSimulator.length < 1) {
+            const deviceType = this.typeFromIdentifier(
+                supportedDevices[0].deviceTypeIdentifier
+            );
+            const runtimeType = this.typeFromIdentifier(
+                supportedDevices[0].runtimeTypeIdentifier
+            );
             deviceUDID = await XcodeUtils.createNewDevice(
                 this.simulatorName,
-                this.deviceType,
-                this.runtime
+                deviceType,
+                runtimeType
             );
         } else {
             deviceUDID = currentSimulator[0].udid;
@@ -39,7 +46,7 @@ export class IOSLauncher {
     }
 }
 
-// let launcher = new IOSLauncher('sfdxdevmobile1', 'iPhone-11-Pro', 'iOS-13-4');
+// let launcher = new IOSLauncher('sfdxdevmobile1');
 // launcher
 //     .launchNativeBrowser('http://salesforce.com')
 //     .then((result) => {

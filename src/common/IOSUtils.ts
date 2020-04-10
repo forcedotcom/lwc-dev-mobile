@@ -8,18 +8,28 @@ const DEVICE_TYPE_PREFIX = 'com.apple.CoreSimulator.SimDeviceType';
 const RUNTIME_TYPE_PREFIX = 'com.apple.CoreSimulator.SimRuntime';
 
 export class XcodeUtils {
+    private static isDeviceAlreadyBootedError(error: Error): boolean {
+        return error.message
+            ? error.message.toLowerCase().match('state: booted') !== null
+            : false;
+    }
+
     public static async bootDevice(udid: string): Promise<boolean> {
         const command = `${XCRUN_CMD} simctl boot ${udid}`;
         try {
             const { stdout } = await XcodeUtils.executeCommand(command);
-            return new Promise<boolean>((resolve, reject) => {
-                resolve(true);
-            });
         } catch (error) {
-            return new Promise<boolean>((resolve, reject) => {
-                reject(`The command '${command}' failed to execute ${error}`);
-            });
+            if (!XcodeUtils.isDeviceAlreadyBootedError(error)) {
+                return new Promise<boolean>((resolve, reject) => {
+                    reject(
+                        `The command '${command}' failed to execute ${error}`
+                    );
+                });
+            }
         }
+        return new Promise<boolean>((resolve, reject) => {
+            resolve(true);
+        });
     }
 
     public static async createNewDevice(
@@ -71,7 +81,7 @@ export class XcodeUtils {
             runtimes = runtimes.sort().reverse();
             if (runtimes && runtimes.length > 0) {
                 const runtimeDevices = devices[runtimes[0]];
-                const filteredDevices = runtimeDevices.filter(
+                let filteredDevices = runtimeDevices.filter(
                     (entry: { [x: string]: any }) => {
                         return (
                             entry[DEVICE_ID_KEY] &&
@@ -81,6 +91,13 @@ export class XcodeUtils {
                         );
                     }
                 );
+                filteredDevices = filteredDevices.map(
+                    (entry: { [x: string]: any }) => {
+                        entry['runtime'] = runtimes[0];
+                        return entry;
+                    }
+                );
+
                 if (filteredDevices && filteredDevices.length > 0) {
                     return new Promise<[{}]>((resolve, reject) =>
                         resolve(filteredDevices)
