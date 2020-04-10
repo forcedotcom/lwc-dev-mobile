@@ -23,7 +23,7 @@ export class IOSLauncher {
         const simName = this.simulatorName;
         const supportedDevices = await XcodeUtils.getSupportedDevicesThatMatch();
         const currentSimulator: any = supportedDevices.filter((entry: any) => {
-            entry.name === simName;
+            return simName == entry.name;
         });
         let deviceUDID = '';
         if (!currentSimulator || currentSimulator.length < 1) {
@@ -39,12 +39,12 @@ export class IOSLauncher {
     }
 }
 
-let launcher = new IOSLauncher('sfdxdevmobile', 'iPhone-11-Pro', 'iOS-13-4');
-launcher
-    .launchNativeBrowser('http://google.com')
-    .then((result) => {
-        console.log('Done!');
-    })
-    .catch((error) => {
-        console.log('Error!' + error);
-    });
+// let launcher = new IOSLauncher('sfdxdevmobile1', 'iPhone-11-Pro', 'iOS-13-4');
+// launcher
+//     .launchNativeBrowser('http://salesforce.com')
+//     .then((result) => {
+//         console.log('Done!');
+//     })
+//     .catch((error) => {
+//         console.log('Error!' + error);
+//     });

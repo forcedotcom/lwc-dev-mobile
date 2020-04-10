@@ -9,7 +9,7 @@ const RUNTIME_TYPE_PREFIX = 'com.apple.CoreSimulator.SimRuntime';
 
 export class XcodeUtils {
     public static async bootDevice(udid: string): Promise<boolean> {
-        const command = `${XCRUN_CMD} simctl boot "${udid}"`;
+        const command = `${XCRUN_CMD} simctl boot ${udid}`;
         try {
             const { stdout } = await XcodeUtils.executeCommand(command);
             return new Promise<boolean>((resolve, reject) => {
@@ -31,7 +31,7 @@ export class XcodeUtils {
         try {
             const { stdout } = await XcodeUtils.executeCommand(command);
             return new Promise<string>((resolve, reject) => {
-                resolve(stdout);
+                resolve(stdout.trim());
             });
         } catch (error) {
             return new Promise<string>((resolve, reject) => {
@@ -209,7 +209,7 @@ export class XcodeUtils {
                 return this.waitUntilDeviceIsReady(udid);
             })
             .then(() => {
-                return this.launchURLInBootedSimulator(url, udid);
+                return this.launchURLInBootedSimulator(udid, url);
             });
     }
 }
