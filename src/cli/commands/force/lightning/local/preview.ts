@@ -62,7 +62,9 @@ export default class Preview extends SfdxCommand {
         this.validateTargetValue(this.flags.target);
         if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
             this.launchIOS();
-        } else if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
+        } else if (
+            CommandLineUtils.platformFlagIsAndroid(this.flags.platform)
+        ) {
             this.launchAndroid();
         }
     }
@@ -84,7 +86,9 @@ export default class Preview extends SfdxCommand {
             : iOSConfig.defaultSimulatorName;
         const launcher = new IOSLauncher(iOSConfig.defaultSimulatorName);
         const compPath = this.flags.path;
-        return launcher.launchNativeBrowser(compPath);
+        return launcher.launchNativeBrowser(
+            `http://localhost:3333/${compPath}`
+        );
     }
 
     public launchAndroid(): Promise<boolean> {
