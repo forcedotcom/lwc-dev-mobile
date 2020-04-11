@@ -84,7 +84,7 @@ export default class Preview extends SfdxCommand {
         const simName = this.flags.target
             ? this.flags.target
             : iOSConfig.defaultSimulatorName;
-        const launcher = new IOSLauncher(iOSConfig.defaultSimulatorName);
+        const launcher = new IOSLauncher(simName);
         const compPath = this.flags.path;
         return launcher.launchNativeBrowser(
             `http://localhost:3333/${compPath}`

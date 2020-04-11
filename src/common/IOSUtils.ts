@@ -60,7 +60,6 @@ export class XcodeUtils {
         const runtimesCmd = `${XCRUN_CMD} simctl list --json devices available`;
         const DEVICES_KEY = 'devices';
         const DEVICE_ID_KEY = 'deviceTypeIdentifier';
-        const AVAILABLE_KEY = 'isAvailable';
         const preferedDevices = iOSConfig.supportedDevices;
         const preferedRuntimes = iOSConfig.supportedRuntimes;
 
@@ -85,15 +84,13 @@ export class XcodeUtils {
                     (entry: { [x: string]: any }) => {
                         return (
                             entry[DEVICE_ID_KEY] &&
-                            entry[AVAILABLE_KEY] &&
-                            entry[DEVICE_ID_KEY].match(deviceMatchRegex) &&
-                            entry[AVAILABLE_KEY] === true
+                            entry[DEVICE_ID_KEY].match(deviceMatchRegex)
                         );
                     }
                 );
                 filteredDevices = filteredDevices.map(
                     (entry: { [x: string]: any }) => {
-                        entry['runtime'] = runtimes[0];
+                        entry['runtimeTypeIdentifier'] = runtimes[0];
                         return entry;
                     }
                 );
@@ -141,7 +138,7 @@ export class XcodeUtils {
     }
 
     public static async getSimulatorRuntimes(): Promise<string[]> {
-        const runtimesCmd = `${XCRUN_CMD} simctl list --json runtimes`;
+        const runtimesCmd = `${XCRUN_CMD} simctl list --json runtimes available`;
         const runtimeMatchRegex = /.*SimRuntime\.((iOS|watchOS|tvOS)-[\d\-]+)$/;
         const RUNTIMES_KEY = 'runtimes';
         const ID_KEY = 'identifier';
@@ -160,9 +157,11 @@ export class XcodeUtils {
                     '$1'
                 );
             });
-            return new Promise<string[]>((resolve, reject) =>
-                resolve(filteredRuntimes)
-            );
+            if (filteredRuntimes && filteredRuntimes.length > 0) {
+                return new Promise<string[]>((resolve, reject) =>
+                    resolve(filteredRuntimes)
+                );
+            }
         } catch (runtimesError) {
             return new Promise<string[]>((resolve, reject) =>
                 reject(
@@ -170,6 +169,11 @@ export class XcodeUtils {
                 )
             );
         }
+        return new Promise<string[]>((resolve, reject) =>
+            reject(
+                `The command '${runtimesCmd}'  could not find available runtimes`
+            )
+        );
     }
     public static async waitUntilDeviceIsReady(udid: string): Promise<boolean> {
         const command = `${XCRUN_CMD} simctl bootstatus "${udid}"`;
