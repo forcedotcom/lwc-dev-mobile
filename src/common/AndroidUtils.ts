@@ -366,7 +366,7 @@ export class AndroidSDKUtils {
         numberofRetries: number,
         timeoutMillis: number
     ): Promise<boolean> {
-        const command = `adb  -s emulator-${portNumber} shell getprop dev.bootcomplete`;
+        const command = `${AndroidSDKUtils.ADB_SHELL_COMMAND}  -s emulator-${portNumber} shell getprop dev.bootcomplete`;
         console.log(`Waiting for device to boot ..`);
         return new Promise<boolean>(async (resolve, reject) => {
             if (numberofRetries === 1) {
