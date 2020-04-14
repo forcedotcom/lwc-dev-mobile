@@ -1,4 +1,6 @@
 #!/usr/bin/env ts-node
+import androidConfig from '../../../../../config/androidconfig.json';
+import { AndroidLauncher } from '../../../../../common/AndroidLauncher';
 import { CommandLineUtils } from '../../../../../common/Common';
 import { flags, SfdxCommand } from '@salesforce/command';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
@@ -59,7 +61,6 @@ export default class Preview extends SfdxCommand {
         await Setup.run(['-p', this.flags.platform]);
         this.logger.info('Preview Command ended');
         this.validateComponentPathValue(this.flags.path);
-        this.validateTargetValue(this.flags.target);
         if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
             this.launchIOS();
         } else if (
@@ -71,7 +72,7 @@ export default class Preview extends SfdxCommand {
 
     public validateComponentPathValue(path: string): boolean {
         this.logger.debug('Invoked validate validateComponent in preview');
-        return true;
+        return path.trim().length > 0;
     }
 
     public validateTargetValue(target: string): boolean {
@@ -92,6 +93,12 @@ export default class Preview extends SfdxCommand {
     }
 
     public launchAndroid(): Promise<boolean> {
-        throw new SfdxError('Coming soon. Try again later ...');
+        console.log('Android launch called');
+        const emulatorName = this.flags.target
+            ? this.flags.target
+            : androidConfig.defaultEmulatorName;
+        const launcher = new AndroidLauncher(emulatorName);
+        const compPath = this.flags.path;
+        return launcher.launchNativeBrowser(`http://10.0.5.2:3333/${compPath}`);
     }
 }

@@ -3,11 +3,25 @@ import { Logger, SfdxError } from '@salesforce/core';
 import Preview from '../preview';
 import Setup from '../setup';
 
+const myPreviewAndroidCommandBlockMock = jest.fn(
+    (): Promise<boolean> => {
+        return Promise.resolve(true);
+    }
+);
+
+const myPreviewiOSCommandBlockMock = jest.fn(
+    (): Promise<boolean> => {
+        return Promise.resolve(true);
+    }
+);
+
 describe('Preview Tests', () => {
     let preview: Preview;
 
     beforeEach(() => {
         preview = new Preview([], new Config.Config({} as Config.Options));
+        preview.launchIOS = myPreviewiOSCommandBlockMock;
+        preview.launchAndroid = myPreviewiOSCommandBlockMock;
     });
 
     test('Checks that Comp Path flag is received', async () => {
