@@ -88,7 +88,7 @@ export default class Preview extends SfdxCommand {
         const launcher = new IOSLauncher(simName);
         const compPath = this.flags.path;
         return launcher.launchNativeBrowser(
-            `http://localhost:3333/${compPath}`
+            `http://localhost:3333/lwc/preview/${compPath}`
         );
     }
 
@@ -99,6 +99,8 @@ export default class Preview extends SfdxCommand {
             : androidConfig.defaultEmulatorName;
         const launcher = new AndroidLauncher(emulatorName);
         const compPath = this.flags.path;
-        return launcher.launchNativeBrowser(`http://10.0.5.2:3333/${compPath}`);
+        return launcher.launchNativeBrowser(
+            `http://10.0.5.2:3333/lwc/preview/${compPath}`
+        );
     }
 }
