@@ -100,7 +100,7 @@ export default class Preview extends SfdxCommand {
         const launcher = new AndroidLauncher(emulatorName);
         const compPath = this.flags.path;
         return launcher.launchNativeBrowser(
-            `http://10.0.5.2:3333/lwc/preview/${compPath}`
+            `http://10.0.2.2:3333/lwc/preview/${compPath}`
         );
     }
 }
