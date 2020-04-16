@@ -12,8 +12,8 @@ $ yarn test
 # Install the plugin & Run preview command
 ```sh-session
 $ sfdx plugins:link .
-$ sfdx force:lightning:local:preview -p Android -t LWCSimulator -d http://localhost:3333
-$ sfdx force:lightning:local:preview -p iOS -t LWCSimulator -d http://localhost:3333
+$ sfdx force:lightning:lwc:preview -p Android -t LWCSimulator -d http://localhost:3333
+$ sfdx force:lightning:lwc:preview -p iOS -t LWCSimulator -d http://localhost:3333
 ```
 # Uninstall the plugin
 ```

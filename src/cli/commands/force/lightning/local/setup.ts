@@ -31,10 +31,10 @@ export default class Setup extends SfdxCommand {
         })
     };
 
-    public async init(): Promise<void> {
+    protected async init(): Promise<void> {
+        await super.init();
         const logger = await Logger.child('mobile:setup', {});
         this.logger = logger;
-        return super.init();
     }
 
     public async run(): Promise<any> {

@@ -6,7 +6,7 @@ import { flags, SfdxCommand } from '@salesforce/command';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
 import iOSConfig from '../../../../../config/iosconfig.json';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
-import Setup from './setup';
+import Setup from '../local/setup';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -50,10 +50,10 @@ export default class Preview extends SfdxCommand {
     // Set this to true if your command requires a project workspace; 'requiresProject' is false by default
     protected static requiresProject = false;
 
-    public async init(): Promise<void> {
-        const logger = await Logger.child('mobile:preview', { tag: 'value' });
+    protected async init(): Promise<void> {
+        await super.init();
+        const logger = await Logger.child('mobile:preview', {});
         this.logger = logger;
-        return super.init();
     }
 
     public async run(): Promise<any> {
@@ -81,7 +81,6 @@ export default class Preview extends SfdxCommand {
     }
 
     public launchIOS(): Promise<boolean> {
-        this.logger.debug('Invoked validate validateTargetValue in preview');
         const simName = this.flags.target
             ? this.flags.target
             : iOSConfig.defaultSimulatorName;
@@ -93,7 +92,6 @@ export default class Preview extends SfdxCommand {
     }
 
     public launchAndroid(): Promise<boolean> {
-        console.log('Android launch called');
         const emulatorName = this.flags.target
             ? this.flags.target
             : androidConfig.defaultEmulatorName;

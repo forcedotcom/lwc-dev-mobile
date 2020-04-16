@@ -4,7 +4,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Sfdx Preview iOS",
+            "name": "iOS - Preview",
             "program": "${workspaceFolder}/bin/run",
             "args": [
                 "force:lightning:local:preview",
@@ -19,7 +19,22 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Sfdx Setup iOS",
+            "name": "Android - Preview",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:local:preview",
+                "-p",
+                "android",
+                "-d",
+                "c/HelloWorld",
+                "-t",
+                "sfdxdebug"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "iOS - Setup",
             "program": "${workspaceFolder}/bin/run",
             "args": [
                 "force:lightning:local:setup",
@@ -30,7 +45,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Sfdx Setup Android",
+            "name": "Android - Setup",
             "program": "${workspaceFolder}/bin/run",
             "args": [
                 "force:lightning:local:setup",

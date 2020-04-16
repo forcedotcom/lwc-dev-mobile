@@ -1,7 +1,7 @@
 import * as Config from '@oclif/config';
 import { Logger, SfdxError } from '@salesforce/core';
 import Preview from '../preview';
-import Setup from '../setup';
+import Setup from '../../local/setup';
 
 const myPreviewAndroidCommandBlockMock = jest.fn(
     (): Promise<boolean> => {
@@ -63,6 +63,7 @@ describe('Preview Tests', () => {
         preview.validateComponentPathValue = compPathCalValidationlMock;
         preview.validateTargetValue = targetValueValidationCallMock;
         await preview.run();
+
         return expect(targetValueValidationCallMock).toHaveBeenCalledWith(
             'sfdxemu'
         );
