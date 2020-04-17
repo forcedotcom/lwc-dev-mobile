@@ -221,13 +221,11 @@ describe('IOS utils tests', () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
             myCommandRouterBlock
         );
-        return XcodeUtils.getSupportedDevicesThatMatch().then(
-            (returnedValues) => {
-                expect(
-                    returnedValues !== null && returnedValues.length > 0
-                ).toBeTruthy();
-            }
-        );
+        return XcodeUtils.getSupportedDevices().then((returnedValues) => {
+            expect(
+                returnedValues !== null && returnedValues.length > 0
+            ).toBeTruthy();
+        });
     });
 
     test('Should handle Bad JSON', async () => {

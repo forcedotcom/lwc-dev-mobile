@@ -297,10 +297,10 @@ export class AndroidSDKUtils {
     static hasEmulator(emulatorName: string): Promise<boolean> {
         return new Promise((resolve, reject) => {
             try {
-                let stdout = AndroidSDKUtils.executeCommand(
+                const stdout = AndroidSDKUtils.executeCommand(
                     AndroidSDKUtils.EMULATOR_COMMAND + ' ' + '-list-avds'
                 );
-                var listOfAVDs = stdout
+                const listOfAVDs = stdout
                     .toString()
                     .split(os.EOL)
                     .filter((avd: String) => avd == emulatorName);
@@ -341,11 +341,14 @@ export class AndroidSDKUtils {
         });
     }
 
-    static startEmulator(emulatorName: string, port: number): Promise<boolean> {
+    static startEmulator(
+        emulatorName: string,
+        portNumber: number
+    ): Promise<boolean> {
         return new Promise((resolve, reject) => {
             try {
                 const child = spawn(
-                    `${AndroidSDKUtils.EMULATOR_COMMAND} @${emulatorName} -port ${port}`,
+                    `${AndroidSDKUtils.EMULATOR_COMMAND} @${emulatorName} -port ${portNumber}`,
                     { shell: true }
                 );
                 child.stdin.setDefaultEncoding('utf8');
@@ -361,14 +364,16 @@ export class AndroidSDKUtils {
         });
     }
 
+    //NOTE: I have not had success with using something similar to this
+    //adb -s emulator-${portNumber} wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
+    // It has led to device and adb freezes. Need to revisit later.
     static async pollDeviceStatus(
         portNumber: number,
         numberofRetries: number,
         timeoutMillis: number
     ): Promise<boolean> {
-        const command = `${AndroidSDKUtils.ADB_SHELL_COMMAND}  -s emulator-${portNumber} shell getprop dev.bootcomplete`;
-        console.log(`Waiting for device to boot ..`);
-        return new Promise<boolean>(async (resolve, reject) => {
+        const command = `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${portNumber} shell getprop dev.bootcomplete`;
+        return new Promise<boolean>((resolve, reject) => {
             if (numberofRetries === 1) {
                 const message = `Waited too long for emulator emulator-${portNumber} to boot.`;
                 AndroidSDKUtils.logger.error(message);
@@ -413,6 +418,34 @@ export class AndroidSDKUtils {
             } catch (error) {
                 reject(error);
             }
+        });
+    }
+
+    static getNextAndroidAdbPort(): Promise<number> {
+        const command = `${AndroidSDKUtils.ADB_SHELL_COMMAND} devices`;
+        return new Promise<number>((resolve, reject) => {
+            let adbPort = 0;
+            try {
+                const stdout = AndroidSDKUtils.executeCommand(command);
+                let listOfDevices: number[] = stdout
+                    .toString()
+                    .split(os.EOL)
+                    .filter((avd: String) =>
+                        avd.toLowerCase().startsWith('emulator')
+                    )
+                    .map((value) => {
+                        const array = value.match(/\d+/);
+                        const portNumbers = array ? array.map(Number) : [0];
+                        return portNumbers[0];
+                    });
+                if (listOfDevices && listOfDevices.length > 0) {
+                    listOfDevices = listOfDevices.sort().reverse();
+                    adbPort = listOfDevices[0];
+                }
+            } catch (exception) {
+                AndroidSDKUtils.logger.error(exception);
+            }
+            return resolve(adbPort);
         });
     }
 

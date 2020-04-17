@@ -1,3 +1,4 @@
+import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
 import util from 'util';
 
@@ -10,12 +11,17 @@ export class AndroidLauncher {
 
     public async launchNativeBrowser(url: string): Promise<boolean> {
         const preferredPack = await AndroidSDKUtils.findRequiredEmulatorImages();
-        const emuImage = 'default';
+        const emuImage = preferredPack.platformEmulatorImage || 'default';
         const androidApi = preferredPack.platformAPI;
-        const device = 'pixel';
-        const port = 5580;
-        const timeout = 3000;
-        const noOfRetries = 10;
+        const device = androidConfig.supportedDevices[0];
+        const timeout = androidConfig.deviceBootReadinessWaitTime;
+        const noOfRetries = androidConfig.deviceBootStatusPollRetries;
+        let port = await AndroidSDKUtils.getNextAndroidAdbPort();
+        // need to incr by 2, one for console port and next for adb
+        port =
+            port < androidConfig.defaultAdbPort
+                ? androidConfig.defaultAdbPort
+                : port + 2;
         const emuName = this.emulatorName;
         return AndroidSDKUtils.hasEmulator(emuName)
             .then((result) => {
@@ -44,5 +50,5 @@ export class AndroidLauncher {
 //         console.log('Its all cool!');
 //     })
 //     .catch((error) => {
-//         console.log(`Uh oh wtf ${error}`);
+//         console.log(`uh oh! ${error}`);
 //     });

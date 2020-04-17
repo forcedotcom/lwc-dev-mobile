@@ -10,34 +10,19 @@ export class IOSLauncher {
         this.simulatorName = simulatorName;
     }
 
-    private typeFromIdentifier(name: string): string {
-        if (name && name.length > 0) {
-            const tokens = name.split('.');
-            if (tokens.length > 4) {
-                return tokens[4];
-            }
-        }
-        return '';
-    }
-
     public async launchNativeBrowser(url: string): Promise<boolean> {
         const simName = this.simulatorName;
-        const supportedDevices: any = await XcodeUtils.getSupportedDevicesThatMatch();
-        const currentSimulator: any = supportedDevices.filter((entry: any) => {
+        const availableDevices: string[] = await XcodeUtils.getSupportedDevices();
+        const supportedRuntimes: string[] = await XcodeUtils.getSupportedRuntimes();
+        const currentSimulator: any = availableDevices.filter((entry: any) => {
             return simName == entry.name;
         });
         let deviceUDID = '';
-        if (!currentSimulator || currentSimulator.length < 1) {
-            const deviceType = this.typeFromIdentifier(
-                supportedDevices[0].deviceTypeIdentifier
-            );
-            const runtimeType = this.typeFromIdentifier(
-                supportedDevices[0].runtimeTypeIdentifier
-            );
+        if (!currentSimulator || currentSimulator.length == 0) {
             deviceUDID = await XcodeUtils.createNewDevice(
                 this.simulatorName,
-                deviceType,
-                runtimeType
+                availableDevices[0],
+                supportedRuntimes[0]
             );
         } else {
             deviceUDID = currentSimulator[0].udid;

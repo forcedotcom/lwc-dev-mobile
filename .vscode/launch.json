@@ -22,7 +22,7 @@
             "name": "Android - Preview",
             "program": "${workspaceFolder}/bin/run",
             "args": [
-                "force:lightning:local:preview",
+                "force:lightning:lwc:preview",
                 "-p",
                 "android",
                 "-d",

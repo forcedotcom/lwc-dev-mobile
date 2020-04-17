@@ -56,62 +56,39 @@ export class XcodeUtils {
         return exec(command);
     }
 
-    public static async getSupportedDevicesThatMatch(): Promise<[{}]> {
-        const runtimesCmd = `${XCRUN_CMD} simctl list --json devices available`;
-        const DEVICES_KEY = 'devices';
-        const DEVICE_ID_KEY = 'deviceTypeIdentifier';
-        const preferedDevices = iOSConfig.supportedDevices;
-        const preferedRuntimes = iOSConfig.supportedRuntimes;
-
+    public static async getSupportedDevices(): Promise<string[]> {
+        const runtimesCmd = `${XCRUN_CMD} simctl list  --json devicetypes`;
+        const identifier = 'identifier';
+        const deviceTypesKey = 'devicetypes';
+        const deviceMatchRegex = /SimDeviceType.iPhone-[8,1,X]/;
+        let error = new Error(
+            'xcrun simctl list devicestypes returned an empty list'
+        );
         try {
-            const supportedRuntimes = await XcodeUtils.getSupportedRuntimes();
-            const runtimeMatchRegex = new RegExp(
-                `\.SimRuntime\.(${supportedRuntimes.join('|')})`
-            );
-            const deviceMatchRegex = new RegExp(
-                `\.SimDeviceType\.(${preferedDevices.join('|')})`
-            );
             const { stdout } = await XcodeUtils.executeCommand(runtimesCmd);
             const devicesObj: any = JSON.parse(stdout);
-            const devices: any[] = devicesObj[DEVICES_KEY] || [];
-            let runtimes: any[] = Object.keys(devices).filter((key) => {
-                return key && key.match(runtimeMatchRegex);
+            const devices: any[] = devicesObj[deviceTypesKey] || [];
+            let matchedDevices: any[] = devices.filter((entry) => {
+                return (
+                    entry[identifier] &&
+                    entry[identifier].match(deviceMatchRegex)
+                );
             });
-            runtimes = runtimes.sort().reverse();
-            if (runtimes && runtimes.length > 0) {
-                const runtimeDevices = devices[runtimes[0]];
-                let filteredDevices = runtimeDevices.filter(
-                    (entry: { [x: string]: any }) => {
-                        return (
-                            entry[DEVICE_ID_KEY] &&
-                            entry[DEVICE_ID_KEY].match(deviceMatchRegex)
-                        );
-                    }
-                );
-                filteredDevices = filteredDevices.map(
-                    (entry: { [x: string]: any }) => {
-                        entry['runtimeTypeIdentifier'] = runtimes[0];
-                        return entry;
-                    }
-                );
 
-                if (filteredDevices && filteredDevices.length > 0) {
-                    return new Promise<[{}]>((resolve, reject) =>
-                        resolve(filteredDevices)
-                    );
-                }
+            if (matchedDevices) {
+                return new Promise<string[]>((resolve, reject) =>
+                    resolve(
+                        matchedDevices.map(
+                            (entry) => entry.identifier.split('.')[4]
+                        )
+                    )
+                );
             }
         } catch (runtimesError) {
-            return new Promise<[{}]>((resolve, reject) =>
-                reject(`The command '${runtimesCmd}' failed: ${runtimesError}`)
-            );
+            error = runtimesError;
         }
-        return new Promise<[{}]>((resolve, reject) =>
-            reject(
-                `The command '${runtimesCmd}' failed to locate an available device for runtimes ${preferedRuntimes.join(
-                    ','
-                )} with device type ${preferedDevices.join(',')}`
-            )
+        return new Promise<string[]>((resolve, reject) =>
+            reject(`Could not find any available devices. ${error.message}`)
         );
     }
 
