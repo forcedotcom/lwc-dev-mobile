@@ -40,14 +40,16 @@ export default class Setup extends SfdxCommand {
     public async run(): Promise<any> {
         let valid = this.validatePlatformValue(this.flags.platform);
         if (!valid) {
-            throw new SfdxError(
-                messages.getMessage('error:invalidInputFlagsDescription'),
-                'lwc-dev-mobile',
-                [
-                    `${messages.getMessage(
-                        'remedy:invalidInputFlagsDescription'
-                    )}`
-                ]
+            return Promise.reject(
+                new SfdxError(
+                    messages.getMessage('error:invalidInputFlagsDescription'),
+                    'lwc-dev-mobile',
+                    [
+                        `${messages.getMessage(
+                            'remedy:invalidInputFlagsDescription'
+                        )}`
+                    ]
+                )
             );
         }
         this.logger.info(`Setup Command called for ${this.flags.platform}`);
@@ -57,15 +59,18 @@ export default class Setup extends SfdxCommand {
             let actions = result.tests
                 .filter((test) => !test.hasPassed)
                 .map((test) => test.message);
-            throw new SfdxError(
-                util.format(
-                    messages.getMessage('error:setupFailed'),
-                    this.flags.platform
-                ),
-                'lwc-dev-mobile',
-                actions
+            return Promise.reject(
+                new SfdxError(
+                    util.format(
+                        messages.getMessage('error:setupFailed'),
+                        this.flags.platform
+                    ),
+                    'lwc-dev-mobile',
+                    actions
+                )
             );
         }
+        return Promise.resolve(result);
     }
 
     public executeSetup(setup: BaseSetup): Promise<SetupTestResult> {
