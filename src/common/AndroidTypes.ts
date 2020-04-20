@@ -15,6 +15,20 @@ export class AndroidPackage {
         return platformApi;
     }
 
+    get platformEmulatorImage(): string {
+        const platformApi = '';
+        if (
+            this.path.startsWith('platforms') ||
+            this.path.startsWith('system-images')
+        ) {
+            const tokens: string[] = this.path.split(';');
+            if (tokens.length > 2) {
+                return tokens[2];
+            }
+        }
+        return platformApi;
+    }
+
     public static parseRawString(
         rawStringInput: string
     ): Map<string, AndroidPackage> {

@@ -1,7 +1,12 @@
 #!/usr/bin/env ts-node
+import androidConfig from '../../../../../config/androidconfig.json';
+import { AndroidLauncher } from '../../../../../common/AndroidLauncher';
+import { CommandLineUtils } from '../../../../../common/Common';
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Logger, Messages } from '@salesforce/core';
-import Setup from './setup';
+import { IOSLauncher } from '../../../../../common/IOSLauncher';
+import iOSConfig from '../../../../../config/iosconfig.json';
+import { Logger, Messages, SfdxError } from '@salesforce/core';
+import Setup from '../local/setup';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -45,10 +50,10 @@ export default class Preview extends SfdxCommand {
     // Set this to true if your command requires a project workspace; 'requiresProject' is false by default
     protected static requiresProject = false;
 
-    public async init(): Promise<void> {
-        const logger = await Logger.child('mobile:preview', { tag: 'value' });
+    protected async init(): Promise<void> {
+        await super.init();
+        const logger = await Logger.child('mobile:preview', {});
         this.logger = logger;
-        return super.init();
     }
 
     public async run(): Promise<any> {
@@ -56,16 +61,44 @@ export default class Preview extends SfdxCommand {
         await Setup.run(['-p', this.flags.platform]);
         this.logger.info('Preview Command ended');
         this.validateComponentPathValue(this.flags.path);
-        this.validateTargetValue(this.flags.target);
+        if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
+            this.launchIOS();
+        } else if (
+            CommandLineUtils.platformFlagIsAndroid(this.flags.platform)
+        ) {
+            this.launchAndroid();
+        }
     }
 
     public validateComponentPathValue(path: string): boolean {
         this.logger.debug('Invoked validate validateComponent in preview');
-        return true;
+        return path.trim().length > 0;
     }
 
     public validateTargetValue(target: string): boolean {
         this.logger.debug('Invoked validate validateTargetValue in preview');
         return true;
+    }
+
+    public launchIOS(): Promise<boolean> {
+        const simName = this.flags.target
+            ? this.flags.target
+            : iOSConfig.defaultSimulatorName;
+        const launcher = new IOSLauncher(simName);
+        const compPath = this.flags.path;
+        return launcher.launchNativeBrowser(
+            `http://localhost:3333/lwc/preview/${compPath}`
+        );
+    }
+
+    public launchAndroid(): Promise<boolean> {
+        const emulatorName = this.flags.target
+            ? this.flags.target
+            : androidConfig.defaultEmulatorName;
+        const launcher = new AndroidLauncher(emulatorName);
+        const compPath = this.flags.path;
+        return launcher.launchNativeBrowser(
+            `http://10.0.2.2:3333/lwc/preview/${compPath}`
+        );
     }
 }
