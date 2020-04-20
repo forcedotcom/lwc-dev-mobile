@@ -50,6 +50,40 @@ export class XcodeUtils {
         }
     }
 
+    public static async getSimulator(simulatorName: string): Promise<string> {
+        const devicesCmd = `${XCRUN_CMD} simctl list --json devices available`;
+        const DEVICES_KEY = 'devices';
+        try {
+            const supportedRuntimes = await XcodeUtils.getSupportedRuntimes();
+            const runtimeMatchRegex = new RegExp(
+                `\.SimRuntime\.(${supportedRuntimes.join('|')})`
+            );
+            const { stdout } = await XcodeUtils.executeCommand(devicesCmd);
+            const devicesJSON: any = JSON.parse(stdout);
+            const runtimeDevices: any[] = devicesJSON[DEVICES_KEY] || [];
+            let runtimes: any[] = Object.keys(runtimeDevices).filter((key) => {
+                return key && key.match(runtimeMatchRegex);
+            });
+            runtimes = runtimes.sort().reverse();
+            //search for device that matches and return udid
+            for (let runtimeIdentifier of runtimes) {
+                let devices: any = runtimeDevices[runtimeIdentifier];
+                for (let device of devices) {
+                    if (simulatorName.match(device.name)) {
+                        return new Promise<string>((resolve) =>
+                            resolve(device.udid)
+                        );
+                    }
+                }
+            }
+        } catch (runtimesError) {
+            return new Promise<string>((resolve, reject) =>
+                reject(`The command '${devicesCmd}' failed: ${runtimesError}`)
+            );
+        }
+        return new Promise<string>((resolve) => resolve(''));
+    }
+
     public static async executeCommand(
         command: string
     ): Promise<{ stdout: string; stderr: string }> {

@@ -11,27 +11,26 @@ export class IOSLauncher {
     }
 
     public async launchNativeBrowser(url: string): Promise<boolean> {
-        const simName = this.simulatorName;
         const availableDevices: string[] = await XcodeUtils.getSupportedDevices();
         const supportedRuntimes: string[] = await XcodeUtils.getSupportedRuntimes();
-        const currentSimulator: any = availableDevices.filter((entry: any) => {
-            return simName == entry.name;
-        });
+        const currentSimulatorUDID: string = await XcodeUtils.getSimulator(
+            this.simulatorName
+        );
         let deviceUDID = '';
-        if (!currentSimulator || currentSimulator.length == 0) {
+        if (!currentSimulatorUDID || currentSimulatorUDID.length == 0) {
             deviceUDID = await XcodeUtils.createNewDevice(
                 this.simulatorName,
                 availableDevices[0],
                 supportedRuntimes[0]
             );
         } else {
-            deviceUDID = currentSimulator[0].udid;
+            deviceUDID = currentSimulatorUDID;
         }
         return XcodeUtils.openUrlInNativeBrowser(url, deviceUDID);
     }
 }
 
-// let launcher = new IOSLauncher('sfdxdevmobile1');
+// let launcher = new IOSLauncher('sfdxdevmobile-101');
 // launcher
 //     .launchNativeBrowser('http://salesforce.com')
 //     .then((result) => {
