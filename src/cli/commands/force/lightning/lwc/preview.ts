@@ -19,8 +19,8 @@ export default class Preview extends SfdxCommand {
     public static description = messages.getMessage('commandDescription');
 
     public static examples = [
-        `$ sfdx force:lightning:lwc:preview -p iOS -t LWCSim2 -f http://localhost:3333`,
-        `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -f http://localhost:3333`
+        `$ sfdx force:lightning:lwc:preview -p iOS -t LWCSim2 -d c/HellowWordComponent`,
+        `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -d c/HellowWordComponent`
     ];
 
     public static args = [{ name: 'file' }];
@@ -57,27 +57,58 @@ export default class Preview extends SfdxCommand {
     }
 
     public async run(): Promise<any> {
-        this.logger.info('Preview Command called');
-        await Setup.run(['-p', this.flags.platform]);
-        this.logger.info('Preview Command ended');
-        this.validateComponentPathValue(this.flags.path);
-        if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
-            this.launchIOS();
-        } else if (
-            CommandLineUtils.platformFlagIsAndroid(this.flags.platform)
-        ) {
-            this.launchAndroid();
+        this.logger.info('Preview Command invoked');
+        let isValid = this.validateComponentPathValue(this.flags.path);
+        isValid = isValid && this.validateTargetValue(this.flags.target);
+        isValid = isValid && this.validatePlatformValue(this.flags.platform);
+        if (!isValid) {
+            return Promise.reject(
+                new SfdxError(
+                    messages.getMessage('error:invalidInputFlagsDescription'),
+                    'lwc-dev-mobile',
+                    Preview.examples
+                )
+            );
         }
+
+        let setupResult = await Setup.run(['-p', this.flags.platform]);
+        if (!setupResult || !setupResult.hasMetAllRequirements) {
+            this.logger.warn(
+                `Preview failed for ${this.flags.platform}. Setup requirements have not been met.`
+            );
+            return Promise.resolve(false);
+        }
+        this.logger.info('Setup requirements met, continuing with preview');
+        return this.launchPreview();
     }
 
     public validateComponentPathValue(path: string): boolean {
-        this.logger.debug('Invoked validate validateComponent in preview');
-        return path.trim().length > 0;
+        this.logger.debug('Invoked validateComponent in preview');
+        return path ? path.trim().length > 0 : false;
     }
 
     public validateTargetValue(target: string): boolean {
-        this.logger.debug('Invoked validate validateTargetValue in preview');
-        return true;
+        this.logger.debug('Invoked validateTargetValue in preview');
+        return target ? target.trim().length > 0 : false;
+    }
+
+    public validatePlatformValue(platform: string): boolean {
+        return (
+            CommandLineUtils.platformFlagIsIOS(platform) ||
+            CommandLineUtils.platformFlagIsAndroid(platform)
+        );
+    }
+
+    public launchPreview(): Promise<boolean> {
+        let promise = Promise.resolve(false);
+        if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
+            promise = this.launchIOS();
+        } else if (
+            CommandLineUtils.platformFlagIsAndroid(this.flags.platform)
+        ) {
+            promise = this.launchAndroid();
+        }
+        return promise;
     }
 
     public launchIOS(): Promise<boolean> {
