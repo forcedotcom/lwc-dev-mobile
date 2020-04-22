@@ -79,9 +79,8 @@ export abstract class BaseSetup implements RequirementList {
                     });
                 }
             });
-            if (logger.shouldLog(LoggerLevel.DEBUG)) {
-                console.table(testResult.tests, ['testResult', 'message']);
-            }
+            console.table(testResult.tests, ['testResult', 'message']);
+
             return Promise.resolve(testResult);
         });
     }

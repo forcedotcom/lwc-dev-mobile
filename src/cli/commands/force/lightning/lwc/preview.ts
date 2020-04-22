@@ -58,39 +58,52 @@ export default class Preview extends SfdxCommand {
 
     public async run(): Promise<any> {
         this.logger.info('Preview Command invoked');
-        let setupResult = await Setup.run(['-p', this.flags.platform]);
+        let isValid = this.validateComponentPathValue(this.flags.path);
+        isValid = isValid && this.validateTargetValue(this.flags.target);
+        isValid = isValid && this.validatePlatformValue(this.flags.platform);
+        if (!isValid) {
+            return Promise.reject(
+                new SfdxError(
+                    messages.getMessage('error:invalidInputFlagsDescription'),
+                    'lwc-dev-mobile',
+                    Preview.examples
+                )
+            );
+        }
 
+        let setupResult = await Setup.run(['-p', this.flags.platform]);
         if (!setupResult || !setupResult.hasMetAllRequirements) {
             this.logger.warn(
                 `Preview failed for ${this.flags.platform}. Setup requirements have not been met.`
             );
             return Promise.resolve(false);
         }
-        this.logger.info('Setup requirements met, continue with preview');
+        this.logger.info('Setup requirements met, continuing with preview');
         return this.launchPreview();
     }
 
     public validateComponentPathValue(path: string): boolean {
         this.logger.debug('Invoked validateComponent in preview');
-        return path.trim().length > 0;
+        return path ? path.trim().length > 0 : false;
     }
 
     public validateTargetValue(target: string): boolean {
         this.logger.debug('Invoked validateTargetValue in preview');
-        return target.trim().length > 0;
+        return target ? target.trim().length > 0 : false;
+    }
+
+    public validatePlatformValue(platform: string): boolean {
+        return (
+            CommandLineUtils.platformFlagIsIOS(platform) ||
+            CommandLineUtils.platformFlagIsAndroid(platform)
+        );
     }
 
     public launchPreview(): Promise<boolean> {
         let promise = Promise.resolve(false);
-        let isValid = this.validateComponentPathValue(this.flags.path);
-        isValid = isValid && this.validateTargetValue(this.flags.target);
-        if (
-            isValid &&
-            CommandLineUtils.platformFlagIsIOS(this.flags.platform)
-        ) {
+        if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
             promise = this.launchIOS();
         } else if (
-            isValid &&
             CommandLineUtils.platformFlagIsAndroid(this.flags.platform)
         ) {
             promise = this.launchAndroid();
