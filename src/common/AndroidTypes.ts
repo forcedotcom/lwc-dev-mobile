@@ -16,17 +16,23 @@ export class AndroidPackage {
     }
 
     get platformEmulatorImage(): string {
-        const platformApi = '';
-        if (
-            this.path.startsWith('platforms') ||
-            this.path.startsWith('system-images')
-        ) {
+        if (this.path.startsWith('system-images')) {
             const tokens: string[] = this.path.split(';');
             if (tokens.length > 2) {
                 return tokens[2];
             }
         }
-        return platformApi;
+        return '';
+    }
+
+    get abi(): string {
+        if (this.path.startsWith('system-images')) {
+            const tokens: string[] = this.path.split(';');
+            if (tokens.length > 3) {
+                return tokens[3];
+            }
+        }
+        return '';
     }
 
     public static parseRawString(
@@ -42,7 +48,7 @@ export class AndroidPackage {
         const packages: Map<string, AndroidPackage> = new Map();
 
         // Installed packages:
-        const lines = rawString.split(os.EOL);
+        const lines = rawString.split('\n');
         if (lines.length > 0) {
             let i = 0;
             for (; i < lines.length; i++) {

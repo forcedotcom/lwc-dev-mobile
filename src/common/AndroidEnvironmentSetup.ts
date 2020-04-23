@@ -79,9 +79,11 @@ export class AndroidEnvironmentSetup extends BaseSetup {
         return new Promise<string>((resolve, reject) => {
             if (AndroidSDKUtils.isAndroidHomeSet()) {
                 resolve(
-                    util.format(
-                        this.fulfilledMessage,
-                        AndroidSDKUtils.androidHome
+                    AndroidSDKUtils.escapePath(
+                        util.format(
+                            this.fulfilledMessage,
+                            AndroidSDKUtils.androidHome
+                        )
                     )
                 );
             } else {
@@ -94,7 +96,11 @@ export class AndroidEnvironmentSetup extends BaseSetup {
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.fetchAndroidSDKToolsLocation()
                 .then((result) =>
-                    resolve(util.format(this.fulfilledMessage, result))
+                    resolve(
+                        AndroidSDKUtils.escapePath(
+                            util.format(this.fulfilledMessage, result)
+                        )
+                    )
                 )
                 .catch((error) =>
                     reject(
@@ -114,7 +120,11 @@ export class AndroidEnvironmentSetup extends BaseSetup {
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.fetchAndroidSDKPlatformToolsLocation()
                 .then((result) => {
-                    resolve(util.format(this.fulfilledMessage, result));
+                    resolve(
+                        AndroidSDKUtils.escapePath(
+                            util.format(this.fulfilledMessage, result)
+                        )
+                    );
                 })
                 .catch((error) => {
                     reject(

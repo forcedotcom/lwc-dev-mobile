@@ -13,6 +13,7 @@ export class AndroidLauncher {
         const preferredPack = await AndroidSDKUtils.findRequiredEmulatorImages();
         const emuImage = preferredPack.platformEmulatorImage || 'default';
         const androidApi = preferredPack.platformAPI;
+        const abi = preferredPack.abi;
         const device = androidConfig.supportedDevices[0];
         const timeout = androidConfig.deviceBootReadinessWaitTime;
         const noOfRetries = androidConfig.deviceBootStatusPollRetries;
@@ -30,7 +31,8 @@ export class AndroidLauncher {
                         emuName,
                         emuImage,
                         androidApi,
-                        device
+                        device,
+                        abi
                     ).then((resolve) => true);
                 }
                 return true;
