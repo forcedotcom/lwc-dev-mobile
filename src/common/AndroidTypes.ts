@@ -35,7 +35,7 @@ export class AndroidPackage {
         return '';
     }
 
-    public static parseRawString(
+    public static parseRawPackagesString(
         rawStringInput: string
     ): Map<string, AndroidPackage> {
         const startIndx = rawStringInput

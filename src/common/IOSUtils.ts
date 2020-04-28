@@ -1,6 +1,8 @@
 import childProcess from 'child_process';
+import cli from 'cli-ux';
 import iOSConfig from '../config/iosconfig.json';
 import util from 'util';
+
 const exec = util.promisify(childProcess.exec);
 
 const XCRUN_CMD = '/usr/bin/xcrun';
@@ -231,22 +233,30 @@ export class XcodeUtils {
 
     public static async openUrlInNativeBrowser(
         url: string,
-        udid: string
+        udid: string,
+        spinner: any
     ): Promise<boolean> {
         return XcodeUtils.launchSimulatorApp()
             .then(() => {
+                spinner.start(`Launching`, `Starting device ${udid}`, {
+                    stdout: true
+                });
                 return XcodeUtils.bootDevice(udid);
             })
             .then(() => {
+                spinner.start(`Launching`, `Wait for device ${udid} to boot`, {
+                    stdout: true
+                });
                 return this.waitUntilDeviceIsReady(udid);
             })
             .then(() => {
+                spinner.stop('Open Browser');
                 return this.launchURLInBootedSimulator(udid, url);
             });
     }
 }
 
-// XcodeUtils.getSupportedDevicesThatMatch()
+// XcodeUtils.getSupportedDevices()
 //     .then((runtimeDevices) => {
 //         console.log(`runtimeDevices: ${runtimeDevices}`);
 //     })

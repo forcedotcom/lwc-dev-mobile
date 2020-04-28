@@ -1,4 +1,5 @@
 import childProcess from 'child_process';
+import cli from 'cli-ux';
 import util from 'util';
 import { XcodeUtils } from './IOSUtils';
 const exec = util.promisify(childProcess.exec);
@@ -17,16 +18,33 @@ export class IOSLauncher {
             this.simulatorName
         );
         let deviceUDID = '';
-        if (!currentSimulatorUDID || currentSimulatorUDID.length == 0) {
+        let spinner = cli.action;
+        cli.action.start(`Launching`, `Looking for ${this.simulatorName}`, {
+            stdout: true
+        });
+        if (!currentSimulatorUDID || currentSimulatorUDID.length === 0) {
+            spinner.start(
+                `Launching`,
+                `Creating device ${this.simulatorName}`,
+                {
+                    stdout: true
+                }
+            );
             deviceUDID = await XcodeUtils.createNewDevice(
                 this.simulatorName,
                 availableDevices[0],
                 supportedRuntimes[0]
             );
+            spinner.start(`Launching`, `Created device ${this.simulatorName}`, {
+                stdout: true
+            });
         } else {
+            spinner.start(`Launching`, `Found device ${this.simulatorName}`, {
+                stdout: true
+            });
             deviceUDID = currentSimulatorUDID;
         }
-        return XcodeUtils.openUrlInNativeBrowser(url, deviceUDID);
+        return XcodeUtils.openUrlInNativeBrowser(url, deviceUDID, spinner);
     }
 }
 

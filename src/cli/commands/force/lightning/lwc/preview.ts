@@ -59,7 +59,6 @@ export default class Preview extends SfdxCommand {
     public async run(): Promise<any> {
         this.logger.info('Preview Command invoked');
         let isValid = this.validateComponentPathValue(this.flags.path);
-        isValid = isValid && this.validateTargetValue(this.flags.target);
         isValid = isValid && this.validatePlatformValue(this.flags.platform);
         if (!isValid) {
             return Promise.reject(
@@ -85,11 +84,6 @@ export default class Preview extends SfdxCommand {
     public validateComponentPathValue(path: string): boolean {
         this.logger.debug('Invoked validateComponent in preview');
         return path ? path.trim().length > 0 : false;
-    }
-
-    public validateTargetValue(target: string): boolean {
-        this.logger.debug('Invoked validateTargetValue in preview');
-        return target ? target.trim().length > 0 : false;
     }
 
     public validatePlatformValue(platform: string): boolean {

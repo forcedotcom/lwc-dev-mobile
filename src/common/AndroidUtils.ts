@@ -88,7 +88,7 @@ export class AndroidSDKUtils {
         );
     }
 
-    private static escapeSystemImagePath(
+    private static systemImagePath(
         platformAPI: string,
         emuImage: string,
         abi: string
@@ -100,7 +100,7 @@ export class AndroidSDKUtils {
         return `'${pathName}'`;
     }
 
-    public static escapePath(dirPath: string): string {
+    public static convertToUnixPath(dirPath: string): string {
         return dirPath.replace(/[\\]+/g, '/');
     }
 
@@ -174,7 +174,9 @@ export class AndroidSDKUtils {
                         `${AndroidSDKUtils.getSDKManagerCmd()} --list`
                     );
                     if (stdout) {
-                        const packages = AndroidPackage.parseRawString(stdout);
+                        const packages = AndroidPackage.parseRawPackagesString(
+                            stdout
+                        );
                         AndroidSDKUtils.packageCache = packages;
                     }
                 } catch (err) {
@@ -305,15 +307,17 @@ export class AndroidSDKUtils {
                 );
                 //Will retry with next architecture in list until it finds one.
                 for (let architecture of androidConfig.architectures) {
-                    packages.forEach((value, key) => {
+                    for (let key of Array.from(packages.keys())) {
                         if (
                             key.match(
                                 `(system-images;(${imagesRegex});${architecture})`
                             ) !== null
                         ) {
                             matchingKeys.push(key);
+                            break;
                         }
-                    });
+                    }
+
                     if (matchingKeys.length > 0) {
                         break;
                     }
@@ -329,9 +333,6 @@ export class AndroidSDKUtils {
                     );
                     return;
                 }
-
-                matchingKeys.sort();
-                matchingKeys.reverse();
 
                 // use the first one.
                 const androidPackage = packages.get(matchingKeys[0]);
@@ -367,7 +368,7 @@ export class AndroidSDKUtils {
         device: string,
         abi: string
     ): Promise<boolean> {
-        const createAvdCommand = `${AndroidSDKUtils.getAVDManagerCmd()} create avd -n ${emulatorName} --force -k ${this.escapeSystemImagePath(
+        const createAvdCommand = `${AndroidSDKUtils.getAVDManagerCmd()} create avd -n ${emulatorName} --force -k ${this.systemImagePath(
             platformAPI,
             emulatorimage,
             abi

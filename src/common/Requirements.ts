@@ -1,5 +1,6 @@
 import { Logger, LoggerLevel } from '@salesforce/core';
-
+import cli from 'cli-ux';
+import chalk from 'chalk';
 export type CheckRequirementsFunc = () => Promise<string>;
 
 export interface Requirement {
@@ -58,29 +59,46 @@ export abstract class BaseSetup implements RequirementList {
             allPromises.push(WrappedPromise(requirement.checkFunction()))
         );
         const logger = this.logger;
+        const reqs = this.requirements;
         return Promise.all(allPromises).then((results) => {
             const testResult: SetupTestResult = {
                 hasMetAllRequirements: true,
                 tests: []
             };
+            let count = 0;
             results.forEach((result) => {
                 if (result.status === 'fulfilled') {
                     testResult.tests.push({
-                        testResult: `✅`,
+                        testResult: 'Passed',
                         hasPassed: true,
                         message: result.v
                     });
                 } else if (result.status === 'rejected') {
                     testResult.hasMetAllRequirements = false;
                     testResult.tests.push({
-                        testResult: `❌`,
+                        testResult: 'Failed',
                         hasPassed: false,
                         message: result.e
                     });
                 }
+                count++;
             });
-            console.table(testResult.tests, ['testResult', 'message']);
 
+            let tree = cli.tree();
+            tree.insert('Setup');
+            testResult.tests.forEach((test) => {
+                tree.nodes.Setup.insert(
+                    `${
+                        test.hasPassed
+                            ? chalk.bold.green(test.testResult)
+                            : chalk.bold.red(test.testResult)
+                    }: ${
+                        test.hasPassed
+                            ? chalk.green(test.message)
+                            : chalk.red(test.message)
+                    }`
+                );
+            });
             return Promise.resolve(testResult);
         });
     }
