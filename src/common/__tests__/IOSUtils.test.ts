@@ -3,7 +3,7 @@ import 'jest-extended';
 import 'jest-chain';
 import { IOSMockData } from './IOSMockData';
 import { XcodeUtils } from '../IOSUtils';
-import { resolve } from 'dns';
+import cli from 'cli-ux';
 
 const DEVICE_TYPE_PREFIX = 'com.apple.CoreSimulator.SimDeviceType';
 const RUNTIME_TYPE_PREFIX = 'com.apple.CoreSimulator.SimRuntime';
@@ -13,9 +13,9 @@ const myCommandRouterBlock = jest.fn(
         return new Promise((resolve, reject) => {
             resolve({
                 stdout:
-                    command.indexOf('devices') < 0
+                    command.indexOf('devicetypes') < 0
                         ? JSON.stringify(IOSMockData.mockRuntimes)
-                        : JSON.stringify(IOSMockData.mockRuntimeDevices),
+                        : JSON.stringify(IOSMockData.mockRuntimeDeviceTypes),
                 stderr: 'mockError'
             });
         });
@@ -265,7 +265,11 @@ describe('IOS utils tests', () => {
         );
         jest.spyOn(XcodeUtils, 'bootDevice').mockImplementation(bootDevice);
 
-        await XcodeUtils.openUrlInNativeBrowser('MOCK-UDID', 'mock.url');
+        await XcodeUtils.openUrlInNativeBrowser(
+            'MOCK-UDID',
+            'mock.url',
+            cli.action
+        );
         expect(launchSimApp).toHaveBeenCalledBefore(bootDevice);
         expect(bootDevice).toHaveBeenCalledBefore(waitUntilReady);
         expect(waitUntilReady).toHaveBeenCalledBefore(launchURLInSim);

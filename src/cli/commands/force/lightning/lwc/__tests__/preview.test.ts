@@ -25,7 +25,7 @@ describe('Preview Tests', () => {
     });
 
     test('Checks that Comp Path flag is received', async () => {
-        setupFlags();
+        setupAndroidFlags();
         const logger = new Logger('test-preview');
         setupLogger(logger);
         const compPathCalValidationlMock = jest.fn(() => {
@@ -39,38 +39,46 @@ describe('Preview Tests', () => {
         });
         jest.spyOn(Setup, 'run').mockImplementation(setupMock);
         preview.validateComponentPathValue = compPathCalValidationlMock;
-        preview.validateTargetValue = targetValueValidationCallMock;
         await preview.run();
         return expect(compPathCalValidationlMock).toHaveBeenCalledWith(
             'componentpath'
         );
     });
 
-    test('Checks that target flag is received', async () => {
-        setupFlags();
+    test('Checks that launch for target platform  for Android is invoked', async () => {
+        setupAndroidFlags();
         const logger = new Logger('test-preview');
         setupLogger(logger);
-        const compPathCalValidationlMock = jest.fn(() => {
-            return true;
-        });
-        const targetValueValidationCallMock = jest.fn(() => {
-            return true;
+        const targetAndroidCallMock = jest.fn(() => {
+            return Promise.resolve(true);
         });
         const setupMock = jest.fn(() => {
             return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
         });
         jest.spyOn(Setup, 'run').mockImplementation(setupMock);
-        preview.validateComponentPathValue = compPathCalValidationlMock;
-        preview.validateTargetValue = targetValueValidationCallMock;
+        preview.launchAndroid = targetAndroidCallMock;
         await preview.run();
+        return expect(targetAndroidCallMock).toHaveBeenCalled();
+    });
 
-        return expect(targetValueValidationCallMock).toHaveBeenCalledWith(
-            'sfdxemu'
-        );
+    test('Checks that launch for target platform  for iOS is invoked', async () => {
+        setupIOSFlags();
+        const logger = new Logger('test-preview');
+        setupLogger(logger);
+        const targetAndroidCallMock = jest.fn(() => {
+            return Promise.resolve(true);
+        });
+        const setupMock = jest.fn(() => {
+            return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
+        });
+        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
+        preview.launchIOS = targetAndroidCallMock;
+        await preview.run();
+        return expect(targetAndroidCallMock).toHaveBeenCalled();
     });
 
     test('Checks that setup is invoked', async () => {
-        setupFlags();
+        setupAndroidFlags();
         const logger = new Logger('test-preview');
         setupLogger(logger);
         const setupMock = jest.fn(() => {
@@ -82,7 +90,7 @@ describe('Preview Tests', () => {
     });
 
     test('Preview should throw an error if setup fails', async () => {
-        setupFlags();
+        setupAndroidFlags();
         const logger = new Logger('test-preview');
         setupLogger(logger);
         const setupMock = jest.fn(() => {
@@ -100,7 +108,7 @@ describe('Preview Tests', () => {
     test('Logger must be initialized and invoked', async () => {
         const logger = new Logger('test-preview');
         setupLogger(logger);
-        setupFlags();
+        setupAndroidFlags();
         const loggerSpy = jest.spyOn(logger, 'info');
         await preview.run();
         return expect(loggerSpy).toHaveBeenCalled();
@@ -111,12 +119,24 @@ describe('Preview Tests', () => {
         return expect(Preview.description !== null).toBeTruthy();
     });
 
-    function setupFlags() {
+    function setupAndroidFlags() {
         Object.defineProperty(preview, 'flags', {
             get: () => {
                 return {
                     platform: 'android',
                     target: 'sfdxemu',
+                    path: 'componentpath'
+                };
+            }
+        });
+    }
+
+    function setupIOSFlags() {
+        Object.defineProperty(preview, 'flags', {
+            get: () => {
+                return {
+                    platform: 'iOS',
+                    target: 'sfdxsimulator',
                     path: 'componentpath'
                 };
             }

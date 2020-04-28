@@ -26,7 +26,7 @@ describe('Android types tests', () => {
     });
 
     test('Android Package class should correctly parse a raw string', async () => {
-        let packages = AndroidPackage.parseRawString(
+        let packages = AndroidPackage.parseRawPackagesString(
             AndroidMockData.mockRawPacakgesString
         );
         expect(
@@ -39,7 +39,7 @@ describe('Android types tests', () => {
         let packages: Map<
             string,
             AndroidPackage
-        > = AndroidPackage.parseRawString(
+        > = AndroidPackage.parseRawPackagesString(
             AndroidMockData.mockRawPacakgesString
         );
         let pack: AndroidPackage | undefined = packages.get(
@@ -54,7 +54,7 @@ describe('Android types tests', () => {
     });
 
     test('Android Package class should return and empty list for  a bad string', async () => {
-        let packages = AndroidPackage.parseRawString(
+        let packages = AndroidPackage.parseRawPackagesString(
             AndroidMockData.badMockRawPacakagesString
         );
         expect(packages !== null && packages.size == 0);
