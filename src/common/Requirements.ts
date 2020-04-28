@@ -99,6 +99,7 @@ export abstract class BaseSetup implements RequirementList {
                     }`
                 );
             });
+            tree.display();
             return Promise.resolve(testResult);
         });
     }
