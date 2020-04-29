@@ -244,13 +244,17 @@ export class XcodeUtils {
                 return XcodeUtils.bootDevice(udid);
             })
             .then(() => {
-                spinner.start(`Launching`, `Wait for device ${udid} to boot`, {
-                    stdout: true
-                });
+                spinner.start(
+                    `Launching`,
+                    `Waiting for device ${udid} to boot`,
+                    {
+                        stdout: true
+                    }
+                );
                 return this.waitUntilDeviceIsReady(udid);
             })
             .then(() => {
-                spinner.stop('Open Browser');
+                spinner.stop('Opening Browser');
                 return this.launchURLInBootedSimulator(udid, url);
             });
     }

@@ -25,13 +25,13 @@ export class AndroidLauncher {
                 ? androidConfig.defaultAdbPort
                 : port + 2;
         const emuName = this.emulatorName;
-        spinner.start(`Launching`, `Looking for ${emuName}`, {
+        spinner.start(`Launching`, `Searching for ${emuName}`, {
             stdout: true
         });
         return AndroidSDKUtils.hasEmulator(emuName)
             .then((result) => {
                 if (!result) {
-                    spinner.start(`Launching`, `Creating AVD ${emuName}`, {
+                    spinner.start(`Launching`, `Creating device ${emuName}`, {
                         stdout: true
                     });
                     return AndroidSDKUtils.createNewVirtualDevice(
@@ -64,7 +64,7 @@ export class AndroidLauncher {
                 );
             })
             .then((resolve) => {
-                spinner.stop('Open Browser');
+                spinner.stop('Opening Browser');
                 return AndroidSDKUtils.launchURLIntent(url, port);
             })
             .catch((error) => {
