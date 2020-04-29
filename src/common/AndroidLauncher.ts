@@ -1,6 +1,6 @@
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
-import util from 'util';
+import cli from 'cli-ux';
 
 export class AndroidLauncher {
     emulatorName: string;
@@ -13,33 +13,64 @@ export class AndroidLauncher {
         const preferredPack = await AndroidSDKUtils.findRequiredEmulatorImages();
         const emuImage = preferredPack.platformEmulatorImage || 'default';
         const androidApi = preferredPack.platformAPI;
+        const abi = preferredPack.abi;
         const device = androidConfig.supportedDevices[0];
         const timeout = androidConfig.deviceBootReadinessWaitTime;
         const noOfRetries = androidConfig.deviceBootStatusPollRetries;
         let port = await AndroidSDKUtils.getNextAndroidAdbPort();
+        let spinner = cli.action;
         // need to incr by 2, one for console port and next for adb
         port =
             port < androidConfig.defaultAdbPort
                 ? androidConfig.defaultAdbPort
                 : port + 2;
         const emuName = this.emulatorName;
+        spinner.start(`Launching`, `Looking for ${emuName}`, {
+            stdout: true
+        });
         return AndroidSDKUtils.hasEmulator(emuName)
             .then((result) => {
                 if (!result) {
+                    spinner.start(`Launching`, `Creating AVD ${emuName}`, {
+                        stdout: true
+                    });
                     return AndroidSDKUtils.createNewVirtualDevice(
                         emuName,
                         emuImage,
                         androidApi,
-                        device
+                        device,
+                        abi
                     ).then((resolve) => true);
                 }
+                spinner.start(`Launching`, `Found device ${emuName}`, {
+                    stdout: true
+                });
                 return true;
             })
-            .then((resolve) => AndroidSDKUtils.startEmulator(emuName, port))
-            .then((resolve) =>
-                AndroidSDKUtils.pollDeviceStatus(port, noOfRetries, timeout)
-            )
-            .then((resolve) => AndroidSDKUtils.launchURLIntent(url, port));
+            .then((resolve) => {
+                spinner.start(`Launching`, `Starting device ${emuName}`, {
+                    stdout: true
+                });
+                return AndroidSDKUtils.startEmulator(emuName, port);
+            })
+            .then((resolve) => {
+                spinner.start(`Launching`, `Waiting for ${emuName} to boot`, {
+                    stdout: true
+                });
+                return AndroidSDKUtils.pollDeviceStatus(
+                    port,
+                    noOfRetries,
+                    timeout
+                );
+            })
+            .then((resolve) => {
+                spinner.stop('Open Browser');
+                return AndroidSDKUtils.launchURLIntent(url, port);
+            })
+            .catch((error) => {
+                spinner.stop('Error encountered during launch');
+                throw error;
+            });
     }
 }
 

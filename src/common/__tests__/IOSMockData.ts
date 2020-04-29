@@ -111,4 +111,64 @@ export class IOSMockData {
             ]
         }
     };
+
+    static mockRuntimeDeviceTypes = {
+        devicetypes: [
+            {
+                minRuntimeVersion: 327680,
+                bundlePath:
+                    '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone 4s.simdevicetype',
+                maxRuntimeVersion: 655359,
+                name: 'iPhone 4s',
+                identifier: 'com.apple.CoreSimulator.SimDeviceType.iPhone-4s',
+                productFamily: 'iPhone'
+            },
+            {
+                minRuntimeVersion: 720896,
+                bundlePath:
+                    '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone 8.simdevicetype',
+                maxRuntimeVersion: 4294967295,
+                name: 'iPhone 8',
+                identifier: 'com.apple.CoreSimulator.SimDeviceType.iPhone-8',
+                productFamily: 'iPhone'
+            },
+            {
+                minRuntimeVersion: 720896,
+                bundlePath:
+                    '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone 8 Plus.simdevicetype',
+                maxRuntimeVersion: 4294967295,
+                name: 'iPhone 8 Plus',
+                identifier:
+                    'com.apple.CoreSimulator.SimDeviceType.iPhone-8-Plus',
+                productFamily: 'iPhone'
+            },
+            {
+                minRuntimeVersion: 720896,
+                bundlePath:
+                    '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone X.simdevicetype',
+                maxRuntimeVersion: 4294967295,
+                name: 'iPhone X',
+                identifier: 'com.apple.CoreSimulator.SimDeviceType.iPhone-X',
+                productFamily: 'iPhone'
+            },
+            {
+                minRuntimeVersion: 786432,
+                bundlePath:
+                    '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone Xs.simdevicetype',
+                maxRuntimeVersion: 4294967295,
+                name: 'iPhone Xs',
+                identifier: 'com.apple.CoreSimulator.SimDeviceType.iPhone-XS',
+                productFamily: 'iPhone'
+            },
+            {
+                minRuntimeVersion: 786432,
+                bundlePath: 'mock-device-path',
+                maxRuntimeVersion: 4294967295,
+                name: 'iPhone Xs Max',
+                identifier:
+                    'com.apple.CoreSimulator.SimDeviceType.iPhone-XS-Max',
+                productFamily: 'iPhone'
+            }
+        ]
+    };
 }

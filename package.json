@@ -14,6 +14,10 @@
     "@salesforce/lwc-dev-server-dependencies": "1.0.53",
     "@salesforce/telemetry": "^1.2.2",
     "@salesforce/ts-types": "^1.1.4",
+    "chalk": "^4.0.0",
+    "cli-ux": "^5.4.5",
+    "colors": "^1.4.0",
+    "listr": "^0.14.3",
     "tslib": "^1"
   },
   "devDependencies": {
