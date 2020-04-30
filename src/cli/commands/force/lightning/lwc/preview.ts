@@ -81,9 +81,9 @@ export default class Preview extends SfdxCommand {
         return this.launchPreview();
     }
 
-    public validateComponentNameValue(path: string): boolean {
+    public validateComponentNameValue(compName: string): boolean {
         this.logger.debug('Invoked validateComponentName in preview');
-        return path ? path.trim().length > 0 : false;
+        return compName ? compName.trim().length > 0 : false;
     }
 
     public validatePlatformValue(platform: string): boolean {
