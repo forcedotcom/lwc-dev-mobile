@@ -21,12 +21,12 @@
     "android:reqs:sdktools:fulfilledMessage" : "Android SDK tools were detected at %s.",
     "android:reqs:sdktools:unfulfilledMessage" : "Install SDK tools from the range %s - %s.",
     "android:reqs:platformtools:title" : "Checking SDK Platform Tools",
-    "android:reqs:platformtools:fulfilledMessage" : "Android SDK Platform tools were detected at %s.",
+    "android:reqs:platformtools:fulfilledMessage" : "Android Platform tools were detected at %s.",
     "android:reqs:platformtools:unfulfilledMessage" : "Install at least one Android Platform tools package (%s - %s).",
     "android:reqs:platformapi:title" : "Checking SDK Platform API",
     "android:reqs:platformapi:fulfilledMessage" : "%s API package was detected.",
     "android:reqs:platformapi:unfulfilledMessage" : "Install at least one Android API package (%s - %s).",
     "android:reqs:emulatorimages:title" : "Checking SDK Platform Emulator Images",
-    "android:reqs:emulatorimages:fulfilledMessage" : "Android SDK emulator image (%s) was detected.",
+    "android:reqs:emulatorimages:fulfilledMessage" : "Android emulator image (%s) was detected.",
     "android:reqs:emulatorimages:unfulfilledMessage" : "Install at least one of these emulator images: %s"
 }
