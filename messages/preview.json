@@ -1,7 +1,7 @@
 {
-    "commandDescription": "Preview Lightning Web Components in a mobile environment",
-    "platformFlagDescription": "Specify platform [iOS,Android]",
-    "targetFlagDescription": "Specify target simulator or emulator name",
-    "pathFlagDescription": "Path required",
+    "commandDescription": "Preview Lightning Web Components in a virtual mobile environment",
+    "platformFlagDescription": "Specify platform ('iOS' or 'Android').",
+    "targetFlagDescription": "Specify name of target simulator or emulator.",
+    "pathFlagDescription": "Path required.",
     "error:invalidInputFlagsDescription": "Invalid input values for flags."
  }

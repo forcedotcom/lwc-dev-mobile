@@ -19,7 +19,7 @@ export class IOSLauncher {
         );
         let deviceUDID = '';
         let spinner = cli.action;
-        cli.action.start(`Launching`, `Looking for ${this.simulatorName}`, {
+        cli.action.start(`Launching`, `Searching for ${this.simulatorName}`, {
             stdout: true
         });
         if (!currentSimulatorUDID || currentSimulatorUDID.length === 0) {
