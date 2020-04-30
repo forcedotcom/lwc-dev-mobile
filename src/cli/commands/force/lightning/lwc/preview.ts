@@ -19,8 +19,8 @@ export default class Preview extends SfdxCommand {
     public static description = messages.getMessage('commandDescription');
 
     public static examples = [
-        `$ sfdx force:lightning:lwc:preview -p iOS -t LWCSim2 -d c/HellowWordComponent`,
-        `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -d c/HellowWordComponent`
+        `$ sfdx force:lightning:lwc:preview -p iOS -t LWCSim2 -n HellowWordComponent`,
+        `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -n HellowWordComponent`
     ];
 
     public static args = [{ name: 'file' }];
@@ -31,9 +31,9 @@ export default class Preview extends SfdxCommand {
             char: 'p',
             description: messages.getMessage('platformFlagDescription')
         }),
-        path: flags.string({
-            char: 'd',
-            description: messages.getMessage('pathFlagDescription')
+        componentname: flags.string({
+            char: 'n',
+            description: messages.getMessage('componentnameFlagDescription')
         }),
         target: flags.string({
             char: 't',
@@ -58,7 +58,7 @@ export default class Preview extends SfdxCommand {
 
     public async run(): Promise<any> {
         this.logger.info('Preview Command invoked');
-        let isValid = this.validateComponentPathValue(this.flags.path);
+        let isValid = this.validateComponentNameValue(this.flags.componentname);
         isValid = isValid && this.validatePlatformValue(this.flags.platform);
         if (!isValid) {
             return Promise.reject(
@@ -81,8 +81,8 @@ export default class Preview extends SfdxCommand {
         return this.launchPreview();
     }
 
-    public validateComponentPathValue(path: string): boolean {
-        this.logger.debug('Invoked validateComponent in preview');
+    public validateComponentNameValue(path: string): boolean {
+        this.logger.debug('Invoked validateComponentName in preview');
         return path ? path.trim().length > 0 : false;
     }
 
@@ -110,7 +110,7 @@ export default class Preview extends SfdxCommand {
             ? this.flags.target
             : iOSConfig.defaultSimulatorName;
         const launcher = new IOSLauncher(simName);
-        const compPath = this.flags.path;
+        const compPath = this.prefixRouteIfNeeded(this.flags.componentname);
         return launcher.launchNativeBrowser(
             `http://localhost:3333/lwc/preview/${compPath}`
         );
@@ -121,9 +121,16 @@ export default class Preview extends SfdxCommand {
             ? this.flags.target
             : androidConfig.defaultEmulatorName;
         const launcher = new AndroidLauncher(emulatorName);
-        const compPath = this.flags.path;
+        const compPath = this.prefixRouteIfNeeded(this.flags.componentname);
         return launcher.launchNativeBrowser(
             `http://10.0.2.2:3333/lwc/preview/${compPath}`
         );
+    }
+
+    private prefixRouteIfNeeded(compName: string): string {
+        if (compName.toLowerCase().startsWith('c/')) {
+            return compName;
+        }
+        return 'c/' + compName;
     }
 }

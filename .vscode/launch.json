@@ -7,11 +7,11 @@
             "name": "iOS - Preview",
             "program": "${workspaceFolder}/bin/run",
             "args": [
-                "force:lightning:local:preview",
+                "force:lightning:lwc:preview",
                 "-p",
                 "iOS",
-                "-d",
-                "c/HelloWorld",
+                "-n",
+                "HelloWorld",
                 "-t",
                 "sfdxdebug"
             ]
@@ -25,10 +25,10 @@
                 "force:lightning:lwc:preview",
                 "-p",
                 "android",
-                "-d",
+                "-n",
                 "c/HelloWorld",
                 "-t",
-                "sfdxdebug"
+                "emu2"
             ]
         },
         {
