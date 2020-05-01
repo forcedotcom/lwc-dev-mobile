@@ -24,7 +24,7 @@ describe('Preview Tests', () => {
         preview.launchAndroid = myPreviewiOSCommandBlockMock;
     });
 
-    test('Checks that Comp Path flag is received', async () => {
+    test('Checks that Comp Name flag is received', async () => {
         setupAndroidFlags();
         const logger = new Logger('test-preview');
         setupLogger(logger);
@@ -38,10 +38,10 @@ describe('Preview Tests', () => {
             return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
         });
         jest.spyOn(Setup, 'run').mockImplementation(setupMock);
-        preview.validateComponentPathValue = compPathCalValidationlMock;
+        preview.validateComponentNameValue = compPathCalValidationlMock;
         await preview.run();
         return expect(compPathCalValidationlMock).toHaveBeenCalledWith(
-            'componentpath'
+            'mockcomponentname'
         );
     });
 
@@ -125,7 +125,7 @@ describe('Preview Tests', () => {
                 return {
                     platform: 'android',
                     target: 'sfdxemu',
-                    path: 'componentpath'
+                    componentName: 'mockcomponentname'
                 };
             }
         });
@@ -137,7 +137,7 @@ describe('Preview Tests', () => {
                 return {
                     platform: 'iOS',
                     target: 'sfdxsimulator',
-                    path: 'componentpath'
+                    componentName: 'mockcomponentname'
                 };
             }
         });
