@@ -31,13 +31,25 @@ describe('Android utils', () => {
     afterEach(() => {
         jest.restoreAllMocks();
     });
+    test('Should attempt to look for java 8 (using sdkmanager)', async () => {
+        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+            myGenericVersionsCommandBlockMock
+        );
+        await AndroidSDKUtils.isJava8Installed();
+        expect(myGenericVersionsCommandBlockMock).toHaveBeenCalledWith(
+            MOCK_ANDROID_HOME + '/tools/bin/sdkmanager --version',
+            true
+        );
+    });
+
     test('Should attempt to look for android sdk tools (sdkmanager)', async () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
             myGenericVersionsCommandBlockMock
         );
         await AndroidSDKUtils.fetchAndroidSDKToolsLocation();
         expect(myGenericVersionsCommandBlockMock).toHaveBeenCalledWith(
-            MOCK_ANDROID_HOME + '/tools/bin/sdkmanager --version'
+            MOCK_ANDROID_HOME + '/tools/bin/sdkmanager --version',
+            false
         );
     });
 

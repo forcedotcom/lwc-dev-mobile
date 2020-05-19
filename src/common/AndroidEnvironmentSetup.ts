@@ -18,6 +18,17 @@ export class AndroidEnvironmentSetup extends BaseSetup {
         const messages = this.setupMessages;
         super.requirements = [
             {
+                title: messages.getMessage('android:reqs:java8:title'),
+                checkFunction: this.isJava8Available,
+                fulfilledMessage: messages.getMessage(
+                    'android:reqs:java8:fulfilledMessage'
+                ),
+                unfulfilledMessage: messages.getMessage(
+                    'android:reqs:java8:unfulfilledMessage'
+                ),
+                logger
+            },
+            {
                 title: messages.getMessage('android:reqs:androidhome:title'),
                 checkFunction: this.isAndroidHomeSet,
                 fulfilledMessage: messages.getMessage(
@@ -73,6 +84,18 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                 logger
             }
         ];
+    }
+
+    public async isJava8Available(): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            AndroidSDKUtils.isJava8Installed()
+                .then((result) => {
+                    resolve(this.fulfilledMessage);
+                })
+                .catch((error) => {
+                    reject(this.unfulfilledMessage);
+                });
+        });
     }
 
     public async isAndroidHomeSet(): Promise<string> {

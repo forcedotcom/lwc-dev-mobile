@@ -108,9 +108,12 @@ export class AndroidSDKUtils {
         return AndroidSDKUtils.packageCache.size > 0;
     }
 
-    public static executeCommand(command: string): string {
+    public static executeCommand(
+        command: string,
+        pipeAllIO: boolean = false
+    ): string {
         return execSync(command, {
-            stdio: ['ignore', 'pipe', 'ignore']
+            stdio: pipeAllIO ? 'pipe' : ['ignore', 'pipe', 'ignore']
         }).toString();
     }
 
@@ -124,7 +127,32 @@ export class AndroidSDKUtils {
         AndroidSDKUtils.packageCache.clear();
     }
 
-    public static async fetchAndroidSDKToolsLocation(): Promise<string> {
+    public static async isJava8Installed(): Promise<boolean> {
+        return new Promise(async (resolve, reject) => {
+            // NOTE: We check whether Java 8 is available by running sdkmanager
+            //       and see if it fails or not. If it fails due to a specific
+            //       exception then we know that Java 8 is not available.
+            AndroidSDKUtils.fetchAndroidSDKToolsLocation(true)
+                .then((result) => resolve(true))
+                .catch((error) => {
+                    let e: Error = error;
+                    let stack = e.stack ?? '';
+                    let idx = stack.indexOf(
+                        'java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema'
+                    );
+
+                    if (idx != -1) {
+                        reject(false);
+                    } else {
+                        resolve(idx == -1);
+                    }
+                });
+        });
+    }
+
+    public static async fetchAndroidSDKToolsLocation(
+        pipeAllIO: boolean = false
+    ): Promise<string> {
         return new Promise(async (resolve, reject) => {
             if (!AndroidSDKUtils.isAndroidHomeSet()) {
                 reject(new Error('ANDROID_HOME is not set.'));
@@ -132,7 +160,8 @@ export class AndroidSDKUtils {
             }
             try {
                 AndroidSDKUtils.executeCommand(
-                    `${AndroidSDKUtils.getSDKManagerCmd()} --version`
+                    `${AndroidSDKUtils.getSDKManagerCmd()} --version`,
+                    pipeAllIO
                 );
                 resolve(AndroidSDKUtils.getToolsBin());
             } catch (err) {
