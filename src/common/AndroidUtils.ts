@@ -130,9 +130,10 @@ export class AndroidSDKUtils {
 
     public static async androidSDKPrerequisitesCheck(): Promise<string> {
         return new Promise(async (resolve, reject) => {
-            // NOTE: We check whether Java 8 is available by running sdkmanager
-            //       and see if it fails or not. If it fails due to a specific
-            //       exception then we know that Java 8 is not available.
+            // Attempt to run sdkmanager and see if it throws any exceptions.
+            // If no erros are encountered then all prerequisites are met.
+            // But if an error is encountered then we'll try to see if it
+            // is due to unsupported Java version or something else.
             AndroidSDKUtils.fetchAndroidSDKToolsLocation([
                 'ignore', //stdin
                 'pipe', //stdout
