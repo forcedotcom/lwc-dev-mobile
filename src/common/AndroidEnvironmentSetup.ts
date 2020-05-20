@@ -29,6 +29,19 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                 logger
             },
             {
+                title: messages.getMessage(
+                    'android:reqs:androidsdkprerequisitescheck:title'
+                ),
+                checkFunction: this.isJava8Available,
+                fulfilledMessage: messages.getMessage(
+                    'android:reqs:androidsdkprerequisitescheck:fulfilledMessage'
+                ),
+                unfulfilledMessage: messages.getMessage(
+                    'android:reqs:androidsdkprerequisitescheck:unfulfilledMessage'
+                ),
+                logger
+            },
+            {
                 title: messages.getMessage('android:reqs:sdktools:title'),
                 checkFunction: this.isAndroidSDKToolsInstalled,
                 fulfilledMessage: messages.getMessage(
@@ -73,6 +86,18 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                 logger
             }
         ];
+    }
+
+    public async isJava8Available(): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            AndroidSDKUtils.androidSDKPrerequisitesCheck()
+                .then((result) => {
+                    resolve(this.fulfilledMessage);
+                })
+                .catch((error) => {
+                    reject(util.format(this.unfulfilledMessage, error));
+                });
+        });
     }
 
     public async isAndroidHomeSet(): Promise<string> {

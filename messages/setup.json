@@ -14,6 +14,9 @@
     "ios:reqs:simulator:fulfilledMessage" : "One or more supported simulator runtimes are configured for %s",
     "ios:reqs:simulator:unfulfilledMessage" : "No supported simulator runtimes found. Supported runtimes include %s",
     
+    "android:reqs:androidsdkprerequisitescheck:title" : "Checking Android SDK Prerequisites",
+    "android:reqs:androidsdkprerequisitescheck:fulfilledMessage" : "Android SDK prerequisites are met.",
+    "android:reqs:androidsdkprerequisitescheck:unfulfilledMessage" : "Android SDK is missing prerequisites: %s",
     "android:reqs:androidhome:title" : "Checking ANDROID_HOME",
     "android:reqs:androidhome:fulfilledMessage" : "ANDROID_HOME is set to %s.",
     "android:reqs:androidhome:unfulfilledMessage" : "ANDROID_HOME not found. Setup ANDROID_HOME in your environment.",

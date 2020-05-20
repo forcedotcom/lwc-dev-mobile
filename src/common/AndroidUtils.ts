@@ -1,11 +1,12 @@
 import androidConfig from '../config/androidconfig.json';
 import { AndroidPackage } from './AndroidTypes';
-import childProcess from 'child_process';
+import * as childProcess from 'child_process';
 import { Logger } from '@salesforce/core';
 import os from 'os';
 import path from 'path';
 const execSync = childProcess.execSync;
 const spawn = childProcess.spawn;
+type StdioOptions = childProcess.StdioOptions;
 
 export class AndroidSDKUtils {
     static get androidHome(): string {
@@ -108,9 +109,12 @@ export class AndroidSDKUtils {
         return AndroidSDKUtils.packageCache.size > 0;
     }
 
-    public static executeCommand(command: string): string {
+    public static executeCommand(
+        command: string,
+        stdioOptions: StdioOptions = ['ignore', 'pipe', 'ignore']
+    ): string {
         return execSync(command, {
-            stdio: ['ignore', 'pipe', 'ignore']
+            stdio: stdioOptions
         }).toString();
     }
 
@@ -124,7 +128,37 @@ export class AndroidSDKUtils {
         AndroidSDKUtils.packageCache.clear();
     }
 
-    public static async fetchAndroidSDKToolsLocation(): Promise<string> {
+    public static async androidSDKPrerequisitesCheck(): Promise<string> {
+        return new Promise(async (resolve, reject) => {
+            // Attempt to run sdkmanager and see if it throws any exceptions.
+            // If no erros are encountered then all prerequisites are met.
+            // But if an error is encountered then we'll try to see if it
+            // is due to unsupported Java version or something else.
+            AndroidSDKUtils.fetchAndroidSDKToolsLocation([
+                'ignore', //stdin
+                'pipe', //stdout
+                'pipe' //stderr
+            ])
+                .then((result) => resolve(result))
+                .catch((error) => {
+                    const e: Error = error;
+                    const stack = e.stack ?? '';
+                    const idx = stack.indexOf(
+                        'java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema'
+                    );
+
+                    if (idx != -1) {
+                        reject('unsupported Java version');
+                    } else {
+                        reject(error);
+                    }
+                });
+        });
+    }
+
+    public static async fetchAndroidSDKToolsLocation(
+        stdioOptions: StdioOptions = ['ignore', 'pipe', 'ignore']
+    ): Promise<string> {
         return new Promise(async (resolve, reject) => {
             if (!AndroidSDKUtils.isAndroidHomeSet()) {
                 reject(new Error('ANDROID_HOME is not set.'));
@@ -132,7 +166,8 @@ export class AndroidSDKUtils {
             }
             try {
                 AndroidSDKUtils.executeCommand(
-                    `${AndroidSDKUtils.getSDKManagerCmd()} --version`
+                    `${AndroidSDKUtils.getSDKManagerCmd()} --version`,
+                    stdioOptions
                 );
                 resolve(AndroidSDKUtils.getToolsBin());
             } catch (err) {
