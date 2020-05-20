@@ -18,17 +18,6 @@ export class AndroidEnvironmentSetup extends BaseSetup {
         const messages = this.setupMessages;
         super.requirements = [
             {
-                title: messages.getMessage('android:reqs:java8:title'),
-                checkFunction: this.isJava8Available,
-                fulfilledMessage: messages.getMessage(
-                    'android:reqs:java8:fulfilledMessage'
-                ),
-                unfulfilledMessage: messages.getMessage(
-                    'android:reqs:java8:unfulfilledMessage'
-                ),
-                logger
-            },
-            {
                 title: messages.getMessage('android:reqs:androidhome:title'),
                 checkFunction: this.isAndroidHomeSet,
                 fulfilledMessage: messages.getMessage(
@@ -36,6 +25,19 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                 ),
                 unfulfilledMessage: messages.getMessage(
                     'android:reqs:androidhome:unfulfilledMessage'
+                ),
+                logger
+            },
+            {
+                title: messages.getMessage(
+                    'android:reqs:androidsdkprerequisitescheck:title'
+                ),
+                checkFunction: this.isJava8Available,
+                fulfilledMessage: messages.getMessage(
+                    'android:reqs:androidsdkprerequisitescheck:fulfilledMessage'
+                ),
+                unfulfilledMessage: messages.getMessage(
+                    'android:reqs:androidsdkprerequisitescheck:unfulfilledMessage'
                 ),
                 logger
             },
@@ -88,12 +90,12 @@ export class AndroidEnvironmentSetup extends BaseSetup {
 
     public async isJava8Available(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            AndroidSDKUtils.isJava8Installed()
+            AndroidSDKUtils.androidSDKPrerequisitesCheck()
                 .then((result) => {
                     resolve(this.fulfilledMessage);
                 })
                 .catch((error) => {
-                    reject(this.unfulfilledMessage);
+                    reject(util.format(this.unfulfilledMessage, error));
                 });
         });
     }

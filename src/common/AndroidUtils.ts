@@ -1,11 +1,12 @@
 import androidConfig from '../config/androidconfig.json';
 import { AndroidPackage } from './AndroidTypes';
-import childProcess from 'child_process';
+import * as childProcess from 'child_process';
 import { Logger } from '@salesforce/core';
 import os from 'os';
 import path from 'path';
 const execSync = childProcess.execSync;
 const spawn = childProcess.spawn;
+type StdioOptions = childProcess.StdioOptions;
 
 export class AndroidSDKUtils {
     static get androidHome(): string {
@@ -110,10 +111,10 @@ export class AndroidSDKUtils {
 
     public static executeCommand(
         command: string,
-        pipeAllIO: boolean = false
+        stdioOptions: StdioOptions = ['ignore', 'pipe', 'ignore']
     ): string {
         return execSync(command, {
-            stdio: pipeAllIO ? 'pipe' : ['ignore', 'pipe', 'ignore']
+            stdio: stdioOptions
         }).toString();
     }
 
@@ -127,31 +128,35 @@ export class AndroidSDKUtils {
         AndroidSDKUtils.packageCache.clear();
     }
 
-    public static async isJava8Installed(): Promise<boolean> {
+    public static async androidSDKPrerequisitesCheck(): Promise<string> {
         return new Promise(async (resolve, reject) => {
             // NOTE: We check whether Java 8 is available by running sdkmanager
             //       and see if it fails or not. If it fails due to a specific
             //       exception then we know that Java 8 is not available.
-            AndroidSDKUtils.fetchAndroidSDKToolsLocation(true)
-                .then((result) => resolve(true))
+            AndroidSDKUtils.fetchAndroidSDKToolsLocation([
+                'ignore', //stdin
+                'pipe', //stdout
+                'pipe' //stderr
+            ])
+                .then((result) => resolve(result))
                 .catch((error) => {
-                    let e: Error = error;
-                    let stack = e.stack ?? '';
-                    let idx = stack.indexOf(
+                    const e: Error = error;
+                    const stack = e.stack ?? '';
+                    const idx = stack.indexOf(
                         'java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema'
                     );
 
                     if (idx != -1) {
-                        reject(false);
+                        reject('unsupported Java version');
                     } else {
-                        resolve(idx == -1);
+                        reject(error);
                     }
                 });
         });
     }
 
     public static async fetchAndroidSDKToolsLocation(
-        pipeAllIO: boolean = false
+        stdioOptions: StdioOptions = ['ignore', 'pipe', 'ignore']
     ): Promise<string> {
         return new Promise(async (resolve, reject) => {
             if (!AndroidSDKUtils.isAndroidHomeSet()) {
@@ -161,7 +166,7 @@ export class AndroidSDKUtils {
             try {
                 AndroidSDKUtils.executeCommand(
                     `${AndroidSDKUtils.getSDKManagerCmd()} --version`,
-                    pipeAllIO
+                    stdioOptions
                 );
                 resolve(AndroidSDKUtils.getToolsBin());
             } catch (err) {
