@@ -125,7 +125,7 @@ describe('Preview Tests', () => {
                 return {
                     platform: 'android',
                     target: 'sfdxemu',
-                    componentName: 'mockcomponentname'
+                    componentname: 'mockcomponentname'
                 };
             }
         });
@@ -137,7 +137,7 @@ describe('Preview Tests', () => {
                 return {
                     platform: 'iOS',
                     target: 'sfdxsimulator',
-                    componentName: 'mockcomponentname'
+                    componentname: 'mockcomponentname'
                 };
             }
         });
