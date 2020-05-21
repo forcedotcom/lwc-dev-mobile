@@ -1,0 +1,41 @@
+version: 2.1
+executors:
+  linux:
+    working_directory: ~/lwc-dev-mobile
+    docker:
+      - image: circleci/node:lts
+
+jobs:
+  run-tests:
+    executor: linux
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "yarn.lock" }}
+      - run:
+          name: Setup
+          command: yarn install && yarn build
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/lwc-dev-mobile/node_modules
+      - run: 
+          name: Run Tests
+          command: yarn test
+      - store_artifacts:
+          path: reports/
+      - store_test_results:
+          path: reports/junit/
+
+workflows:
+  version: 2
+  pr-test:
+    jobs:
+      - run-tests:
+          filters:
+            branches:
+              only:
+                - /pull.*/
