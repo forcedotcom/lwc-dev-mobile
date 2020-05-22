@@ -142,7 +142,7 @@ export class AndroidSDKUtils {
                 .then((result) => resolve(result))
                 .catch((error) => {
                     const e: Error = error;
-                    const stack = e.stack ?? '';
+                    const stack = e.stack || '';
                     const idx = stack.indexOf(
                         'java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema'
                     );
