@@ -1,11 +1,11 @@
 #!/usr/bin/env ts-node
-import androidConfig from '../../../../../config/androidconfig.json';
+import { flags, SfdxCommand } from '@salesforce/command';
+import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { AndroidLauncher } from '../../../../../common/AndroidLauncher';
 import { CommandLineUtils } from '../../../../../common/Common';
-import { flags, SfdxCommand } from '@salesforce/command';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
+import androidConfig from '../../../../../config/androidconfig.json';
 import iOSConfig from '../../../../../config/iosconfig.json';
-import { Logger, Messages, SfdxError } from '@salesforce/core';
 import Setup from '../local/setup';
 
 // Initialize Messages with the current plugin directory
@@ -27,13 +27,13 @@ export default class Preview extends SfdxCommand {
 
     protected static flagsConfig = {
         // flag with a value (-n, --name=VALUE)
-        platform: flags.string({
-            char: 'p',
-            description: messages.getMessage('platformFlagDescription')
-        }),
         componentname: flags.string({
             char: 'n',
             description: messages.getMessage('componentnameFlagDescription')
+        }),
+        platform: flags.string({
+            char: 'p',
+            description: messages.getMessage('platformFlagDescription')
         }),
         target: flags.string({
             char: 't',
@@ -50,12 +50,6 @@ export default class Preview extends SfdxCommand {
     // Set this to true if your command requires a project workspace; 'requiresProject' is false by default
     protected static requiresProject = false;
 
-    protected async init(): Promise<void> {
-        await super.init();
-        const logger = await Logger.child('mobile:preview', {});
-        this.logger = logger;
-    }
-
     public async run(): Promise<any> {
         this.logger.info('Preview Command invoked');
         let isValid = this.validateComponentNameValue(this.flags.componentname);
@@ -70,7 +64,7 @@ export default class Preview extends SfdxCommand {
             );
         }
 
-        let setupResult = await Setup.run(['-p', this.flags.platform]);
+        const setupResult = await Setup.run(['-p', this.flags.platform]);
         if (!setupResult || !setupResult.hasMetAllRequirements) {
             this.logger.warn(
                 `Preview failed for ${this.flags.platform}. Setup requirements have not been met.`
@@ -125,6 +119,12 @@ export default class Preview extends SfdxCommand {
         return launcher.launchNativeBrowser(
             `http://10.0.2.2:3333/lwc/preview/${compPath}`
         );
+    }
+
+    protected async init(): Promise<void> {
+        await super.init();
+        const logger = await Logger.child('mobile:preview', {});
+        this.logger = logger;
     }
 
     private prefixRouteIfNeeded(compName: string): string {

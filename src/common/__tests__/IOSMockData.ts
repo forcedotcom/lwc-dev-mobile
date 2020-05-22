@@ -1,172 +1,172 @@
 export class IOSMockData {
-    static mockRuntimes = {
+    protected static mockRuntimes = {
         runtimes: [
             {
-                version: '13.4',
+                buildversion: '17C49',
                 bundlePath: 'mockruntime',
+                identifier: 'com.apple.CoreSimulator.SimRuntime.iOS-13-4',
                 isAvailable: true,
                 name: 'iOS 13.4',
-                identifier: 'com.apple.CoreSimulator.SimRuntime.iOS-13-4',
-                buildversion: '17C49'
+                version: '13.4'
             },
             {
-                version: '13.3',
+                buildversion: '17C48',
                 bundlePath: 'mockruntime',
+                identifier: 'com.apple.CoreSimulator.SimRuntime.iOS-13-3',
                 isAvailable: true,
                 name: 'iOS 13.3',
-                identifier: 'com.apple.CoreSimulator.SimRuntime.iOS-13-3',
-                buildversion: '17C48'
+                version: '13.3'
             },
             {
-                version: '13.2',
+                buildversion: '17C46',
                 bundlePath: 'mockruntime',
+                identifier: 'com.apple.CoreSimulator.SimRuntime.iOS-13-2',
                 isAvailable: true,
                 name: 'iOS 13.2',
-                identifier: 'com.apple.CoreSimulator.SimRuntime.iOS-13-2',
-                buildversion: '17C46'
+                version: '13.2'
             },
             {
-                version: '13.1',
+                buildversion: '17K43',
                 bundlePath: 'mockruntime',
+                identifier: 'com.apple.CoreSimulator.SimRuntime.iOS-13-1',
                 isAvailable: true,
                 name: 'iOS 13.1',
-                identifier: 'com.apple.CoreSimulator.SimRuntime.tvOS-13-1',
-                buildversion: '17K43'
+                version: '13.1'
             }
         ]
     };
 
-    static mockRuntimeDevices = {
+    protected static mockRuntimeDevices = {
         devices: {
             'com.apple.CoreSimulator.SimRuntime.iOS-13-4': [
                 {
                     dataPath: 'mockPath',
-                    logPath: 'mockLogPath',
-                    udid: 'F2B4097F-F33E-4D8A-8FFF-CE49F8D6C166',
-                    isAvailable: true,
                     deviceTypeIdentifier:
                         'com.apple.CoreSimulator.SimDeviceType.iPhone-11-Pro-Max',
+                    isAvailable: true,
+                    logPath: 'mockLogPath',
+                    name: 'iPhone-11 Pro Max',
                     state: 'Shutdown',
-                    name: 'iPhone-11 Pro Max'
+                    udid: 'F2B4097F-F33E-4D8A-8FFF-CE49F8D6C166'
                 }
             ],
 
             'com.apple.CoreSimulator.SimRuntime.iOS-13-2': [
                 {
                     dataPath: 'mockPath',
-                    logPath: 'mockLogPath',
-                    udid: 'F2B4097F-F33E-4D8A-8FFF-CE49F8D6C167',
-                    isAvailable: true,
                     deviceTypeIdentifier:
                         'com.apple.CoreSimulator.SimDeviceType.iPhone-11',
+                    isAvailable: true,
+                    logPath: 'mockLogPath',
+                    name: 'iPhone-11',
                     state: 'Shutdown',
-                    name: 'iPhone-11'
+                    udid: 'F2B4097F-F33E-4D8A-8FFF-CE49F8D6C167'
                 }
             ],
 
             'com.apple.CoreSimulator.SimRuntime.iOS-13-3': [
                 {
                     dataPath: 'mockPath',
-                    logPath: 'mockLogPath',
-                    udid: 'F2B4097F-F33E-4D8A-8FFF-CE49F8D6C178',
-                    isAvailable: true,
                     deviceTypeIdentifier:
                         'com.apple.CoreSimulator.SimDeviceType.iPhone-11-Pro',
+                    isAvailable: true,
+                    logPath: 'mockLogPath',
+                    name: 'iPhone 11 Pro ',
                     state: 'Shutdown',
-                    name: 'iPhone 11 Pro '
+                    udid: 'F2B4097F-F33E-4D8A-8FFF-CE49F8D6C178'
                 }
             ],
 
             'com.apple.CoreSimulator.SimRuntime.iOS-13-1': [
                 {
                     dataPath: 'mockPath',
-                    logPath: 'mockLogPath',
-                    udid: 'F2B4097F-F33E-4D8A-8FFF-CE49F8D6C168',
-                    isAvailable: false,
                     deviceTypeIdentifier:
                         'com.apple.CoreSimulator.SimDeviceType.iPhone-X',
+                    isAvailable: true,
+                    logPath: 'mockLogPath',
+                    name: 'iPhone iPhone X',
                     state: 'Shutdown',
-                    name: 'iPhone iPhone X'
+                    udid: 'F2B4097F-F33E-4D8A-8FFF-CE49F8D6C168'
                 },
                 {
                     dataPath: 'mockPath',
-                    logPath: 'mockLogPath',
-                    udid: 'F2B4097F-F33E-4D8A-8FFF-CE49F8D6C169',
-                    isAvailable: true,
                     deviceTypeIdentifier:
                         'com.apple.CoreSimulator.SimDeviceType.iPhone-XS-Max',
+                    isAvailable: true,
+                    logPath: 'mockLogPath',
+                    name: 'iPhone XS Max',
                     state: 'Shutdown',
-                    name: 'iPhone XS Max'
+                    udid: 'F2B4097F-F33E-4D8A-8FFF-CE49F8D6C169'
                 },
                 {
                     dataPath: 'mockPath',
-                    logPath: 'mockLogPath',
-                    udid: 'F2B4097F-F33E-4D8A-8FFF-CF49F8D6D168',
-                    isAvailable: false,
                     deviceTypeIdentifier:
                         'com.apple.CoreSimulator.SimDeviceType.iPhone-XS',
+                    isAvailable: true,
+                    logPath: 'mockLogPath',
+                    name: 'iPhone Xs',
                     state: 'Shutdown',
-                    name: 'iPhone Xs'
+                    udid: 'F2B4097F-F33E-4D8A-8FFF-CF49F8D6D168'
                 }
             ]
         }
     };
 
-    static mockRuntimeDeviceTypes = {
+    protected static mockRuntimeDeviceTypes = {
         devicetypes: [
             {
-                minRuntimeVersion: 327680,
                 bundlePath:
                     '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone 4s.simdevicetype',
-                maxRuntimeVersion: 655359,
-                name: 'iPhone 4s',
                 identifier: 'com.apple.CoreSimulator.SimDeviceType.iPhone-4s',
+                maxRuntimeVersion: 655359,
+                minRuntimeVersion: 327680,
+                name: 'iPhone 4s',
                 productFamily: 'iPhone'
             },
             {
-                minRuntimeVersion: 720896,
                 bundlePath:
                     '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone 8.simdevicetype',
-                maxRuntimeVersion: 4294967295,
-                name: 'iPhone 8',
                 identifier: 'com.apple.CoreSimulator.SimDeviceType.iPhone-8',
+                maxRuntimeVersion: 4294967295,
+                minRuntimeVersion: 720896,
+                name: 'iPhone 8',
                 productFamily: 'iPhone'
             },
             {
-                minRuntimeVersion: 720896,
                 bundlePath:
                     '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone 8 Plus.simdevicetype',
-                maxRuntimeVersion: 4294967295,
-                name: 'iPhone 8 Plus',
                 identifier:
                     'com.apple.CoreSimulator.SimDeviceType.iPhone-8-Plus',
+                maxRuntimeVersion: 4294967295,
+                minRuntimeVersion: 720896,
+                name: 'iPhone 8 Plus',
                 productFamily: 'iPhone'
             },
             {
-                minRuntimeVersion: 720896,
                 bundlePath:
                     '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone X.simdevicetype',
-                maxRuntimeVersion: 4294967295,
-                name: 'iPhone X',
                 identifier: 'com.apple.CoreSimulator.SimDeviceType.iPhone-X',
+                maxRuntimeVersion: 4294967295,
+                minRuntimeVersion: 720896,
+                name: 'iPhone X',
                 productFamily: 'iPhone'
             },
             {
-                minRuntimeVersion: 786432,
                 bundlePath:
                     '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone Xs.simdevicetype',
-                maxRuntimeVersion: 4294967295,
-                name: 'iPhone Xs',
                 identifier: 'com.apple.CoreSimulator.SimDeviceType.iPhone-XS',
+                maxRuntimeVersion: 4294967295,
+                minRuntimeVersion: 786432,
+                name: 'iPhone Xs',
                 productFamily: 'iPhone'
             },
             {
-                minRuntimeVersion: 786432,
                 bundlePath: 'mock-device-path',
-                maxRuntimeVersion: 4294967295,
-                name: 'iPhone Xs Max',
                 identifier:
                     'com.apple.CoreSimulator.SimDeviceType.iPhone-XS-Max',
+                maxRuntimeVersion: 4294967295,
+                minRuntimeVersion: 786432,
+                name: 'iPhone Xs Max',
                 productFamily: 'iPhone'
             }
         ]

@@ -1,6 +1,6 @@
 import { Logger, LoggerLevel } from '@salesforce/core';
-import cli from 'cli-ux';
 import chalk from 'chalk';
+import cli from 'cli-ux';
 export type CheckRequirementsFunc = () => Promise<string>;
 
 export interface Requirement {
@@ -69,22 +69,22 @@ export abstract class BaseSetup implements RequirementList {
             results.forEach((result) => {
                 if (result.status === 'fulfilled') {
                     testResult.tests.push({
-                        testResult: 'Passed',
                         hasPassed: true,
-                        message: result.v
+                        message: result.v,
+                        testResult: 'Passed'
                     });
                 } else if (result.status === 'rejected') {
                     testResult.hasMetAllRequirements = false;
                     testResult.tests.push({
-                        testResult: 'Failed',
                         hasPassed: false,
-                        message: result.e
+                        message: result.e,
+                        testResult: 'Failed'
                     });
                 }
                 count++;
             });
 
-            let tree = cli.tree();
+            const tree = cli.tree();
             tree.insert('Setup');
             testResult.tests.forEach((test) => {
                 tree.nodes.Setup.insert(

@@ -5,7 +5,7 @@ import { XcodeUtils } from './IOSUtils';
 const exec = util.promisify(childProcess.exec);
 
 export class IOSLauncher {
-    simulatorName: string;
+    private simulatorName: string;
 
     constructor(simulatorName: string) {
         this.simulatorName = simulatorName;
@@ -18,7 +18,7 @@ export class IOSLauncher {
             this.simulatorName
         );
         let deviceUDID = '';
-        let spinner = cli.action;
+        const spinner = cli.action;
         cli.action.start(`Launching`, `Searching for ${this.simulatorName}`, {
             stdout: true
         });

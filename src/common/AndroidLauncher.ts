@@ -1,9 +1,9 @@
+import cli from 'cli-ux';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
-import cli from 'cli-ux';
 
 export class AndroidLauncher {
-    emulatorName: string;
+    private emulatorName: string;
 
     constructor(emulatorName: string) {
         this.emulatorName = emulatorName;
@@ -18,7 +18,7 @@ export class AndroidLauncher {
         const timeout = androidConfig.deviceBootReadinessWaitTime;
         const noOfRetries = androidConfig.deviceBootStatusPollRetries;
         let port = await AndroidSDKUtils.getNextAndroidAdbPort();
-        let spinner = cli.action;
+        const spinner = cli.action;
         // need to incr by 2, one for console port and next for adb
         port =
             port < androidConfig.defaultAdbPort
