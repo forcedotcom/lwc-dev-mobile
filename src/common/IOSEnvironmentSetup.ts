@@ -1,9 +1,9 @@
-import { BaseSetup } from './Requirements';
-import childProcess from 'child_process';
-import iOSConfig from '../config/iosconfig.json';
 import { Logger, Messages } from '@salesforce/core';
+import childProcess from 'child_process';
 import util from 'util';
+import iOSConfig from '../config/iosconfig.json';
 import { XcodeUtils } from './IOSUtils';
+import { BaseSetup } from './Requirements';
 
 const exec = util.promisify(childProcess.exec);
 
@@ -27,37 +27,37 @@ export class IOSEnvironmentSetup extends BaseSetup {
         const messages = this.setupMessages;
         super.requirements = [
             {
-                title: `${messages.getMessage('ios:reqs:macos:title')}`,
                 checkFunction: this.isSupportedEnvironment,
                 fulfilledMessage: `${messages.getMessage(
                     'ios:reqs:macos:fulfilledMessage'
                 )}`,
+                logger,
+                title: `${messages.getMessage('ios:reqs:macos:title')}`,
                 unfulfilledMessage: `${messages.getMessage(
                     'ios:reqs:macos:unfulfilledMessage'
-                )}`,
-                logger
+                )}`
             },
             {
-                title: `${messages.getMessage('ios:reqs:xcode:title')}`,
                 checkFunction: this.isXcodeInstalled,
                 fulfilledMessage: `${messages.getMessage(
                     'ios:reqs:xcode:fulfilledMessage'
                 )}`,
+                logger,
+                title: `${messages.getMessage('ios:reqs:xcode:title')}`,
                 unfulfilledMessage: `${messages.getMessage(
                     'ios:reqs:xcode:unfulfilledMessage'
-                )}`,
-                logger
+                )}`
             },
             {
-                title: `${messages.getMessage('ios:reqs:simulator:title')}`,
                 checkFunction: this.hasSupportedSimulatorRuntime,
                 fulfilledMessage: `${messages.getMessage(
                     'ios:reqs:simulator:fulfilledMessage'
                 )}`,
+                logger,
+                title: `${messages.getMessage('ios:reqs:simulator:title')}`,
                 unfulfilledMessage: `${messages.getMessage(
                     'ios:reqs:simulator:unfulfilledMessage'
-                )}`,
-                logger
+                )}`
             }
         ];
     }

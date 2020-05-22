@@ -58,6 +58,7 @@
     "ts-jest": "^24.0.2",
     "ts-node": "^8.3.0",
     "tslint": "^5.18.0",
+    "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.5.3"
   },
   "engines": {
@@ -100,7 +101,7 @@
     "build": "yarn clean && tsc",
     "lint": "yarn eslint src --ext js,ts",
     "postpack": "rm -f oclif.manifest.json",
-    "posttest": "tslint -p test -t stylish",
+    "posttest": "tslint -p . -t stylish",
     "prepack": "rm -rf lib && tsc -b && oclif-dev manifest && oclif-dev readme",
     "test": "yarn jest --coverage",
     "test:watch": "yarn test --watch",

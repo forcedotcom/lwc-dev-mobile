@@ -1,7 +1,6 @@
 import childProcess from 'child_process';
-import cli from 'cli-ux';
-import iOSConfig from '../config/iosconfig.json';
 import util from 'util';
+import iOSConfig from '../config/iosconfig.json';
 
 const exec = util.promisify(childProcess.exec);
 
@@ -10,12 +9,6 @@ const DEVICE_TYPE_PREFIX = 'com.apple.CoreSimulator.SimDeviceType';
 const RUNTIME_TYPE_PREFIX = 'com.apple.CoreSimulator.SimRuntime';
 
 export class XcodeUtils {
-    private static isDeviceAlreadyBootedError(error: Error): boolean {
-        return error.message
-            ? error.message.toLowerCase().match('state: booted') !== null
-            : false;
-    }
-
     public static async bootDevice(udid: string): Promise<boolean> {
         const command = `${XCRUN_CMD} simctl boot ${udid}`;
         try {
@@ -67,10 +60,10 @@ export class XcodeUtils {
                 return key && key.match(runtimeMatchRegex);
             });
             runtimes = runtimes.sort().reverse();
-            //search for device that matches and return udid
-            for (let runtimeIdentifier of runtimes) {
-                let devices: any = runtimeDevices[runtimeIdentifier];
-                for (let device of devices) {
+            // search for device that matches and return udid
+            for (const runtimeIdentifier of runtimes) {
+                const devices: any = runtimeDevices[runtimeIdentifier];
+                for (const device of devices) {
                     if (simulatorName.match(device.name)) {
                         return new Promise<string>((resolve) =>
                             resolve(device.udid)
@@ -104,7 +97,7 @@ export class XcodeUtils {
             const { stdout } = await XcodeUtils.executeCommand(runtimesCmd);
             const devicesObj: any = JSON.parse(stdout);
             const devices: any[] = devicesObj[deviceTypesKey] || [];
-            let matchedDevices: any[] = devices.filter((entry) => {
+            const matchedDevices: any[] = devices.filter((entry) => {
                 return (
                     entry[identifier] &&
                     entry[identifier].match(deviceMatchRegex)
@@ -257,6 +250,12 @@ export class XcodeUtils {
                 spinner.stop('Opening Browser');
                 return this.launchURLInBootedSimulator(udid, url);
             });
+    }
+
+    private static isDeviceAlreadyBootedError(error: Error): boolean {
+        return error.message
+            ? error.message.toLowerCase().match('state: booted') !== null
+            : false;
     }
 }
 
