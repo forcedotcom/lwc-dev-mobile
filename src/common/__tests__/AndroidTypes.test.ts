@@ -10,13 +10,12 @@ process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 
 import { AndroidPackage } from '../AndroidTypes';
 import { AndroidMockData } from './AndroidMockData';
-import { AndroidSDKUtils } from '../AndroidUtils';
 
-let myCommandBlockMock = jest.fn((): string => {
+const myCommandBlockMock = jest.fn((): string => {
     return AndroidMockData.mockRawPacakgesString;
 });
 
-let badBlockMock = jest.fn((): string => {
+const badBlockMock = jest.fn((): string => {
     return AndroidMockData.badMockRawPacakagesString;
 });
 
@@ -32,27 +31,27 @@ describe('Android types tests', () => {
     });
 
     test('Android Package class should correctly parse a raw string', async () => {
-        let packages = AndroidPackage.parseRawPackagesString(
+        const packages = AndroidPackage.parseRawPackagesString(
             AndroidMockData.mockRawPacakgesString
         );
         expect(
             packages !== null &&
-                packages.size == AndroidMockData.mockRawStringPackageLength
+                packages.size === AndroidMockData.mockRawStringPackageLength
         );
     });
 
     test('Android Package class should correctly parse a raw string initialize members', async () => {
-        let packages: Map<
+        const packages: Map<
             string,
             AndroidPackage
         > = AndroidPackage.parseRawPackagesString(
             AndroidMockData.mockRawPacakgesString
         );
-        let pack: AndroidPackage | undefined = packages.get(
+        const pack: AndroidPackage | undefined = packages.get(
             'build-tools;28.0.3'
         );
         expect(
-            packages.size == AndroidMockData.mockRawStringPackageLength &&
+            packages.size === AndroidMockData.mockRawStringPackageLength &&
                 pack &&
                 pack.path !== null &&
                 pack.description !== null
@@ -60,9 +59,9 @@ describe('Android types tests', () => {
     });
 
     test('Android Package class should return and empty list for  a bad string', async () => {
-        let packages = AndroidPackage.parseRawPackagesString(
+        const packages = AndroidPackage.parseRawPackagesString(
             AndroidMockData.badMockRawPacakagesString
         );
-        expect(packages !== null && packages.size == 0);
+        expect(packages !== null && packages.size === 0);
     });
 });

@@ -108,7 +108,7 @@ describe('Android utils', () => {
             myCommandBlockMock
         );
         const packages = await AndroidSDKUtils.fetchInstalledPackages();
-        expect(packages.size == AndroidMockData.mockRawStringPackageLength);
+        expect(packages.size === AndroidMockData.mockRawStringPackageLength);
     });
 
     test('Should attempt to invoke the sdkmanager and retrieve an empty list for a bad sdkmanager list', async () => {
@@ -116,7 +116,7 @@ describe('Android utils', () => {
             badBlockMock
         );
         const packages = await AndroidSDKUtils.fetchInstalledPackages();
-        expect(packages.size != 0);
+        expect(packages.size !== 0);
     });
 
     test('Should have no cache before first list packages call', async () => {

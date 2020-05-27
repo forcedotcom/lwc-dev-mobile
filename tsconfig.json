@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "experimentalDecorators": true,
     "resolveJsonModule": true,
     "pretty": true,
     /* Basic Options */
@@ -62,10 +63,10 @@
   },
   "include": [
     "src/**/*",
+    "**/*.test.ts"
   ],
   "exclude": [
     "node_modules",
-    "**/*.spec.ts",
-    "**/*.test.ts"
+    "**/*.spec.ts"
   ]
 }
