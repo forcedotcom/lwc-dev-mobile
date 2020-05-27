@@ -425,7 +425,9 @@ export class AndroidSDKUtils {
             } catch (error) {
                 reject(error);
             }
-        });
+        }).then((resolve) =>
+            AndroidSDKUtils.enableHWKeyboardForEmulator(emulatorName)
+        );
     }
 
     public static startEmulator(
@@ -549,5 +551,26 @@ export class AndroidSDKUtils {
             return pathName;
         }
         return `'${pathName}'`;
+    }
+
+    private static enableHWKeyboardForEmulator(
+        emulatorName: string
+    ): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            try {
+                const hwKeyboardCommand =
+                    process.platform === AndroidSDKUtils.WINDOWS_OS
+                        ? `powershell Add-Content ~/.android/avd/${emulatorName}.avd/config.ini 'hw.keyboard=yes'`
+                        : `echo 'hw.keyboard=yes' >> ~/.android/avd/${emulatorName}.avd/config.ini`;
+                const child = spawn(hwKeyboardCommand, { shell: true });
+                if (child) {
+                    resolve(true);
+                } else {
+                    reject(false);
+                }
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
 }
