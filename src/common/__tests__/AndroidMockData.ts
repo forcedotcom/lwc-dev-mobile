@@ -23,5 +23,5 @@ export class AndroidMockData {
     public static badMockRawPacakagesString =
         'Installed packages:=====================]';
 
-    protected static mockRawStringPackageLength = 13;
+    public static mockRawStringPackageLength = 13;
 }

@@ -1,4 +1,5 @@
 import childProcess from 'child_process';
+import cli from 'cli-ux';
 import util from 'util';
 import iOSConfig from '../config/iosconfig.json';
 
@@ -227,7 +228,7 @@ export class XcodeUtils {
     public static async openUrlInNativeBrowser(
         url: string,
         udid: string,
-        spinner: any
+        spinner: typeof cli.action
     ): Promise<boolean> {
         return XcodeUtils.launchSimulatorApp()
             .then(() => {

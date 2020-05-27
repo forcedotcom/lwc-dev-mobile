@@ -59,7 +59,7 @@ describe('IOS Environment Setup tests', () => {
         );
         const setup = new IOSEnvironmentSetup(logger);
         await setup.isSupportedEnvironment();
-        return expect(myUnameMock).toHaveBeenCalledWith('/usr/bin/uname');
+        expect(myUnameMock).toHaveBeenCalledWith('/usr/bin/uname');
     });
 
     it('Should throw an error for an unsupported OS environment', async () => {
@@ -76,7 +76,7 @@ describe('IOS Environment Setup tests', () => {
         const logInfo = jest.spyOn(logger, 'info');
         const setup = new IOSEnvironmentSetup(logger);
         await setup.isSupportedEnvironment();
-        return expect(logInfo).toHaveBeenCalled();
+        expect(logInfo).toHaveBeenCalled();
     });
 
     it('Should attempt to validate supported Xcode environment', async () => {
@@ -85,7 +85,7 @@ describe('IOS Environment Setup tests', () => {
         );
         const setup = new IOSEnvironmentSetup(logger);
         await setup.isXcodeInstalled();
-        return expect(myXcodeSelectMock).toHaveBeenCalledWith(
+        expect(myXcodeSelectMock).toHaveBeenCalledWith(
             '/usr/bin/xcode-select -p'
         );
     });
@@ -106,6 +106,6 @@ describe('IOS Environment Setup tests', () => {
         );
         const setup = new IOSEnvironmentSetup(logger);
         await setup.hasSupportedSimulatorRuntime();
-        return expect(runtimesMockBlock).toHaveBeenCalled();
+        expect(runtimesMockBlock).toHaveBeenCalled();
     });
 });
