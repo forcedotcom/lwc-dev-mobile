@@ -80,6 +80,9 @@ describe('IOS Environment Setup tests', () => {
 
     it('Checks to see that the logger is set', async () => {
         const logInfo = jest.spyOn(logger, 'info');
+        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(
+            myUnameMock
+        );
         const setup = new IOSEnvironmentSetup(logger);
         await setup.isSupportedEnvironment();
         expect(logInfo).toHaveBeenCalled();
