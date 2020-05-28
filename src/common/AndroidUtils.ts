@@ -8,6 +8,7 @@ import { Logger } from '@salesforce/core';
 import * as childProcess from 'child_process';
 import os from 'os';
 import path from 'path';
+import shell from 'shelljs';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidPackage } from './AndroidTypes';
 const execSync = childProcess.execSync;
@@ -558,16 +559,10 @@ export class AndroidSDKUtils {
     ): Promise<boolean> {
         return new Promise((resolve, reject) => {
             try {
-                const hwKeyboardCommand =
-                    process.platform === AndroidSDKUtils.WINDOWS_OS
-                        ? `powershell Add-Content ~/.android/avd/${emulatorName}.avd/config.ini 'hw.keyboard=yes'`
-                        : `echo 'hw.keyboard=yes' >> ~/.android/avd/${emulatorName}.avd/config.ini`;
-                const child = spawn(hwKeyboardCommand, { shell: true });
-                if (child) {
-                    resolve(true);
-                } else {
-                    reject(false);
-                }
+                shell
+                    .echo('hw.keyboard=yes')
+                    .toEnd(`~/.android/avd/${emulatorName}.avd/config.ini`);
+                resolve(true);
             } catch (error) {
                 reject(error);
             }
