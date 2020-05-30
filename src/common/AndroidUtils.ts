@@ -8,6 +8,7 @@ import { Logger } from '@salesforce/core';
 import * as childProcess from 'child_process';
 import os from 'os';
 import path from 'path';
+import shell from 'shelljs';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidPackage } from './AndroidTypes';
 const execSync = childProcess.execSync;
@@ -425,7 +426,9 @@ export class AndroidSDKUtils {
             } catch (error) {
                 reject(error);
             }
-        });
+        }).then((resolve) =>
+            AndroidSDKUtils.enableHWKeyboardForEmulator(emulatorName)
+        );
     }
 
     public static startEmulator(
@@ -549,5 +552,20 @@ export class AndroidSDKUtils {
             return pathName;
         }
         return `'${pathName}'`;
+    }
+
+    private static enableHWKeyboardForEmulator(
+        emulatorName: string
+    ): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            try {
+                shell
+                    .echo('hw.keyboard=yes')
+                    .toEnd(`~/.android/avd/${emulatorName}.avd/config.ini`);
+                resolve(true);
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
 }
