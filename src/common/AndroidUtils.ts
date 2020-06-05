@@ -466,11 +466,8 @@ export class AndroidSDKUtils {
         const timeout = androidConfig.deviceBootReadinessWaitTime;
         const noOfRetries = androidConfig.deviceBootStatusPollRetries;
         return new Promise<boolean>((resolve, reject) => {
-            const timeoutFunc = function (
-                command: string,
-                retryNumber: number
-            ) {
-                const stdout = AndroidSDKUtils.executeCommand(command);
+            const timeoutFunc = (commandStr: string, retryNumber: number) => {
+                const stdout = AndroidSDKUtils.executeCommand(commandStr);
                 if (stdout && stdout.trim() === '1') {
                     resolve(true);
                 } else {
@@ -482,7 +479,7 @@ export class AndroidSDKUtils {
                         setTimeout(
                             timeoutFunc,
                             timeout,
-                            command,
+                            commandStr,
                             retryNumber - 1
                         );
                     }
