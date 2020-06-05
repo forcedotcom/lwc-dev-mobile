@@ -1,9 +1,11 @@
 {
     "supportedRuntimes" : ["android-29", "android-28", "android-27", "android-26", "android-25", "android-24", "android-23"],
     "supportedBuildTools" : ["29","28","27","26","25","24","23"],
-    "supportedImages" : ["google_apis_playstore","google_apis","default"],
+    "supportedImages" : ["google_apis", "default", "google_apis_playstore"],
     "architectures" : ["x86_64","x86"],
     "supportedDevices" : ["pixel", "pixel_xl" , "pixel_c"],
     "defaultEmulatorName" : "SFDXEmulator",
-    "defaultAdbPort" : 5572
+    "defaultAdbPort" : 5572,
+    "deviceBootReadinessWaitTime" : 10000, 
+    "deviceBootStatusPollRetries" : 10
 }

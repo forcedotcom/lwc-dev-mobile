@@ -393,7 +393,7 @@ export class AndroidSDKUtils {
         });
     }
 
-    public static createNewVirtualDevice(
+    public static async createNewVirtualDevice(
         emulatorName: string,
         emulatorimage: string,
         platformAPI: string,
@@ -440,9 +440,9 @@ export class AndroidSDKUtils {
         return new Promise((resolve, reject) => {
             let portNumber = requestedPortNumber;
             try {
-                if (this.isEmulatorAlreadyStarted(emulatorName)) {
+                if (AndroidSDKUtils.isEmulatorAlreadyStarted(emulatorName)) {
                     // get port number from config.ini
-                    portNumber = this.getEmulatorPort(
+                    portNumber = AndroidSDKUtils.getEmulatorPort(
                         emulatorName,
                         requestedPortNumber
                     );
@@ -451,16 +451,10 @@ export class AndroidSDKUtils {
                 }
                 const child = spawn(
                     `${AndroidSDKUtils.EMULATOR_COMMAND} @${emulatorName} -port ${portNumber}`,
-                    { detached: true, shell: true }
+                    { detached: true, shell: true, stdio: 'ignore' }
                 );
+                resolve(portNumber);
                 child.unref();
-                child.stdin.setDefaultEncoding('utf8');
-                if (child) {
-                    child.stdout.on('data', () => resolve(portNumber));
-                    child.stderr.on('error', () => reject(false));
-                } else {
-                    reject(false);
-                }
             } catch (error) {
                 reject(error);
             }
@@ -468,17 +462,33 @@ export class AndroidSDKUtils {
     }
 
     public static async pollDeviceStatus(portNumber: number): Promise<boolean> {
-        const command = `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${portNumber} wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'`;
+        const command = `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${portNumber} wait-for-device shell getprop sys.boot_completed`;
+        const timeout = androidConfig.deviceBootReadinessWaitTime;
+        const noOfRetries = androidConfig.deviceBootStatusPollRetries;
         return new Promise<boolean>((resolve, reject) => {
-            try {
-                AndroidSDKUtils.executeCommand(command);
-                resolve(true);
-            } catch (exception) {
-                AndroidSDKUtils.logger.warn(
-                    `Exception occurred waiting for Emulator-${portNumber} to boot.`
-                );
-                reject(exception);
-            }
+            const timeoutFunc = function (
+                command: string,
+                retryNumber: number
+            ) {
+                const stdout = AndroidSDKUtils.executeCommand(command);
+                if (stdout && stdout.trim() === '1') {
+                    resolve(true);
+                } else {
+                    if (retryNumber === 0) {
+                        reject(
+                            `Timeout waiting for emulator-${portNumber} to boot.`
+                        );
+                    } else {
+                        setTimeout(
+                            timeoutFunc,
+                            timeout,
+                            command,
+                            retryNumber - 1
+                        );
+                    }
+                }
+            };
+            setTimeout(timeoutFunc, 1000, command, noOfRetries);
         });
     }
 
