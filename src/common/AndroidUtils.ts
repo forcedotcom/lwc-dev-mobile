@@ -320,11 +320,11 @@ export class AndroidSDKUtils {
                                 break;
                             }
                         }
-                        if (foundPackage.length > 1) {
+                        if (foundPackage.length > 0) {
                             break;
                         }
                     }
-                    if (foundPackage.length > 1) {
+                    if (foundPackage.length > 0) {
                         break;
                     }
                 }
