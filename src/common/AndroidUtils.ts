@@ -306,7 +306,7 @@ export class AndroidSDKUtils {
                 const packages = await AndroidSDKUtils.fetchInstalledSystemImages(
                     installedAndroidPackage.platformAPI
                 );
-                let foundPackage: string = '';
+                let supportedPackage: string | null = null;
                 const platformAPI = installedAndroidPackage.platformAPI;
                 for (const architecture of androidConfig.architectures) {
                     for (const image of androidConfig.supportedImages) {
@@ -316,20 +316,20 @@ export class AndroidSDKUtils {
                                     `(system-images;${platformAPI};${image};${architecture})`
                                 ) !== null
                             ) {
-                                foundPackage = key;
+                                supportedPackage = key;
                                 break;
                             }
                         }
-                        if (foundPackage.length > 0) {
+                        if (supportedPackage) {
                             break;
                         }
                     }
-                    if (foundPackage.length > 0) {
+                    if (supportedPackage) {
                         break;
                     }
                 }
 
-                if (foundPackage.length < 1) {
+                if (supportedPackage === null) {
                     reject(
                         new Error(
                             `Could not locate an emulator image. Requires any one of these [${androidConfig.supportedImages.join(
@@ -340,7 +340,7 @@ export class AndroidSDKUtils {
                     return;
                 }
 
-                resolve(packages.get(foundPackage));
+                resolve(packages.get(supportedPackage));
             } catch (error) {
                 reject(new Error(`Could not find android emulator packages.`));
             }
@@ -441,7 +441,7 @@ export class AndroidSDKUtils {
             let portNumber = requestedPortNumber;
             try {
                 if (AndroidSDKUtils.isEmulatorAlreadyStarted(emulatorName)) {
-                    // get port number from config.ini
+                    // get port number from emu-launch-params.txt
                     portNumber = AndroidSDKUtils.getEmulatorPort(
                         emulatorName,
                         requestedPortNumber
@@ -466,12 +466,12 @@ export class AndroidSDKUtils {
         const timeout = androidConfig.deviceBootReadinessWaitTime;
         const noOfRetries = androidConfig.deviceBootStatusPollRetries;
         return new Promise<boolean>((resolve, reject) => {
-            const timeoutFunc = (commandStr: string, retryNumber: number) => {
+            const timeoutFunc = (commandStr: string, noOfRetries: number) => {
                 const stdout = AndroidSDKUtils.executeCommand(commandStr);
                 if (stdout && stdout.trim() === '1') {
                     resolve(true);
                 } else {
-                    if (retryNumber === 0) {
+                    if (noOfRetries === 0) {
                         reject(
                             `Timeout waiting for emulator-${portNumber} to boot.`
                         );
@@ -480,7 +480,7 @@ export class AndroidSDKUtils {
                             timeoutFunc,
                             timeout,
                             commandStr,
-                            retryNumber - 1
+                            noOfRetries - 1
                         );
                     }
                 }
