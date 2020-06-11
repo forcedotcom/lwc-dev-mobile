@@ -464,7 +464,7 @@ export class AndroidSDKUtils {
     public static async pollDeviceStatus(portNumber: number): Promise<boolean> {
         const command = `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${portNumber} wait-for-device shell getprop sys.boot_completed`;
         const timeout = androidConfig.deviceBootReadinessWaitTime;
-        const noOfRetries = androidConfig.deviceBootStatusPollRetries;
+        const numberOfRetries = androidConfig.deviceBootStatusPollRetries;
         return new Promise<boolean>((resolve, reject) => {
             const timeoutFunc = (commandStr: string, noOfRetries: number) => {
                 const stdout = AndroidSDKUtils.executeCommand(commandStr);
@@ -485,7 +485,7 @@ export class AndroidSDKUtils {
                     }
                 }
             };
-            setTimeout(timeoutFunc, 1000, command, noOfRetries);
+            setTimeout(timeoutFunc, 1000, command, numberOfRetries);
         });
     }
 
