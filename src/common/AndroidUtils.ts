@@ -6,11 +6,14 @@
  */
 import { Logger } from '@salesforce/core';
 import * as childProcess from 'child_process';
+import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import shell from 'shelljs';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidPackage } from './AndroidTypes';
+import { MapUtils } from './Common';
+
 const execSync = childProcess.execSync;
 const spawn = childProcess.spawn;
 type StdioOptions = childProcess.StdioOptions;
@@ -299,37 +302,34 @@ export class AndroidSDKUtils {
     public static async findRequiredEmulatorImages(): Promise<AndroidPackage> {
         return new Promise<AndroidPackage>(async (resolve, reject) => {
             try {
-                const packages = await AndroidSDKUtils.fetchInstalledPackages();
                 const installedAndroidPackage = await AndroidSDKUtils.findRequiredAndroidAPIPackage();
-                const matchingKeys: string[] = [];
-                const platformAPI = installedAndroidPackage.platformAPI;
-                const reducer = (accumalator: string, current: string) =>
-                    accumalator.length > 0
-                        ? `${accumalator}|${platformAPI};${current}`
-                        : `${platformAPI};${current}`;
-                const imagesRegex = androidConfig.supportedImages.reduce(
-                    reducer,
-                    ''
+                const packages = await AndroidSDKUtils.fetchInstalledSystemImages(
+                    installedAndroidPackage.platformAPI
                 );
-                // Will retry with next architecture in list until it finds one.
+                let supportedPackage: string | null = null;
+                const platformAPI = installedAndroidPackage.platformAPI;
                 for (const architecture of androidConfig.architectures) {
-                    for (const key of Array.from(packages.keys())) {
-                        if (
-                            key.match(
-                                `(system-images;(${imagesRegex});${architecture})`
-                            ) !== null
-                        ) {
-                            matchingKeys.push(key);
+                    for (const image of androidConfig.supportedImages) {
+                        for (const key of Array.from(packages.keys())) {
+                            if (
+                                key.match(
+                                    `(system-images;${platformAPI};${image};${architecture})`
+                                ) !== null
+                            ) {
+                                supportedPackage = key;
+                                break;
+                            }
+                        }
+                        if (supportedPackage) {
                             break;
                         }
                     }
-
-                    if (matchingKeys.length > 0) {
+                    if (supportedPackage) {
                         break;
                     }
                 }
 
-                if (matchingKeys.length < 1) {
+                if (supportedPackage === null) {
                     reject(
                         new Error(
                             `Could not locate an emulator image. Requires any one of these [${androidConfig.supportedImages.join(
@@ -340,9 +340,7 @@ export class AndroidSDKUtils {
                     return;
                 }
 
-                // use the first one.
-                const androidPackage = packages.get(matchingKeys[0]);
-                resolve(androidPackage);
+                resolve(packages.get(supportedPackage));
             } catch (error) {
                 reject(new Error(`Could not find android emulator packages.`));
             }
@@ -395,7 +393,7 @@ export class AndroidSDKUtils {
         });
     }
 
-    public static createNewVirtualDevice(
+    public static async createNewVirtualDevice(
         emulatorName: string,
         emulatorimage: string,
         platformAPI: string,
@@ -409,7 +407,11 @@ export class AndroidSDKUtils {
         )} --device ${device} --abi ${abi}`;
         return new Promise((resolve, reject) => {
             try {
-                const child = spawn(createAvdCommand, { shell: true });
+                const child = spawn(createAvdCommand, {
+                    detached: true,
+                    shell: true
+                });
+                child.unref();
                 child.stdin.setDefaultEncoding('utf8');
                 child.stdin.write('no');
                 if (child) {
@@ -433,67 +435,57 @@ export class AndroidSDKUtils {
 
     public static startEmulator(
         emulatorName: string,
-        portNumber: number
-    ): Promise<boolean> {
+        requestedPortNumber: number
+    ): Promise<number> {
         return new Promise((resolve, reject) => {
+            let portNumber = requestedPortNumber;
             try {
+                if (AndroidSDKUtils.isEmulatorAlreadyStarted(emulatorName)) {
+                    // get port number from emu-launch-params.txt
+                    portNumber = AndroidSDKUtils.getEmulatorPort(
+                        emulatorName,
+                        requestedPortNumber
+                    );
+                    resolve(portNumber);
+                    return;
+                }
                 const child = spawn(
                     `${AndroidSDKUtils.EMULATOR_COMMAND} @${emulatorName} -port ${portNumber}`,
-                    { shell: true }
+                    { detached: true, shell: true, stdio: 'ignore' }
                 );
-                child.stdin.setDefaultEncoding('utf8');
-                if (child) {
-                    child.stdout.on('data', () => resolve(true));
-                    child.stderr.on('error', () => reject(false));
-                } else {
-                    reject(false);
-                }
+                resolve(portNumber);
+                child.unref();
             } catch (error) {
                 reject(error);
             }
         });
     }
 
-    // NOTE: I have not had success with using something similar to this
-    // adb -s emulator-${portNumber} wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
-    // It has led to device and adb freezes. Need to revisit later.
-    public static async pollDeviceStatus(
-        portNumber: number,
-        numberofRetries: number,
-        timeoutMillis: number
-    ): Promise<boolean> {
-        const command = `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${portNumber} shell getprop dev.bootcomplete`;
+    public static async pollDeviceStatus(portNumber: number): Promise<boolean> {
+        const command = `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${portNumber} wait-for-device shell getprop sys.boot_completed`;
+        const timeout = androidConfig.deviceBootReadinessWaitTime;
+        const numberOfRetries = androidConfig.deviceBootStatusPollRetries;
         return new Promise<boolean>((resolve, reject) => {
-            if (numberofRetries === 1) {
-                const message = `Waited too long for emulator emulator-${portNumber} to boot.`;
-                AndroidSDKUtils.logger.error(message);
-                return reject(new Error(message));
-            }
-
-            try {
-                const stdout = AndroidSDKUtils.executeCommand(command);
+            const timeoutFunc = (commandStr: string, noOfRetries: number) => {
+                const stdout = AndroidSDKUtils.executeCommand(commandStr);
                 if (stdout && stdout.trim() === '1') {
-                    return resolve(true);
+                    resolve(true);
+                } else {
+                    if (noOfRetries === 0) {
+                        reject(
+                            `Timeout waiting for emulator-${portNumber} to boot.`
+                        );
+                    } else {
+                        setTimeout(
+                            timeoutFunc,
+                            timeout,
+                            commandStr,
+                            noOfRetries - 1
+                        );
+                    }
                 }
-            } catch (exception) {
-                AndroidSDKUtils.logger.warn(
-                    `Waiting for emulator-${portNumber} to boot, retries left ${
-                        numberofRetries - 1
-                    }`
-                );
-            }
-            return new Promise((resolveDeviceStatus) =>
-                setTimeout(resolve, timeoutMillis)
-            )
-                .then(() => {
-                    return AndroidSDKUtils.pollDeviceStatus(
-                        portNumber,
-                        numberofRetries - 1,
-                        timeoutMillis
-                    );
-                })
-                .then((result) => resolve(result))
-                .catch((error) => reject(error));
+            };
+            setTimeout(timeoutFunc, 1000, command, numberOfRetries);
         });
     }
 
@@ -512,15 +504,50 @@ export class AndroidSDKUtils {
         });
     }
 
+    public static getEmulatorPort(
+        emulatorName: string,
+        requestedPortNumber: number
+    ): number {
+        // if config file does not exist, its created but not launched so use the requestedPortNumber
+        // else we will read it from emu-launch-params.txt file.
+        const userHome =
+            process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
+        const launchFileName = path.join(
+            `${userHome}`,
+            '.android',
+            'avd',
+            `${emulatorName}.avd`,
+            'emu-launch-params.txt'
+        );
+        let adjustedPort = requestedPortNumber;
+        if (fs.existsSync(launchFileName)) {
+            const data = fs.readFileSync(launchFileName, {
+                encoding: 'utf8',
+                flag: 'r'
+            });
+            // adb serial port range 5554-5584
+            adjustedPort = AndroidSDKUtils.DEFAULT_ADB_CONSOLE_PORT;
+            const runtimeMatchRegex = /-port*\n(55([5][4|6|8]|[6-7][2|4|6|8|0]|[8][0|2|4]))/;
+            const portString = data.match(runtimeMatchRegex) || '';
+            if (portString.length > 1) {
+                adjustedPort = parseInt(portString[1], 10);
+            }
+        }
+        return adjustedPort;
+    }
+
     private static logger: Logger = new Logger(
         'force:lightning:mobile:android'
     );
-
+    private static DEFAULT_ADB_CONSOLE_PORT = 5554;
     private static packageCache: Map<string, AndroidPackage> = new Map();
 
     private static getToolsBin(): string {
         let toolsLocation = AndroidSDKUtils.ANDROID_TOOLS_BIN;
-        if (process.platform === AndroidSDKUtils.WINDOWS_OS) {
+        if (
+            !fs.existsSync(toolsLocation) &&
+            fs.existsSync(AndroidSDKUtils.ANDROID_CMD_LINE_TOOLS_BIN)
+        ) {
             toolsLocation = AndroidSDKUtils.ANDROID_CMD_LINE_TOOLS_BIN;
         }
         return toolsLocation;
@@ -567,5 +594,34 @@ export class AndroidSDKUtils {
                 reject(error);
             }
         });
+    }
+
+    private static async fetchInstalledSystemImages(
+        androidApi: string
+    ): Promise<Map<string, AndroidPackage>> {
+        const allPacks = await AndroidSDKUtils.fetchInstalledPackages();
+        return new Promise<Map<string, AndroidPackage>>((resolve, reject) => {
+            const systemImages = MapUtils.filter(
+                allPacks,
+                (key, value) => key.indexOf(`system-images;${androidApi}`) > -1
+            );
+            resolve(systemImages);
+        });
+    }
+
+    private static isEmulatorAlreadyStarted(emulatorName: string): boolean {
+        const userHome =
+            process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
+        // ram.img.dirty is a one byte file created when avd is started and removed when avd is stopped.
+        const launchFileName = path.join(
+            `${userHome}`,
+            '.android',
+            'avd',
+            `${emulatorName}.avd`,
+            'snapshots',
+            'default_boot',
+            'ram.img.dirty'
+        );
+        return fs.existsSync(launchFileName);
     }
 }
