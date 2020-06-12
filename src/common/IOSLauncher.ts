@@ -20,9 +20,10 @@ export class IOSLauncher {
     public async launchNativeBrowser(url: string): Promise<boolean> {
         const availableDevices: string[] = await XcodeUtils.getSupportedDevices();
         const supportedRuntimes: string[] = await XcodeUtils.getSupportedRuntimes();
-        const currentSimulatorUDID: string = await XcodeUtils.getSimulator(
+        const currentSimulator = await XcodeUtils.getSimulator(
             this.simulatorName
         );
+        const currentSimulatorUDID: string = currentSimulator.udid;
         let deviceUDID = '';
         const spinner = cli.action;
         cli.action.start(`Launching`, `Searching for ${this.simulatorName}`, {

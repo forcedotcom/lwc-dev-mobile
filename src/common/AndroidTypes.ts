@@ -110,3 +110,121 @@ export class AndroidPackage {
         this.location = location;
     }
 }
+
+export class AndroidVirtualDevice {
+    name: string;
+    displayName: string;
+    deviceName: string;
+    path: string;
+    target: string;
+    api: string;
+
+    constructor(
+        name: string,
+        deviceName: string,
+        path: string,
+        target: string,
+        api: string
+    ) {
+        this.name = name;
+        this.displayName = name.replace(/_/gi, ' ').trim(); // eg. Pixel_XL --> Pixel XL
+        this.deviceName = deviceName.replace(/\([^\(]*\)/, '').trim(); // eg. Nexus 5X (Google) --> Nexus 5X
+        this.path = path.trim();
+        this.target = target.replace(/\([^\(]*\)/, '').trim(); // eg. Google APIs (Google Inc.) --> Google APIs
+        this.api = api.replace('Android', '').trim(); // eg. Android API 29 --> API 29
+    }
+
+    static parseRawString(rawString: string): Array<AndroidVirtualDevice> {
+        let avds = AndroidVirtualDevice.getAvdDefinitions(rawString);
+        let devices: Array<AndroidVirtualDevice> = [];
+
+        for (const avd of avds) {
+            const name = AndroidVirtualDevice.getValueForKey(avd, 'name:');
+            const device = AndroidVirtualDevice.getValueForKey(avd, 'device:');
+            const path = AndroidVirtualDevice.getValueForKey(avd, 'path:');
+            const target = AndroidVirtualDevice.getValueForKey(avd, 'target:');
+            const api = AndroidVirtualDevice.getValueForKey(avd, 'based on:');
+
+            if (
+                name != undefined &&
+                device != undefined &&
+                path != undefined &&
+                target != undefined &&
+                api != undefined
+            ) {
+                devices.push(
+                    new AndroidVirtualDevice(name, device, path, target, api)
+                );
+            }
+        }
+
+        return devices;
+    }
+
+    /*
+       When we run 'avdmanager list avd' it returns the results (along with any erros)
+       as raw string in the following format:
+
+        Available Android Virtual Devices:
+            <device definition>
+        ---------
+            <device definition>
+        ---------
+            <device definition>
+
+        The following Android Virtual Devices could not be loaded:
+            <device error info>
+        ---------
+            <device error info>
+        ---------
+            <device error info>
+
+       In the following method, we parse the raw string result and break it up into
+       <device definition> chunks, and skip the <device error info> sections
+    */
+    private static getAvdDefinitions(rawString: string): Array<Array<string>> {
+        //get rid of the error sections (if any)
+        const errIdx = rawString.indexOf(`${os.EOL}${os.EOL}`);
+        const cleanedRawString =
+            errIdx > 0 ? rawString.substring(0, errIdx - 1) : rawString;
+
+        const lowerCasedRawString = cleanedRawString.toLowerCase();
+        let position: number | undefined = 0;
+        let results: Array<Array<string>> = [];
+
+        // now parse the device definition sections
+        while (position != undefined) {
+            let startIdx = lowerCasedRawString.indexOf('name:', position);
+            let endIdx: number | undefined = undefined;
+
+            if (startIdx > -1) {
+                let sepIdx = lowerCasedRawString.indexOf('---', startIdx);
+                endIdx = sepIdx > -1 ? sepIdx - 1 : undefined;
+
+                let chunck = cleanedRawString.substring(startIdx, endIdx);
+                chunck = chunck.replace('Tag/ABI:', `${os.EOL}Tag/ABI:`); // put ABI info on a line of its own
+                let split = chunck.split(os.EOL);
+                results.push(split);
+            }
+
+            position = endIdx;
+        }
+
+        return results;
+    }
+
+    private static getValueForKey(
+        array: Array<string>,
+        key: string
+    ): string | undefined {
+        for (let i = 0; i < array.length; i++) {
+            let trimmed = array[i].trim();
+
+            if (trimmed.toLowerCase().startsWith(key.toLowerCase())) {
+                let value = trimmed.substring(key.length + 1).trim(); // key.length + 1 to skip over ':' separator
+                return value;
+            }
+        }
+        return undefined;
+    }
+}

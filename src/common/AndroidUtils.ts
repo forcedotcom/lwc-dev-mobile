@@ -11,7 +11,7 @@ import os from 'os';
 import path from 'path';
 import shell from 'shelljs';
 import androidConfig from '../config/androidconfig.json';
-import { AndroidPackage } from './AndroidTypes';
+import { AndroidPackage, AndroidVirtualDevice } from './AndroidTypes';
 import { MapUtils } from './Common';
 
 const execSync = childProcess.execSync;
@@ -193,6 +193,25 @@ export class AndroidSDKUtils {
                 }
             }
             resolve(AndroidSDKUtils.packageCache);
+        });
+    }
+
+    public static fetchEmulators(): Promise<Array<AndroidVirtualDevice>> {
+        return new Promise((resolve, reject) => {
+            let devices: Array<AndroidVirtualDevice> = [];
+            try {
+                const result = execSync(
+                    AndroidSDKUtils.AVDMANAGER_COMMAND + ' list avd'
+                );
+                if (result) {
+                    devices = AndroidVirtualDevice.parseRawString(
+                        result.toString()
+                    );
+                }
+            } catch (exception) {
+                AndroidSDKUtils.logger.warn(exception);
+            }
+            return resolve(devices);
         });
     }
 

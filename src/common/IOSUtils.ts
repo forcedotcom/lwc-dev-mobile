@@ -8,6 +8,7 @@ import childProcess from 'child_process';
 import cli from 'cli-ux';
 import util from 'util';
 import iOSConfig from '../config/iosconfig.json';
+import { IOSSimulatorDevice } from './IOSTypes';
 
 const exec = util.promisify(childProcess.exec);
 
@@ -52,38 +53,44 @@ export class XcodeUtils {
         }
     }
 
-    public static async getSimulator(simulatorName: string): Promise<string> {
-        const devicesCmd = `${XCRUN_CMD} simctl list --json devices available`;
-        const DEVICES_KEY = 'devices';
-        try {
-            const supportedRuntimes = await XcodeUtils.getSupportedRuntimes();
-            const runtimeMatchRegex = new RegExp(
-                `\.SimRuntime\.(${supportedRuntimes.join('|')})`
-            );
-            const { stdout } = await XcodeUtils.executeCommand(devicesCmd);
-            const devicesJSON: any = JSON.parse(stdout);
-            const runtimeDevices: any[] = devicesJSON[DEVICES_KEY] || [];
-            let runtimes: any[] = Object.keys(runtimeDevices).filter((key) => {
-                return key && key.match(runtimeMatchRegex);
-            });
-            runtimes = runtimes.sort().reverse();
-            // search for device that matches and return udid
-            for (const runtimeIdentifier of runtimes) {
-                const devices: any = runtimeDevices[runtimeIdentifier];
-                for (const device of devices) {
-                    if (simulatorName.match(device.name)) {
-                        return new Promise<string>((resolve) =>
-                            resolve(device.udid)
-                        );
-                    }
+    public static async getSimulator(
+        simulatorName: string
+    ): Promise<IOSSimulatorDevice> {
+        return XcodeUtils.getSupportedSimulators().then((devices) => {
+            for (const device of devices) {
+                if (simulatorName.match(device.name)) {
+                    return new Promise<IOSSimulatorDevice>((resolve) =>
+                        resolve(device)
+                    );
                 }
             }
+
+            return new Promise<IOSSimulatorDevice>((resolve, reject) =>
+                reject(`Unable to find simulator: ${simulatorName}`)
+            );
+        });
+    }
+
+    public static async getSupportedSimulators(): Promise<
+        Array<IOSSimulatorDevice>
+    > {
+        try {
+            const devicesCmd = `${XCRUN_CMD} simctl list --json devices available`;
+            const supportedRuntimes = await XcodeUtils.getSupportedRuntimes();
+            const { stdout } = await XcodeUtils.executeCommand(devicesCmd);
+            const sims = IOSSimulatorDevice.parseJSONString(
+                stdout,
+                supportedRuntimes
+            );
+
+            return new Promise<Array<IOSSimulatorDevice>>((resolve) =>
+                resolve(sims)
+            );
         } catch (runtimesError) {
-            return new Promise<string>((resolve, reject) =>
-                reject(`The command '${devicesCmd}' failed: ${runtimesError}`)
+            return new Promise<Array<IOSSimulatorDevice>>((resolve, reject) =>
+                reject(runtimesError)
             );
         }
-        return new Promise<string>((resolve) => resolve(''));
     }
 
     public static async executeCommand(
