@@ -9,8 +9,8 @@ import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { CommandLineUtils } from '../../../../../../common/Common';
 import { AndroidSDKUtils } from '../../../../../../common/AndroidUtils';
 import { XcodeUtils } from '../../../../../../common/IOSUtils';
-import { AndroidVirtualDevice } from 'common/AndroidTypes';
-import { IOSSimulatorDevice } from 'common/IOSTypes';
+import { AndroidVirtualDevice } from '../../../../../../common/AndroidTypes';
+import { IOSSimulatorDevice } from '../../../../../../common/IOSTypes';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -59,26 +59,26 @@ export default class List extends SfdxCommand {
     }
 
     public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
-        let list = await XcodeUtils.getSupportedSimulators();
+        const list = await XcodeUtils.getSupportedSimulators();
 
-        for (const item of list) {
+        /*for (const item of list) {
             console.log(item.name);
             console.log(item.runtimeId);
             console.log('---------');
-        }
+        }*/
 
         return Promise.resolve(list);
     }
 
     public async androidDeviceList(): Promise<AndroidVirtualDevice[]> {
-        let list = await AndroidSDKUtils.fetchEmulators();
+        const list = await AndroidSDKUtils.fetchEmulators();
 
-        for (const item of list) {
+        /*for (const item of list) {
             console.log(item.displayName);
             console.log(item.deviceName);
             console.log(item.api);
             console.log('---------');
-        }
+        }*/
 
         return Promise.resolve(list);
     }

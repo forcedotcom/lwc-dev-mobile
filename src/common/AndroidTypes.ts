@@ -111,6 +111,7 @@ export class AndroidPackage {
     }
 }
 
+// tslint:disable-next-line: max-classes-per-file
 export class AndroidVirtualDevice {
     name: string;
     displayName: string;
@@ -134,9 +135,9 @@ export class AndroidVirtualDevice {
         this.api = api.replace('Android', '').trim(); // eg. Android API 29 --> API 29
     }
 
-    static parseRawString(rawString: string): Array<AndroidVirtualDevice> {
-        let avds = AndroidVirtualDevice.getAvdDefinitions(rawString);
-        let devices: Array<AndroidVirtualDevice> = [];
+    static parseRawString(rawString: string): AndroidVirtualDevice[] {
+        const avds = AndroidVirtualDevice.getAvdDefinitions(rawString);
+        const devices: AndroidVirtualDevice[] = [];
 
         for (const avd of avds) {
             const name = AndroidVirtualDevice.getValueForKey(avd, 'name:');
@@ -146,11 +147,11 @@ export class AndroidVirtualDevice {
             const api = AndroidVirtualDevice.getValueForKey(avd, 'based on:');
 
             if (
-                name != undefined &&
-                device != undefined &&
-                path != undefined &&
-                target != undefined &&
-                api != undefined
+                name !== undefined &&
+                device !== undefined &&
+                path !== undefined &&
+                target !== undefined &&
+                api !== undefined
             ) {
                 devices.push(
                     new AndroidVirtualDevice(name, device, path, target, api)
@@ -182,28 +183,28 @@ export class AndroidVirtualDevice {
        In the following method, we parse the raw string result and break it up into
        <device definition> chunks, and skip the <device error info> sections
     */
-    private static getAvdDefinitions(rawString: string): Array<Array<string>> {
-        //get rid of the error sections (if any)
+    private static getAvdDefinitions(rawString: string): string[][] {
+        // get rid of the error sections (if any)
         const errIdx = rawString.indexOf(`${os.EOL}${os.EOL}`);
         const cleanedRawString =
             errIdx > 0 ? rawString.substring(0, errIdx - 1) : rawString;
 
         const lowerCasedRawString = cleanedRawString.toLowerCase();
         let position: number | undefined = 0;
-        let results: Array<Array<string>> = [];
+        const results: string[][] = [];
 
         // now parse the device definition sections
-        while (position != undefined) {
-            let startIdx = lowerCasedRawString.indexOf('name:', position);
-            let endIdx: number | undefined = undefined;
+        while (position !== undefined) {
+            const startIdx = lowerCasedRawString.indexOf('name:', position);
+            let endIdx: number | undefined;
 
             if (startIdx > -1) {
-                let sepIdx = lowerCasedRawString.indexOf('---', startIdx);
+                const sepIdx = lowerCasedRawString.indexOf('---', startIdx);
                 endIdx = sepIdx > -1 ? sepIdx - 1 : undefined;
 
                 let chunck = cleanedRawString.substring(startIdx, endIdx);
                 chunck = chunck.replace('Tag/ABI:', `${os.EOL}Tag/ABI:`); // put ABI info on a line of its own
-                let split = chunck.split(os.EOL);
+                const split = chunck.split(os.EOL);
                 results.push(split);
             }
 
@@ -214,14 +215,14 @@ export class AndroidVirtualDevice {
     }
 
     private static getValueForKey(
-        array: Array<string>,
+        array: string[],
         key: string
     ): string | undefined {
-        for (let i = 0; i < array.length; i++) {
-            let trimmed = array[i].trim();
+        for (const item of array) {
+            const trimmed = item.trim();
 
             if (trimmed.toLowerCase().startsWith(key.toLowerCase())) {
-                let value = trimmed.substring(key.length + 1).trim(); // key.length + 1 to skip over ':' separator
+                const value = trimmed.substring(key.length + 1).trim(); // key.length + 1 to skip over ':' separator
                 return value;
             }
         }

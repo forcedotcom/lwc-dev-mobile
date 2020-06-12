@@ -196,9 +196,9 @@ export class AndroidSDKUtils {
         });
     }
 
-    public static fetchEmulators(): Promise<Array<AndroidVirtualDevice>> {
+    public static fetchEmulators(): Promise<AndroidVirtualDevice[]> {
         return new Promise((resolve, reject) => {
-            let devices: Array<AndroidVirtualDevice> = [];
+            let devices: AndroidVirtualDevice[] = [];
             try {
                 const result = execSync(
                     AndroidSDKUtils.AVDMANAGER_COMMAND + ' list avd'

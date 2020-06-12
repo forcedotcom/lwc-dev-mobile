@@ -7,8 +7,8 @@
 import * as Config from '@oclif/config';
 import { Logger, SfdxError } from '@salesforce/core';
 import List from '../list';
-import { AndroidVirtualDevice } from 'common/AndroidTypes';
-import { IOSSimulatorDevice } from 'common/IOSTypes';
+import { AndroidVirtualDevice } from '../../../../../../../common/AndroidTypes';
+import { IOSSimulatorDevice } from '../../../../../../../common/IOSTypes';
 
 const iOSListCommandBlockMock = jest.fn(
     (): Promise<IOSSimulatorDevice[]> => {

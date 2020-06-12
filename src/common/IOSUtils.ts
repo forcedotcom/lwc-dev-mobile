@@ -72,7 +72,7 @@ export class XcodeUtils {
     }
 
     public static async getSupportedSimulators(): Promise<
-        Array<IOSSimulatorDevice>
+        IOSSimulatorDevice[]
     > {
         try {
             const devicesCmd = `${XCRUN_CMD} simctl list --json devices available`;
@@ -83,11 +83,11 @@ export class XcodeUtils {
                 supportedRuntimes
             );
 
-            return new Promise<Array<IOSSimulatorDevice>>((resolve) =>
+            return new Promise<IOSSimulatorDevice[]>((resolve) =>
                 resolve(sims)
             );
         } catch (runtimesError) {
-            return new Promise<Array<IOSSimulatorDevice>>((resolve, reject) =>
+            return new Promise<IOSSimulatorDevice[]>((resolve, reject) =>
                 reject(runtimesError)
             );
         }

@@ -34,13 +34,17 @@ export class IOSSimulatorDevice {
     static parseJSONString(
         jsonString: string,
         supportedRuntimes: string[]
-    ): Array<IOSSimulatorDevice> {
+    ): IOSSimulatorDevice[] {
         const DEVICES_KEY = 'devices';
+        const NAME_KEY = 'name';
+        const UDID_KEY = 'udid';
+        const STATE_KEY = 'state';
+        const IS_AVILABLE_KEY = 'isAvailable';
         const runtimeMatchRegex = new RegExp(
             `\.SimRuntime\.(${supportedRuntimes.join('|')})`
         );
 
-        let simDevices: Array<IOSSimulatorDevice> = [];
+        const simDevices: IOSSimulatorDevice[] = [];
 
         const devicesJSON: any = JSON.parse(jsonString);
         const runtimeDevices: any[] = devicesJSON[DEVICES_KEY] || [];
@@ -52,12 +56,12 @@ export class IOSSimulatorDevice {
         for (const runtimeIdentifier of runtimes) {
             const devices = runtimeDevices[runtimeIdentifier];
             for (const device of devices) {
-                let sim = new IOSSimulatorDevice(
-                    device['name'],
-                    device['udid'],
-                    device['state'],
+                const sim = new IOSSimulatorDevice(
+                    device[NAME_KEY],
+                    device[UDID_KEY],
+                    device[STATE_KEY],
                     runtimeIdentifier,
-                    device['isAvailable']
+                    device[IS_AVILABLE_KEY]
                 );
 
                 simDevices.push(sim);
