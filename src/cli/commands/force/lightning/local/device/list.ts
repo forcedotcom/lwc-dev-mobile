@@ -6,11 +6,11 @@
  */
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
-import { CommandLineUtils } from '../../../../../../common/Common';
-import { AndroidSDKUtils } from '../../../../../../common/AndroidUtils';
-import { XcodeUtils } from '../../../../../../common/IOSUtils';
 import { AndroidVirtualDevice } from '../../../../../../common/AndroidTypes';
+import { AndroidSDKUtils } from '../../../../../../common/AndroidUtils';
+import { CommandLineUtils } from '../../../../../../common/Common';
 import { IOSSimulatorDevice } from '../../../../../../common/IOSTypes';
+import { XcodeUtils } from '../../../../../../common/IOSUtils';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -83,16 +83,16 @@ export default class List extends SfdxCommand {
         return Promise.resolve(list);
     }
 
+    protected async init(): Promise<void> {
+        await super.init();
+        const logger = await Logger.child('mobile:device:list', {});
+        this.logger = logger;
+    }
+
     private isValidPlatform(platform: string): boolean {
         return (
             CommandLineUtils.platformFlagIsIOS(platform) ||
             CommandLineUtils.platformFlagIsAndroid(platform)
         );
-    }
-
-    protected async init(): Promise<void> {
-        await super.init();
-        const logger = await Logger.child('mobile:device:list', {});
-        this.logger = logger;
     }
 }

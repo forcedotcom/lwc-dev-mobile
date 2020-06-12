@@ -113,29 +113,7 @@ export class AndroidPackage {
 
 // tslint:disable-next-line: max-classes-per-file
 export class AndroidVirtualDevice {
-    name: string;
-    displayName: string;
-    deviceName: string;
-    path: string;
-    target: string;
-    api: string;
-
-    constructor(
-        name: string,
-        deviceName: string,
-        path: string,
-        target: string,
-        api: string
-    ) {
-        this.name = name;
-        this.displayName = name.replace(/_/gi, ' ').trim(); // eg. Pixel_XL --> Pixel XL
-        this.deviceName = deviceName.replace(/\([^\(]*\)/, '').trim(); // eg. Nexus 5X (Google) --> Nexus 5X
-        this.path = path.trim();
-        this.target = target.replace(/\([^\(]*\)/, '').trim(); // eg. Google APIs (Google Inc.) --> Google APIs
-        this.api = api.replace('Android', '').trim(); // eg. Android API 29 --> API 29
-    }
-
-    static parseRawString(rawString: string): AndroidVirtualDevice[] {
+    public static parseRawString(rawString: string): AndroidVirtualDevice[] {
         const avds = AndroidVirtualDevice.getAvdDefinitions(rawString);
         const devices: AndroidVirtualDevice[] = [];
 
@@ -227,5 +205,27 @@ export class AndroidVirtualDevice {
             }
         }
         return undefined;
+    }
+
+    public name: string;
+    public displayName: string;
+    public deviceName: string;
+    public path: string;
+    public target: string;
+    public api: string;
+
+    constructor(
+        name: string,
+        deviceName: string,
+        path: string,
+        target: string,
+        api: string
+    ) {
+        this.name = name;
+        this.displayName = name.replace(/_/gi, ' ').trim(); // eg. Pixel_XL --> Pixel XL
+        this.deviceName = deviceName.replace(/\([^\(]*\)/, '').trim(); // eg. Nexus 5X (Google) --> Nexus 5X
+        this.path = path.trim();
+        this.target = target.replace(/\([^\(]*\)/, '').trim(); // eg. Google APIs (Google Inc.) --> Google APIs
+        this.api = api.replace('Android', '').trim(); // eg. Android API 29 --> API 29
     }
 }

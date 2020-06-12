@@ -6,32 +6,7 @@
  */
 
 export class IOSSimulatorDevice {
-    name: string;
-    udid: string;
-    state: string;
-    runtimeId: string;
-    isAvailable: boolean;
-
-    constructor(
-        name: string,
-        udid: string,
-        state: string,
-        runtimeId: string,
-        isAvailable: boolean
-    ) {
-        const runtime: string = runtimeId
-            .replace('com.apple.CoreSimulator.SimRuntime.', '') // com.apple.CoreSimulator.SimRuntime.iOS-13-3-2 --> iOS-13-3-2
-            .replace('-', ' ') // iOS-13-3-2 --> iOS 13-3-2
-            .replace(/-/gi, '.'); // iOS 13-3-2 --> iOS 13.3.2
-
-        this.name = name;
-        this.udid = udid;
-        this.state = state;
-        this.runtimeId = runtime;
-        this.isAvailable = isAvailable;
-    }
-
-    static parseJSONString(
+    public static parseJSONString(
         jsonString: string,
         supportedRuntimes: string[]
     ): IOSSimulatorDevice[] {
@@ -69,5 +44,30 @@ export class IOSSimulatorDevice {
         }
 
         return simDevices;
+    }
+
+    public name: string;
+    public udid: string;
+    public state: string;
+    public runtimeId: string;
+    public isAvailable: boolean;
+
+    constructor(
+        name: string,
+        udid: string,
+        state: string,
+        runtimeId: string,
+        isAvailable: boolean
+    ) {
+        const runtime: string = runtimeId
+            .replace('com.apple.CoreSimulator.SimRuntime.', '') // com.apple.CoreSimulator.SimRuntime.iOS-13-3-2 --> iOS-13-3-2
+            .replace('-', ' ') // iOS-13-3-2 --> iOS 13-3-2
+            .replace(/-/gi, '.'); // iOS 13-3-2 --> iOS 13.3.2
+
+        this.name = name;
+        this.udid = udid;
+        this.state = state;
+        this.runtimeId = runtime;
+        this.isAvailable = isAvailable;
     }
 }
