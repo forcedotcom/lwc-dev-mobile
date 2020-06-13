@@ -34,15 +34,18 @@ export default class Preview extends SfdxCommand {
         // flag with a value (-n, --name=VALUE)
         componentname: flags.string({
             char: 'n',
-            description: messages.getMessage('componentnameFlagDescription')
+            description: messages.getMessage('componentnameFlagDescription'),
+            required: true
         }),
         platform: flags.string({
             char: 'p',
-            description: messages.getMessage('platformFlagDescription')
+            description: messages.getMessage('platformFlagDescription'),
+            required: true
         }),
         target: flags.string({
             char: 't',
-            description: messages.getMessage('targetFlagDescription')
+            description: messages.getMessage('targetFlagDescription'),
+            required: false
         })
     };
 
