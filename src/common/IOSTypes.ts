@@ -70,4 +70,8 @@ export class IOSSimulatorDevice {
         this.runtimeId = runtime;
         this.isAvailable = isAvailable;
     }
+
+    public toString(): string {
+        return `${this.name}, ${this.runtimeId}`;
+    }
 }

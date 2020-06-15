@@ -228,4 +228,8 @@ export class AndroidVirtualDevice {
         this.target = target.replace(/\([^\(]*\)/, '').trim(); // eg. Google APIs (Google Inc.) --> Google APIs
         this.api = api.replace('Android', '').trim(); // eg. Android API 29 --> API 29
     }
+
+    public toString(): string {
+        return `${this.displayName}, ${this.deviceName}, ${this.api}`;
+    }
 }

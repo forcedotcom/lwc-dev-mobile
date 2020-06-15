@@ -6,6 +6,8 @@
  */
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
+import chalk from 'chalk';
+import cli from 'cli-ux';
 import { AndroidVirtualDevice } from '../../../../../../common/AndroidTypes';
 import { AndroidSDKUtils } from '../../../../../../common/AndroidUtils';
 import { CommandLineUtils } from '../../../../../../common/Common';
@@ -59,28 +61,15 @@ export default class List extends SfdxCommand {
     }
 
     public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
-        const list = await XcodeUtils.getSupportedSimulators();
-
-        /*for (const item of list) {
-            console.log(item.name);
-            console.log(item.runtimeId);
-            console.log('---------');
-        }*/
-
-        return Promise.resolve(list);
+        const deviceList = await XcodeUtils.getSupportedSimulators();
+        this.showDeviceList(deviceList);
+        return Promise.resolve(deviceList);
     }
 
     public async androidDeviceList(): Promise<AndroidVirtualDevice[]> {
-        const list = await AndroidSDKUtils.fetchEmulators();
-
-        /*for (const item of list) {
-            console.log(item.displayName);
-            console.log(item.deviceName);
-            console.log(item.api);
-            console.log('---------');
-        }*/
-
-        return Promise.resolve(list);
+        const deviceList = await AndroidSDKUtils.fetchEmulators();
+        this.showDeviceList(deviceList);
+        return Promise.resolve(deviceList);
     }
 
     protected async init(): Promise<void> {
@@ -94,5 +83,14 @@ export default class List extends SfdxCommand {
             CommandLineUtils.platformFlagIsIOS(platform) ||
             CommandLineUtils.platformFlagIsAndroid(platform)
         );
+    }
+
+    private showDeviceList(list: any[]) {
+        const tree = cli.tree();
+        tree.insert('DeviceList');
+        list.forEach((item) => {
+            tree.nodes.DeviceList.insert(chalk.bold.green(item));
+        });
+        tree.display();
     }
 }
