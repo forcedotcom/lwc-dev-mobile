@@ -23,8 +23,15 @@ const androidListCommandBlockMock = jest.fn(
     }
 );
 
-const setupMock = jest.fn(() => {
+const passedSetupMock = jest.fn(() => {
     return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
+});
+
+const failedSetupMock = jest.fn(() => {
+    return Promise.resolve({
+        hasMetAllRequirements: false,
+        tests: ['Mock Failure in tests!']
+    });
 });
 
 describe('List Tests', () => {
@@ -34,13 +41,13 @@ describe('List Tests', () => {
         list = new List([], new Config.Config(({} as any) as Config.Options));
         list.iOSDeviceList = iOSListCommandBlockMock;
         list.androidDeviceList = androidListCommandBlockMock;
+        jest.spyOn(Setup.prototype, 'run').mockImplementation(passedSetupMock);
     });
 
     test('Checks that launch for target platform for Android is invoked', async () => {
         setupPlatformFlag('android');
         const logger = new Logger('test-list');
         setupLogger(logger);
-        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
         await list.run();
         expect(androidListCommandBlockMock).toHaveBeenCalled();
     });
@@ -49,7 +56,6 @@ describe('List Tests', () => {
         setupPlatformFlag('iOS');
         const logger = new Logger('test-list');
         setupLogger(logger);
-        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
         await list.run();
         expect(iOSListCommandBlockMock).toHaveBeenCalled();
     });
@@ -58,22 +64,15 @@ describe('List Tests', () => {
         setupPlatformFlag('android');
         const logger = new Logger('test-list');
         setupLogger(logger);
-        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
         await list.run();
-        expect(setupMock).toHaveBeenCalled();
+        expect(passedSetupMock).toHaveBeenCalled();
     });
 
-    test('Preview should throw an error if setup fails', async () => {
+    test('Device List should throw an error if setup fails', async () => {
         setupPlatformFlag('android');
         const logger = new Logger('test-list');
         setupLogger(logger);
-        const failedSetupMock = jest.fn(() => {
-            return Promise.resolve({
-                hasMetAllRequirements: false,
-                tests: ['Mock Failure in tests!']
-            });
-        });
-        jest.spyOn(Setup, 'run').mockImplementation(failedSetupMock);
+        jest.spyOn(Setup.prototype, 'run').mockImplementation(failedSetupMock);
         list.run().catch((error) => {
             expect(error && error instanceof SfdxError).toBeTruthy();
         });

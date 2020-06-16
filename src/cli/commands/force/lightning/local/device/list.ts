@@ -22,7 +22,7 @@ Messages.importMessagesDirectory(__dirname);
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'device');
 
-export default class List extends SfdxCommand {
+export default class List extends Setup {
     public static description = messages.getMessage('commandDescription');
 
     public static readonly flagsConfig: FlagsConfig = {
@@ -34,60 +34,58 @@ export default class List extends SfdxCommand {
         })
     };
 
+    public examples = [
+        `sfdx force:lightning:local:device:list -p iOS`,
+        `sfdx force:lightning:local:device:list -p Android`
+    ];
+
     public async run(): Promise<any> {
         const platform = this.flags.platform;
         this.logger.info(`Device List command invoked for ${platform}`);
-        if (!this.isValidPlatform(platform)) {
-            return Promise.reject(
-                new SfdxError(
-                    messages.getMessage('error:invalidInputFlagsDescription'),
-                    'lwc-dev-mobile',
-                    [
-                        `${messages.getMessage(
-                            'remedy:invalidInputFlagsDescription'
-                        )}`
-                    ]
-                )
-            );
-        }
 
-        const setupResult = await Setup.run(['-p', this.flags.platform]);
-        if (!setupResult || !setupResult.hasMetAllRequirements) {
-            this.logger.warn(
-                `Device list failed for ${this.flags.platform}. Setup requirements have not been met.`
-            );
-            return Promise.resolve(false);
-        }
-        this.logger.info('Setup requirements met, continuing with device list');
+        return new Promise<any>((resolve, reject) => {
+            super
+                .run() // run setup first
+                .then((result) => {
+                    this.logger.info(
+                        'Setup requirements met, continuing with device list'
+                    );
 
-        return CommandLineUtils.platformFlagIsIOS(platform)
-            ? this.iOSDeviceList()
-            : this.androidDeviceList();
+                    const deviceList = CommandLineUtils.platformFlagIsIOS(
+                        platform
+                    )
+                        ? this.iOSDeviceList()
+                        : this.androidDeviceList();
+
+                    resolve(deviceList);
+                })
+                .catch((error) => {
+                    this.logger.warn(
+                        `Device list failed for ${platform}. Setup requirements have not been met.`
+                    );
+                    reject(error);
+                });
+        });
     }
 
-    public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
-        const deviceList = await XcodeUtils.getSupportedSimulators();
-        this.showDeviceList(deviceList);
-        return Promise.resolve(deviceList);
+    public iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
+        return XcodeUtils.getSupportedSimulators().then((result) => {
+            this.showDeviceList(result);
+            return result;
+        });
     }
 
-    public async androidDeviceList(): Promise<AndroidVirtualDevice[]> {
-        const deviceList = await AndroidSDKUtils.fetchEmulators();
-        this.showDeviceList(deviceList);
-        return Promise.resolve(deviceList);
+    public androidDeviceList(): Promise<AndroidVirtualDevice[]> {
+        return AndroidSDKUtils.fetchEmulators().then((result) => {
+            this.showDeviceList(result);
+            return result;
+        });
     }
 
     protected async init(): Promise<void> {
         await super.init();
         const logger = await Logger.child('mobile:device:list', {});
         this.logger = logger;
-    }
-
-    private isValidPlatform(platform: string): boolean {
-        return (
-            CommandLineUtils.platformFlagIsIOS(platform) ||
-            CommandLineUtils.platformFlagIsAndroid(platform)
-        );
     }
 
     private showDeviceList(list: any[]) {
