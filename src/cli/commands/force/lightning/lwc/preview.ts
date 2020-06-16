@@ -24,8 +24,8 @@ export default class Preview extends SfdxCommand {
     public static description = messages.getMessage('commandDescription');
 
     public static examples = [
-        `$ sfdx force:lightning:lwc:preview -p iOS -t LWCSim2 -n HellowWordComponent`,
-        `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -n HellowWordComponent`
+        `$ sfdx force:lightning:lwc:preview -p iOS -t LWCSim2 -n HelloWorldComponent`,
+        `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -n HelloWorldComponent`
     ];
 
     public static args = [{ name: 'file' }];
