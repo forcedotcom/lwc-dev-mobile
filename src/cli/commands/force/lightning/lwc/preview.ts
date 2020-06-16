@@ -91,24 +91,6 @@ export default class Preview extends Setup {
                 );
                 return Promise.reject(error);
             });
-
-        /*return new Promise<any>((resolve, reject) => {
-            super
-                .run() // run setup first
-                .then((result) => {
-                    this.logger.info(
-                        'Setup requirements met, continuing with preview'
-                    );
-
-                    return this.launchPreview();
-                })
-                .catch((error) => {
-                    this.logger.warn(
-                        `Preview failed for ${platform}. Setup requirements have not been met.`
-                    );
-                    reject(error);
-                });
-        });*/
     }
 
     public validateComponentNameValue(compName: string): boolean {

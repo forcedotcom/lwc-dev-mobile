@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import os from 'os';
-
 export class AndroidPackage {
     get platformAPI(): string {
         const platformApi = '';
@@ -157,7 +155,7 @@ export class AndroidVirtualDevice {
     */
     private static getAvdDefinitions(rawString: string): string[][] {
         // get rid of the error sections (if any)
-        const errIdx = rawString.indexOf(`${os.EOL}${os.EOL}`);
+        const errIdx = rawString.indexOf('\n\n');
         const cleanedRawString =
             errIdx > 0 ? rawString.substring(0, errIdx - 1) : rawString;
 
@@ -178,8 +176,8 @@ export class AndroidVirtualDevice {
                     endIdx > -1
                         ? cleanedRawString.substring(startIdx, endIdx)
                         : cleanedRawString.substring(startIdx);
-                chunck = chunck.replace('Tag/ABI:', `${os.EOL}Tag/ABI:`); // put ABI info on a line of its own
-                const split = chunck.split(os.EOL);
+                chunck = chunck.replace('Tag/ABI:', '\nTag/ABI:'); // put ABI info on a line of its own
+                const split = chunck.split('\n');
                 results.push(split);
             }
 
