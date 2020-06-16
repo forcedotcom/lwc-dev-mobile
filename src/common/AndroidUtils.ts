@@ -407,9 +407,7 @@ export class AndroidSDKUtils {
         )} --device ${device} --abi ${abi}`;
         return new Promise((resolve, reject) => {
             try {
-                const child = AndroidSDKUtils.spawnChildDetachedIfNeeded(
-                    createAvdCommand
-                );
+                const child = AndroidSDKUtils.spawnChild(createAvdCommand);
                 child.stdin.setDefaultEncoding('utf8');
                 child.stdin.write('no');
                 if (child) {
@@ -524,12 +522,12 @@ export class AndroidSDKUtils {
             // -port
             // 5572
             adjustedPort = this.DEFAULT_ADB_CONSOLE_PORT;
-            const portString = '-port';
-            const portStringIndx = data.indexOf(portString);
+            const portArgumentString = '-port';
+            const portStringIndx = data.indexOf(portArgumentString);
             if (portStringIndx > -1) {
                 const portIndx = data.indexOf(
                     '55',
-                    portStringIndx + portString.length
+                    portStringIndx + portArgumentString.length
                 );
                 if (portIndx > -1) {
                     const parsedPort = parseInt(
@@ -637,9 +635,7 @@ export class AndroidSDKUtils {
 
     // NOTE: detaching a process in windows seems to detach the streams. Prevent spawn from detaching when
     // used in Windows OS for special handling of some commands (adb).
-    private static spawnChildDetachedIfNeeded(
-        command: string
-    ): childProcess.ChildProcess {
+    private static spawnChild(command: string): childProcess.ChildProcess {
         if (process.platform === AndroidSDKUtils.WINDOWS_OS) {
             const child = spawn(command, { shell: true });
             return child;
