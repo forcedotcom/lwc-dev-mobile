@@ -407,11 +407,9 @@ export class AndroidSDKUtils {
         )} --device ${device} --abi ${abi}`;
         return new Promise((resolve, reject) => {
             try {
-                const child = spawn(createAvdCommand, {
-                    detached: true,
-                    shell: true
-                });
-                child.unref();
+                const child = AndroidSDKUtils.spawnChildDetachedIfNeeded(
+                    createAvdCommand
+                );
                 child.stdin.setDefaultEncoding('utf8');
                 child.stdin.write('no');
                 if (child) {
@@ -521,16 +519,28 @@ export class AndroidSDKUtils {
         );
         let adjustedPort = requestedPortNumber;
         if (fs.existsSync(launchFileName)) {
-            const data = fs.readFileSync(launchFileName, {
-                encoding: 'utf8',
-                flag: 'r'
-            });
-            // adb serial port range 5554-5584
-            adjustedPort = AndroidSDKUtils.DEFAULT_ADB_CONSOLE_PORT;
-            const runtimeMatchRegex = /-port*\n(55([5][4|6|8]|[6-7][2|4|6|8|0]|[8][0|2|4]))/;
-            const portString = data.match(runtimeMatchRegex) || '';
-            if (portString.length > 1) {
-                adjustedPort = parseInt(portString[1], 10);
+            const data = fs.readFileSync(launchFileName, 'utf8').toString();
+            // find the following string in file, absence of port indicates use of default port
+            // -port
+            // 5572
+            adjustedPort = this.DEFAULT_ADB_CONSOLE_PORT;
+            const portString = '-port';
+            const portStringIndx = data.indexOf(portString);
+            if (portStringIndx > -1) {
+                const portIndx = data.indexOf(
+                    '55',
+                    portStringIndx + portString.length
+                );
+                if (portIndx > -1) {
+                    const parsedPort = parseInt(
+                        data.substring(portIndx, portIndx + 4),
+                        10
+                    );
+                    // port numbers must be in the range if present
+                    if (parsedPort >= 5554 && parsedPort <= 5584) {
+                        adjustedPort = parsedPort;
+                    }
+                }
             }
         }
         return adjustedPort;
@@ -623,5 +633,20 @@ export class AndroidSDKUtils {
             'ram.img.dirty'
         );
         return fs.existsSync(launchFileName);
+    }
+
+    // NOTE: detaching a process in windows seems to detach the streams. Prevent spawn from detaching when
+    // used in Windows OS for special handling of some commands (adb).
+    private static spawnChildDetachedIfNeeded(
+        command: string
+    ): childProcess.ChildProcess {
+        if (process.platform === AndroidSDKUtils.WINDOWS_OS) {
+            const child = spawn(command, { shell: true });
+            return child;
+        } else {
+            const child = spawn(command, { shell: true, detached: true });
+            child.unref();
+            return child;
+        }
     }
 }
