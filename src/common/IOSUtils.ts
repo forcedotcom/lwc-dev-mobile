@@ -74,23 +74,20 @@ export class XcodeUtils {
     public static async getSupportedSimulators(): Promise<
         IOSSimulatorDevice[]
     > {
-        try {
-            const devicesCmd = `${XCRUN_CMD} simctl list --json devices available`;
-            const supportedRuntimes = await XcodeUtils.getSupportedRuntimes();
-            const { stdout } = await XcodeUtils.executeCommand(devicesCmd);
-            const sims = IOSSimulatorDevice.parseJSONString(
-                stdout,
-                supportedRuntimes
-            );
-
-            return new Promise<IOSSimulatorDevice[]>((resolve) =>
-                resolve(sims)
-            );
-        } catch (runtimesError) {
-            return new Promise<IOSSimulatorDevice[]>((resolve, reject) =>
-                reject(runtimesError)
-            );
-        }
+        return new Promise(async (resolve, reject) => {
+            try {
+                const devicesCmd = `${XCRUN_CMD} simctl list --json devices available`;
+                const supportedRuntimes = await XcodeUtils.getSupportedRuntimes();
+                const { stdout } = await XcodeUtils.executeCommand(devicesCmd);
+                const sims = IOSSimulatorDevice.parseJSONString(
+                    stdout,
+                    supportedRuntimes
+                );
+                return resolve(sims);
+            } catch (runtimesError) {
+                return reject(runtimesError);
+            }
+        });
     }
 
     public static async executeCommand(

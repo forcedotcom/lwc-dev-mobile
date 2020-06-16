@@ -124,13 +124,7 @@ export class AndroidVirtualDevice {
             const target = AndroidVirtualDevice.getValueForKey(avd, 'target:');
             const api = AndroidVirtualDevice.getValueForKey(avd, 'based on:');
 
-            if (
-                name !== undefined &&
-                device !== undefined &&
-                path !== undefined &&
-                target !== undefined &&
-                api !== undefined
-            ) {
+            if (name && device && path && target && api) {
                 devices.push(
                     new AndroidVirtualDevice(name, device, path, target, api)
                 );
@@ -168,19 +162,22 @@ export class AndroidVirtualDevice {
             errIdx > 0 ? rawString.substring(0, errIdx - 1) : rawString;
 
         const lowerCasedRawString = cleanedRawString.toLowerCase();
-        let position: number | undefined = 0;
+        let position = 0;
         const results: string[][] = [];
 
         // now parse the device definition sections
-        while (position !== undefined) {
+        while (position !== -1) {
             const startIdx = lowerCasedRawString.indexOf('name:', position);
-            let endIdx: number | undefined;
+            let endIdx = -1;
 
             if (startIdx > -1) {
                 const sepIdx = lowerCasedRawString.indexOf('---', startIdx);
-                endIdx = sepIdx > -1 ? sepIdx - 1 : undefined;
+                endIdx = sepIdx > -1 ? sepIdx - 1 : -1;
 
-                let chunck = cleanedRawString.substring(startIdx, endIdx);
+                let chunck =
+                    endIdx > -1
+                        ? cleanedRawString.substring(startIdx, endIdx)
+                        : cleanedRawString.substring(startIdx);
                 chunck = chunck.replace('Tag/ABI:', `${os.EOL}Tag/ABI:`); // put ABI info on a line of its own
                 const split = chunck.split(os.EOL);
                 results.push(split);
@@ -192,10 +189,7 @@ export class AndroidVirtualDevice {
         return results;
     }
 
-    private static getValueForKey(
-        array: string[],
-        key: string
-    ): string | undefined {
+    private static getValueForKey(array: string[], key: string): string | null {
         for (const item of array) {
             const trimmed = item.trim();
 
@@ -204,7 +198,7 @@ export class AndroidVirtualDevice {
                 return value;
             }
         }
-        return undefined;
+        return null;
     }
 
     public name: string;

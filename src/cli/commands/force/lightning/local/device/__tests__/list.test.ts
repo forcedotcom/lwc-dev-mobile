@@ -8,6 +8,7 @@ import * as Config from '@oclif/config';
 import { Logger, SfdxError } from '@salesforce/core';
 import { AndroidVirtualDevice } from '../../../../../../../common/AndroidTypes';
 import { IOSSimulatorDevice } from '../../../../../../../common/IOSTypes';
+import Setup from '../../setup';
 import List from '../list';
 
 const iOSListCommandBlockMock = jest.fn(
@@ -22,6 +23,10 @@ const androidListCommandBlockMock = jest.fn(
     }
 );
 
+const setupMock = jest.fn(() => {
+    return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
+});
+
 describe('List Tests', () => {
     let list: List;
 
@@ -35,6 +40,7 @@ describe('List Tests', () => {
         setupPlatformFlag('android');
         const logger = new Logger('test-list');
         setupLogger(logger);
+        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
         await list.run();
         expect(androidListCommandBlockMock).toHaveBeenCalled();
     });
@@ -43,8 +49,35 @@ describe('List Tests', () => {
         setupPlatformFlag('iOS');
         const logger = new Logger('test-list');
         setupLogger(logger);
+        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
         await list.run();
         expect(iOSListCommandBlockMock).toHaveBeenCalled();
+    });
+
+    test('Checks that setup is invoked', async () => {
+        setupPlatformFlag('android');
+        const logger = new Logger('test-list');
+        setupLogger(logger);
+        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
+        await list.run();
+        expect(setupMock).toHaveBeenCalled();
+    });
+
+    test('Preview should throw an error if setup fails', async () => {
+        setupPlatformFlag('android');
+        const logger = new Logger('test-list');
+        setupLogger(logger);
+        const failedSetupMock = jest.fn(() => {
+            return Promise.resolve({
+                hasMetAllRequirements: false,
+                tests: ['Mock Failure in tests!']
+            });
+        });
+        jest.spyOn(Setup, 'run').mockImplementation(failedSetupMock);
+        list.run().catch((error) => {
+            expect(error && error instanceof SfdxError).toBeTruthy();
+        });
+        expect(failedSetupMock).toHaveBeenCalled();
     });
 
     test('Logger must be initialized and invoked', async () => {

@@ -13,6 +13,7 @@ import { AndroidSDKUtils } from '../../../../../../common/AndroidUtils';
 import { CommandLineUtils } from '../../../../../../common/Common';
 import { IOSSimulatorDevice } from '../../../../../../common/IOSTypes';
 import { XcodeUtils } from '../../../../../../common/IOSUtils';
+import Setup from '../setup';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -23,11 +24,6 @@ const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'device');
 
 export default class List extends SfdxCommand {
     public static description = messages.getMessage('commandDescription');
-
-    public static examples = [
-        `$ sfdx force:lightning:local:device:list -p iOS`,
-        `$ sfdx force:lightning:local:device:list -p Android`
-    ];
 
     public static readonly flagsConfig: FlagsConfig = {
         platform: flags.string({
@@ -54,6 +50,15 @@ export default class List extends SfdxCommand {
                 )
             );
         }
+
+        const setupResult = await Setup.run(['-p', this.flags.platform]);
+        if (!setupResult || !setupResult.hasMetAllRequirements) {
+            this.logger.warn(
+                `Device list failed for ${this.flags.platform}. Setup requirements have not been met.`
+            );
+            return Promise.resolve(false);
+        }
+        this.logger.info('Setup requirements met, continuing with device list');
 
         return CommandLineUtils.platformFlagIsIOS(platform)
             ? this.iOSDeviceList()
