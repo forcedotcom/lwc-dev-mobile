@@ -21,6 +21,17 @@ const myPreviewiOSCommandBlockMock = jest.fn(
     }
 );
 
+const passedSetupMock = jest.fn(() => {
+    return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
+});
+
+const failedSetupMock = jest.fn(() => {
+    return Promise.resolve({
+        hasMetAllRequirements: false,
+        tests: ['Mock Failure in tests!']
+    });
+});
+
 describe('Preview Tests', () => {
     let preview: Preview;
 
@@ -31,6 +42,7 @@ describe('Preview Tests', () => {
         );
         preview.launchIOS = myPreviewiOSCommandBlockMock;
         preview.launchAndroid = myPreviewiOSCommandBlockMock;
+        jest.spyOn(Setup.prototype, 'run').mockImplementation(passedSetupMock);
     });
 
     test('Checks that Comp Name flag is received', async () => {
@@ -40,13 +52,6 @@ describe('Preview Tests', () => {
         const compPathCalValidationlMock = jest.fn(() => {
             return true;
         });
-        const targetValueValidationCallMock = jest.fn(() => {
-            return true;
-        });
-        const setupMock = jest.fn(() => {
-            return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
-        });
-        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
         preview.validateComponentNameValue = compPathCalValidationlMock;
         await preview.run();
         expect(compPathCalValidationlMock).toHaveBeenCalledWith(
@@ -61,10 +66,6 @@ describe('Preview Tests', () => {
         const targetAndroidCallMock = jest.fn(() => {
             return Promise.resolve(true);
         });
-        const setupMock = jest.fn(() => {
-            return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
-        });
-        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
         preview.launchAndroid = targetAndroidCallMock;
         await preview.run();
         expect(targetAndroidCallMock).toHaveBeenCalled();
@@ -74,44 +75,31 @@ describe('Preview Tests', () => {
         setupIOSFlags();
         const logger = new Logger('test-preview');
         setupLogger(logger);
-        const targetAndroidCallMock = jest.fn(() => {
+        const targetIOSCallMock = jest.fn(() => {
             return Promise.resolve(true);
         });
-        const setupMock = jest.fn(() => {
-            return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
-        });
-        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
-        preview.launchIOS = targetAndroidCallMock;
+        preview.launchIOS = targetIOSCallMock;
         await preview.run();
-        expect(targetAndroidCallMock).toHaveBeenCalled();
+        expect(targetIOSCallMock).toHaveBeenCalled();
     });
 
     test('Checks that setup is invoked', async () => {
         setupAndroidFlags();
         const logger = new Logger('test-preview');
         setupLogger(logger);
-        const setupMock = jest.fn(() => {
-            return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
-        });
-        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
         await preview.run();
-        expect(setupMock);
+        expect(passedSetupMock);
     });
 
     test('Preview should throw an error if setup fails', async () => {
         setupAndroidFlags();
         const logger = new Logger('test-preview');
         setupLogger(logger);
-        const setupMock = jest.fn(() => {
-            return Promise.resolve({
-                hasMetAllRequirements: false,
-                tests: ['Mock Failure in tests!']
-            });
-        });
-        jest.spyOn(Setup, 'run').mockImplementation(setupMock);
+        jest.spyOn(Setup.prototype, 'run').mockImplementation(failedSetupMock);
         preview.run().catch((error) => {
             expect(error && error instanceof SfdxError).toBeTruthy();
         });
+        expect(failedSetupMock).toHaveBeenCalled();
     });
 
     test('Logger must be initialized and invoked', async () => {

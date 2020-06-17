@@ -11,7 +11,7 @@ import os from 'os';
 import path from 'path';
 import shell from 'shelljs';
 import androidConfig from '../config/androidconfig.json';
-import { AndroidPackage } from './AndroidTypes';
+import { AndroidPackage, AndroidVirtualDevice } from './AndroidTypes';
 import { MapUtils } from './Common';
 
 const execSync = childProcess.execSync;
@@ -52,7 +52,7 @@ export class AndroidSDKUtils {
     );
 
     public static AVDMANAGER_COMMAND = path.join(
-        AndroidSDKUtils.ANDROID_TOOLS_BIN,
+        AndroidSDKUtils.getToolsBin(),
         AndroidSDKUtils.ANDROID_AVD_MANAGER_NAME
     );
 
@@ -62,7 +62,7 @@ export class AndroidSDKUtils {
     );
 
     public static ANDROID_SDK_MANAGER_CMD = path.join(
-        AndroidSDKUtils.ANDROID_TOOLS_BIN,
+        AndroidSDKUtils.getToolsBin(),
         AndroidSDKUtils.ANDROID_SDK_MANAGER_NAME
     );
 
@@ -140,7 +140,7 @@ export class AndroidSDKUtils {
             }
             try {
                 AndroidSDKUtils.executeCommand(
-                    `${AndroidSDKUtils.getSDKManagerCmd()} --version`,
+                    `${AndroidSDKUtils.ANDROID_SDK_MANAGER_CMD} --version`,
                     stdioOptions
                 );
                 resolve(AndroidSDKUtils.getToolsBin());
@@ -180,7 +180,7 @@ export class AndroidSDKUtils {
             if (!AndroidSDKUtils.isCached()) {
                 try {
                     const stdout = AndroidSDKUtils.executeCommand(
-                        `${AndroidSDKUtils.getSDKManagerCmd()} --list`
+                        `${AndroidSDKUtils.ANDROID_SDK_MANAGER_CMD} --list`
                     );
                     if (stdout) {
                         const packages = AndroidPackage.parseRawPackagesString(
@@ -193,6 +193,25 @@ export class AndroidSDKUtils {
                 }
             }
             resolve(AndroidSDKUtils.packageCache);
+        });
+    }
+
+    public static fetchEmulators(): Promise<AndroidVirtualDevice[]> {
+        return new Promise((resolve, reject) => {
+            let devices: AndroidVirtualDevice[] = [];
+            try {
+                const result = execSync(
+                    AndroidSDKUtils.AVDMANAGER_COMMAND + ' list avd'
+                );
+                if (result) {
+                    devices = AndroidVirtualDevice.parseRawString(
+                        result.toString()
+                    );
+                }
+            } catch (exception) {
+                AndroidSDKUtils.logger.warn(exception);
+            }
+            return resolve(devices);
         });
     }
 
@@ -400,7 +419,9 @@ export class AndroidSDKUtils {
         device: string,
         abi: string
     ): Promise<boolean> {
-        const createAvdCommand = `${AndroidSDKUtils.getAVDManagerCmd()} create avd -n ${emulatorName} --force -k ${this.systemImagePath(
+        const createAvdCommand = `${
+            AndroidSDKUtils.AVDMANAGER_COMMAND
+        } create avd -n ${emulatorName} --force -k ${this.systemImagePath(
             platformAPI,
             emulatorimage,
             abi
@@ -559,22 +580,6 @@ export class AndroidSDKUtils {
             toolsLocation = AndroidSDKUtils.ANDROID_CMD_LINE_TOOLS_BIN;
         }
         return toolsLocation;
-    }
-
-    private static getSDKManagerCmd(): string {
-        const toolsLocation = this.getToolsBin();
-        return path.join(
-            toolsLocation,
-            AndroidSDKUtils.ANDROID_SDK_MANAGER_NAME
-        );
-    }
-
-    private static getAVDManagerCmd(): string {
-        const toolsLocation = this.getToolsBin();
-        return path.join(
-            toolsLocation,
-            AndroidSDKUtils.ANDROID_AVD_MANAGER_NAME
-        );
     }
 
     private static systemImagePath(

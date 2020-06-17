@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
+import { Logger } from '@salesforce/core';
 import childProcess from 'child_process';
 import cli from 'cli-ux';
 import util from 'util';
 import iOSConfig from '../config/iosconfig.json';
+import { IOSSimulatorDevice } from './IOSTypes';
 
 const exec = util.promisify(childProcess.exec);
 
@@ -52,38 +54,45 @@ export class XcodeUtils {
         }
     }
 
-    public static async getSimulator(simulatorName: string): Promise<string> {
-        const devicesCmd = `${XCRUN_CMD} simctl list --json devices available`;
-        const DEVICES_KEY = 'devices';
-        try {
-            const supportedRuntimes = await XcodeUtils.getSupportedRuntimes();
-            const runtimeMatchRegex = new RegExp(
-                `\.SimRuntime\.(${supportedRuntimes.join('|')})`
-            );
-            const { stdout } = await XcodeUtils.executeCommand(devicesCmd);
-            const devicesJSON: any = JSON.parse(stdout);
-            const runtimeDevices: any[] = devicesJSON[DEVICES_KEY] || [];
-            let runtimes: any[] = Object.keys(runtimeDevices).filter((key) => {
-                return key && key.match(runtimeMatchRegex);
-            });
-            runtimes = runtimes.sort().reverse();
-            // search for device that matches and return udid
-            for (const runtimeIdentifier of runtimes) {
-                const devices: any = runtimeDevices[runtimeIdentifier];
+    public static async getSimulator(
+        simulatorName: string
+    ): Promise<IOSSimulatorDevice | null> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const devices = await XcodeUtils.getSupportedSimulators();
                 for (const device of devices) {
                     if (simulatorName.match(device.name)) {
-                        return new Promise<string>((resolve) =>
-                            resolve(device.udid)
-                        );
+                        return resolve(device);
                     }
                 }
+            } catch (exception) {
+                XcodeUtils.logger.warn(exception);
             }
-        } catch (runtimesError) {
-            return new Promise<string>((resolve, reject) =>
-                reject(`The command '${devicesCmd}' failed: ${runtimesError}`)
+
+            XcodeUtils.logger.info(
+                `Unable to find simulator: ${simulatorName}`
             );
-        }
-        return new Promise<string>((resolve) => resolve(''));
+            return resolve(null);
+        });
+    }
+
+    public static async getSupportedSimulators(): Promise<
+        IOSSimulatorDevice[]
+    > {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const devicesCmd = `${XCRUN_CMD} simctl list --json devices available`;
+                const supportedRuntimes = await XcodeUtils.getSupportedRuntimes();
+                const { stdout } = await XcodeUtils.executeCommand(devicesCmd);
+                const sims = IOSSimulatorDevice.parseJSONString(
+                    stdout,
+                    supportedRuntimes
+                );
+                return resolve(sims);
+            } catch (runtimesError) {
+                return reject(runtimesError);
+            }
+        });
     }
 
     public static async executeCommand(
@@ -258,6 +267,8 @@ export class XcodeUtils {
                 return this.launchURLInBootedSimulator(udid, url);
             });
     }
+
+    private static logger: Logger = new Logger('force:lightning:mobile:ios');
 
     private static isDeviceAlreadyBootedError(error: Error): boolean {
         return error.message

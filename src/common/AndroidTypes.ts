@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import os from 'os';
-
 export class AndroidPackage {
     get platformAPI(): string {
         const platformApi = '';
@@ -108,5 +106,122 @@ export class AndroidPackage {
         this.version = version;
         this.description = description;
         this.location = location;
+    }
+}
+
+// tslint:disable-next-line: max-classes-per-file
+export class AndroidVirtualDevice {
+    public static parseRawString(rawString: string): AndroidVirtualDevice[] {
+        const avds = AndroidVirtualDevice.getAvdDefinitions(rawString);
+        const devices: AndroidVirtualDevice[] = [];
+
+        for (const avd of avds) {
+            const name = AndroidVirtualDevice.getValueForKey(avd, 'name:');
+            const device = AndroidVirtualDevice.getValueForKey(avd, 'device:');
+            const path = AndroidVirtualDevice.getValueForKey(avd, 'path:');
+            const target = AndroidVirtualDevice.getValueForKey(avd, 'target:');
+            const api = AndroidVirtualDevice.getValueForKey(avd, 'based on:');
+
+            if (name && device && path && target && api) {
+                devices.push(
+                    new AndroidVirtualDevice(name, device, path, target, api)
+                );
+            }
+        }
+
+        return devices;
+    }
+
+    /*
+       When we run 'avdmanager list avd' it returns the results (along with any erros)
+       as raw string in the following format:
+
+        Available Android Virtual Devices:
+            <device definition>
+        ---------
+            <device definition>
+        ---------
+            <device definition>
+
+        The following Android Virtual Devices could not be loaded:
+            <device error info>
+        ---------
+            <device error info>
+        ---------
+            <device error info>
+
+       In the following method, we parse the raw string result and break it up into
+       <device definition> chunks, and skip the <device error info> sections
+    */
+    private static getAvdDefinitions(rawString: string): string[][] {
+        // get rid of the error sections (if any)
+        const errIdx = rawString.indexOf('\n\n');
+        const cleanedRawString =
+            errIdx > 0 ? rawString.substring(0, errIdx - 1) : rawString;
+
+        const lowerCasedRawString = cleanedRawString.toLowerCase();
+        let position = 0;
+        const results: string[][] = [];
+
+        // now parse the device definition sections
+        while (position !== -1) {
+            const startIdx = lowerCasedRawString.indexOf('name:', position);
+            let endIdx = -1;
+
+            if (startIdx > -1) {
+                const sepIdx = lowerCasedRawString.indexOf('---', startIdx);
+                endIdx = sepIdx > -1 ? sepIdx - 1 : -1;
+
+                let chunck =
+                    endIdx > -1
+                        ? cleanedRawString.substring(startIdx, endIdx)
+                        : cleanedRawString.substring(startIdx);
+                chunck = chunck.replace('Tag/ABI:', '\nTag/ABI:'); // put ABI info on a line of its own
+                const split = chunck.split('\n');
+                results.push(split);
+            }
+
+            position = endIdx;
+        }
+
+        return results;
+    }
+
+    private static getValueForKey(array: string[], key: string): string | null {
+        for (const item of array) {
+            const trimmed = item.trim();
+
+            if (trimmed.toLowerCase().startsWith(key.toLowerCase())) {
+                const value = trimmed.substring(key.length + 1).trim(); // key.length + 1 to skip over ':' separator
+                return value;
+            }
+        }
+        return null;
+    }
+
+    public name: string;
+    public displayName: string;
+    public deviceName: string;
+    public path: string;
+    public target: string;
+    public api: string;
+
+    constructor(
+        name: string,
+        deviceName: string,
+        path: string,
+        target: string,
+        api: string
+    ) {
+        this.name = name;
+        this.displayName = name.replace(/_/gi, ' ').trim(); // eg. Pixel_XL --> Pixel XL
+        this.deviceName = deviceName.replace(/\([^\(]*\)/, '').trim(); // eg. Nexus 5X (Google) --> Nexus 5X
+        this.path = path.trim();
+        this.target = target.replace(/\([^\(]*\)/, '').trim(); // eg. Google APIs (Google Inc.) --> Google APIs
+        this.api = api.replace('Android', '').trim(); // eg. Android API 29 --> API 29
+    }
+
+    public toString(): string {
+        return `${this.displayName}, ${this.deviceName}, ${this.api}`;
     }
 }
