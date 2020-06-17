@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
 import childProcess from 'child_process';
 import cli from 'cli-ux';
 import util from 'util';
@@ -5,7 +11,7 @@ import { XcodeUtils } from './IOSUtils';
 const exec = util.promisify(childProcess.exec);
 
 export class IOSLauncher {
-    simulatorName: string;
+    private simulatorName: string;
 
     constructor(simulatorName: string) {
         this.simulatorName = simulatorName;
@@ -18,7 +24,7 @@ export class IOSLauncher {
             this.simulatorName
         );
         let deviceUDID = '';
-        let spinner = cli.action;
+        const spinner = cli.action;
         cli.action.start(`Launching`, `Searching for ${this.simulatorName}`, {
             stdout: true
         });

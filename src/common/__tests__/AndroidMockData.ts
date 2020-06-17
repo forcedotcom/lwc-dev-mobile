@@ -1,5 +1,11 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
 export class AndroidMockData {
-    static mockRawPacakgesString = `Warning: File test string.........       
+    public static mockRawPacakgesString = `Warning: File test string.........       
     Installed packages:=====================] 100% Computing updates...             
       Path                                                | Version      | Description                                     | Location                                            
       -------                                             | -------      | -------                                         | -------                                             
@@ -20,8 +26,8 @@ export class AndroidMockData {
       Path                                                                                     | Version      | Description                                                         
     `;
 
-    static badMockRawPacakagesString =
+    public static badMockRawPacakagesString =
         'Installed packages:=====================]';
 
-    static mockRawStringPackageLength = 13;
+    public static mockRawStringPackageLength = 13;
 }

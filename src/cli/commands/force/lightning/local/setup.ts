@@ -1,11 +1,16 @@
-#!/usr/bin/env ts-node
-import { AndroidEnvironmentSetup } from '../../../../../common/AndroidEnvironmentSetup';
-import { BaseSetup, SetupTestResult } from '../../../../../common/Requirements';
-import { CommandLineUtils } from '../../../../../common/Common';
-import { flags, SfdxCommand, FlagsConfig } from '@salesforce/command';
-import { IOSEnvironmentSetup } from '../../../../../common/IOSEnvironmentSetup';
-import { Messages, Logger, SfdxError } from '@salesforce/core';
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
+import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
+import { Logger, Messages, SfdxError } from '@salesforce/core';
 import util from 'util';
+import { AndroidEnvironmentSetup } from '../../../../../common/AndroidEnvironmentSetup';
+import { CommandLineUtils } from '../../../../../common/Common';
+import { IOSEnvironmentSetup } from '../../../../../common/IOSEnvironmentSetup';
+import { BaseSetup, SetupTestResult } from '../../../../../common/Requirements';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -31,14 +36,8 @@ export default class Setup extends SfdxCommand {
         })
     };
 
-    protected async init(): Promise<void> {
-        await super.init();
-        const logger = await Logger.child('mobile:setup', {});
-        this.logger = logger;
-    }
-
     public async run(): Promise<any> {
-        let valid = this.validatePlatformValue(this.flags.platform);
+        const valid = this.validatePlatformValue(this.flags.platform);
         if (!valid) {
             return Promise.reject(
                 new SfdxError(
@@ -53,10 +52,10 @@ export default class Setup extends SfdxCommand {
             );
         }
         this.logger.info(`Setup Command called for ${this.flags.platform}`);
-        let setup = this.setup();
-        let result = await this.executeSetup(setup);
+        const setup = this.setup();
+        const result = await this.executeSetup(setup);
         if (!result.hasMetAllRequirements) {
-            let actions = result.tests
+            const actions = result.tests
                 .filter((test) => !test.hasPassed)
                 .map((test) => test.message);
             return Promise.reject(
@@ -84,8 +83,14 @@ export default class Setup extends SfdxCommand {
         );
     }
 
+    protected async init(): Promise<void> {
+        await super.init();
+        const logger = await Logger.child('mobile:setup', {});
+        this.logger = logger;
+    }
+
     protected setup(): BaseSetup {
-        let setup: BaseSetup = {} as BaseSetup; // should not be the case due to prior validation.
+        let setup: BaseSetup = ({} as any) as BaseSetup; // should not be the case due to prior validation.
         if (CommandLineUtils.platformFlagIsAndroid(this.flags.platform)) {
             setup = new AndroidEnvironmentSetup(this.logger);
         } else if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {

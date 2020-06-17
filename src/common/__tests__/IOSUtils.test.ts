@@ -1,22 +1,28 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
 import childProcess from 'child_process';
-import 'jest-extended';
+import { ActionBase } from 'cli-ux';
 import 'jest-chain';
-import { IOSMockData } from './IOSMockData';
+import 'jest-extended';
 import { XcodeUtils } from '../IOSUtils';
-import cli from 'cli-ux';
+import { IOSMockData } from './IOSMockData';
 
 const DEVICE_TYPE_PREFIX = 'com.apple.CoreSimulator.SimDeviceType';
 const RUNTIME_TYPE_PREFIX = 'com.apple.CoreSimulator.SimRuntime';
 
 const myCommandRouterBlock = jest.fn(
     (command: string): Promise<{ stdout: string; stderr: string }> => {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             resolve({
+                stderr: 'mockError',
                 stdout:
                     command.indexOf('devicetypes') < 0
                         ? JSON.stringify(IOSMockData.mockRuntimes)
-                        : JSON.stringify(IOSMockData.mockRuntimeDeviceTypes),
-                stderr: 'mockError'
+                        : JSON.stringify(IOSMockData.mockRuntimeDeviceTypes)
             });
         });
     }
@@ -24,44 +30,50 @@ const myCommandRouterBlock = jest.fn(
 
 const badBlockMock = jest.fn(
     (): Promise<{ stdout: string; stderr: string }> => {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             resolve({ stdout: '{[}', stderr: 'mockError' });
         });
     }
 );
 
 const launchCommandMock = jest.fn(
-    (command: string): Promise<{ stdout: string; stderr: string }> => {
-        return new Promise((resolve, reject) => {
+    (): Promise<{ stdout: string; stderr: string }> => {
+        return new Promise((resolve) => {
             resolve({
-                stdout: 'Done',
-                stderr: 'mockError'
+                stderr: 'mockError',
+                stdout: 'Done'
             });
         });
     }
 );
 const launchCommandThrowsMock = jest.fn(
-    (command: string): Promise<{ stdout: string; stderr: string }> => {
+    (): Promise<{ stdout: string; stderr: string }> => {
         throw new Error(' Mock Error');
     }
 );
 
 const launchCommandThrowsAlreadryBootedMock = jest.fn(
-    (command: string): Promise<{ stdout: string; stderr: string }> => {
-        return new Promise((resolve, reject) => {
+    (): Promise<{ stdout: string; stderr: string }> => {
+        return new Promise((resolve) => {
             resolve({
-                stdout: 'Done',
-                stderr: 'The device is cannot boot state: booted'
+                stderr: 'The device is cannot boot state: booted',
+                stdout: 'Done'
             });
         });
     }
 );
 
 const resolvedBoolPromiseBlock = jest.fn(
-    (...args: any[]): Promise<boolean> => {
+    (): Promise<boolean> => {
         return Promise.resolve(true);
     }
 );
+
+// tslint:disable-next-line: class-name
+class mockSpinner extends ActionBase {
+    // tslint:disable-next-line: no-empty
+    public start(): void {}
+}
 
 describe('IOS utils tests', () => {
     beforeEach(() => {
@@ -80,16 +92,16 @@ describe('IOS utils tests', () => {
             myCommandRouterBlock
         );
         await XcodeUtils.getSimulatorRuntimes();
-        return expect(myCommandRouterBlock).toHaveBeenCalled();
+        expect(myCommandRouterBlock).toHaveBeenCalled();
     });
 
     test('Should attempt to invoke the xcrun for booting a device', async () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
             launchCommandMock
         );
-        let udid = 'MOCKUDID';
+        const udid = 'MOCKUDID';
         await XcodeUtils.bootDevice(udid);
-        return expect(launchCommandMock).toHaveBeenCalledWith(
+        expect(launchCommandMock).toHaveBeenCalledWith(
             `/usr/bin/xcrun simctl boot ${udid}`
         );
     });
@@ -98,7 +110,7 @@ describe('IOS utils tests', () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
             launchCommandThrowsMock
         );
-        let udid = 'MOCKUDID';
+        const udid = 'MOCKUDID';
         return XcodeUtils.bootDevice(udid).catch((error) => {
             expect(error).toBeTruthy();
         });
@@ -108,11 +120,11 @@ describe('IOS utils tests', () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
             launchCommandMock
         );
-        let simName = 'MOCKSIM';
-        let deviceType = 'MOCK-DEVICE';
-        let runtimeType = 'MOCK-SIM';
+        const simName = 'MOCKSIM';
+        const deviceType = 'MOCK-DEVICE';
+        const runtimeType = 'MOCK-SIM';
         await XcodeUtils.createNewDevice(simName, deviceType, runtimeType);
-        return expect(launchCommandMock).toHaveBeenCalledWith(
+        expect(launchCommandMock).toHaveBeenCalledWith(
             `/usr/bin/xcrun simctl create ${simName} ${DEVICE_TYPE_PREFIX}.${deviceType} ${RUNTIME_TYPE_PREFIX}.${runtimeType}`
         );
     });
@@ -121,7 +133,7 @@ describe('IOS utils tests', () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
             launchCommandThrowsAlreadryBootedMock
         );
-        let udid = 'MOCKUDID';
+        const udid = 'MOCKUDID';
         return XcodeUtils.bootDevice(udid).then((result) =>
             expect(result).toBeTruthy()
         );
@@ -131,7 +143,7 @@ describe('IOS utils tests', () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
             launchCommandMock
         );
-        let udid = 'MOCKUDID';
+        const udid = 'MOCKUDID';
         return XcodeUtils.waitUntilDeviceIsReady(udid).then((result) =>
             expect(result).toBeTruthy()
         );
@@ -141,7 +153,7 @@ describe('IOS utils tests', () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
             launchCommandThrowsMock
         );
-        let udid = 'MOCKUDID';
+        const udid = 'MOCKUDID';
         return XcodeUtils.waitUntilDeviceIsReady(udid).catch((error) => {
             expect(error).toBeTruthy();
         });
@@ -151,18 +163,14 @@ describe('IOS utils tests', () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
             launchCommandMock
         );
-        let udid = 'MOCKUDID';
         await XcodeUtils.launchSimulatorApp();
-        return expect(launchCommandMock).toHaveBeenCalledWith(
-            `open -a Simulator`
-        );
+        expect(launchCommandMock).toHaveBeenCalledWith(`open -a Simulator`);
     });
 
     test('Should reject if launch of simulator app fails', async () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
             launchCommandThrowsMock
         );
-        let udid = 'MOCKUDID';
         return XcodeUtils.launchSimulatorApp().catch((error) => {
             expect(error).toBeTruthy();
         });
@@ -172,10 +180,10 @@ describe('IOS utils tests', () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
             launchCommandMock
         );
-        let url = 'mock.url';
-        let udid = 'MOCK-UDID';
+        const url = 'mock.url';
+        const udid = 'MOCK-UDID';
         await XcodeUtils.launchURLInBootedSimulator(url, udid);
-        return expect(launchCommandMock).toHaveBeenCalledWith(
+        expect(launchCommandMock).toHaveBeenCalledWith(
             `/usr/bin/xcrun simctl openurl "${url}" ${udid}`
         );
     });
@@ -184,8 +192,8 @@ describe('IOS utils tests', () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
             launchCommandThrowsMock
         );
-        let url = 'mock.url';
-        let udid = 'MOCK-UDID';
+        const url = 'mock.url';
+        const udid = 'MOCK-UDID';
         return XcodeUtils.launchURLInBootedSimulator(url, udid).catch(
             (error) => {
                 expect(error).toBeTruthy();
@@ -200,7 +208,7 @@ describe('IOS utils tests', () => {
         return XcodeUtils.getSimulatorRuntimes().then((returnedValues) => {
             expect(
                 returnedValues !== null &&
-                    returnedValues.length ==
+                    returnedValues.length ===
                         IOSMockData.mockRuntimes.runtimes.length
             ).toBeTruthy();
         });
@@ -268,7 +276,7 @@ describe('IOS utils tests', () => {
         await XcodeUtils.openUrlInNativeBrowser(
             'MOCK-UDID',
             'mock.url',
-            cli.action
+            new mockSpinner()
         );
         expect(launchSimApp).toHaveBeenCalledBefore(bootDevice);
         expect(bootDevice).toHaveBeenCalledBefore(waitUntilReady);

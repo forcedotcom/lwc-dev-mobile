@@ -1,5 +1,11 @@
-import { BaseSetup } from '../Requirements';
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
 import { Logger } from '@salesforce/core';
+import { BaseSetup } from '../Requirements';
 
 const logger = new Logger('test');
 
@@ -8,19 +14,19 @@ class TruthyExtension extends BaseSetup {
         super(logger);
         super.requirements = [
             {
-                title: 'SDK Check',
                 checkFunction: this.testFunctionOne,
                 fulfilledMessage: 'Android SDK was detected.',
+                logger,
+                title: 'SDK Check',
                 unfulfilledMessage:
-                    'You must install Android SDK add it to the path.',
-                logger
+                    'You must install Android SDK add it to the path.'
             },
             {
-                title: 'ANDROID_HOME check',
                 checkFunction: this.testFunctionTwo,
                 fulfilledMessage: 'ANDROID_HOME has been detected.',
-                unfulfilledMessage: 'You must setup ANDROID_HOME.',
-                logger
+                logger,
+                title: 'ANDROID_HOME check',
+                unfulfilledMessage: 'You must setup ANDROID_HOME.'
             }
         ];
     }
@@ -40,26 +46,26 @@ class FalsyExtension extends BaseSetup {
         super(logger);
         super.requirements = [
             {
-                title: 'SDK Check',
                 checkFunction: this.testFunctionOne,
                 fulfilledMessage: 'Android SDK was detected.',
+                logger,
+                title: 'SDK Check',
                 unfulfilledMessage:
-                    'You must install Android SDK add it to the path.',
-                logger
+                    'You must install Android SDK add it to the path.'
             },
             {
-                title: 'ANDROID_HOME check',
                 checkFunction: this.testFunctionTwo,
                 fulfilledMessage: 'ANDROID_HOME has been detected.',
-                unfulfilledMessage: 'You must setup ANDROID_HOME.',
-                logger
+                logger,
+                title: 'ANDROID_HOME check',
+                unfulfilledMessage: 'You must setup ANDROID_HOME.'
             },
             {
-                title: 'ANDROID_HOME check',
                 checkFunction: this.testFunctionThree,
                 fulfilledMessage: 'ANDROID_HOME has been detected.',
-                unfulfilledMessage: 'You must setup ANDROID_HOME.',
-                logger
+                logger,
+                title: 'ANDROID_HOME check',
+                unfulfilledMessage: 'You must setup ANDROID_HOME.'
             }
         ];
     }
@@ -81,14 +87,14 @@ describe('Requirements Processing', () => {
     test('Meets all requirements', async () => {
         expect.assertions(1);
         const setupResult = await new TruthyExtension().executeSetup();
-        return expect(setupResult.hasMetAllRequirements).toBeTruthy();
+        expect(setupResult.hasMetAllRequirements).toBeTruthy();
     });
 
     test('Executes all true requirements', async () => {
         expect.assertions(1);
         const extension = new TruthyExtension();
         const setupResult = await extension.executeSetup();
-        return expect(
+        expect(
             setupResult.tests.length === extension.requirements.length
         ).toBeTruthy();
     });
@@ -96,14 +102,14 @@ describe('Requirements Processing', () => {
     test('Executes all passed and failed requirements', async () => {
         expect.assertions(1);
         const setupResult = await new FalsyExtension().executeSetup();
-        return expect(setupResult.hasMetAllRequirements).toBeFalsy();
+        expect(setupResult.hasMetAllRequirements).toBeFalsy();
     });
 
     test('Executes all passed and failed requirements', async () => {
         expect.assertions(1);
         const extension = new TruthyExtension();
         const setupResult = await extension.executeSetup();
-        return expect(
+        expect(
             setupResult.tests.length === extension.requirements.length
         ).toBeTruthy();
     });

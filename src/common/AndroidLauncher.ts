@@ -1,9 +1,15 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
+import cli from 'cli-ux';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
-import cli from 'cli-ux';
 
 export class AndroidLauncher {
-    emulatorName: string;
+    private emulatorName: string;
 
     constructor(emulatorName: string) {
         this.emulatorName = emulatorName;
@@ -15,15 +21,13 @@ export class AndroidLauncher {
         const androidApi = preferredPack.platformAPI;
         const abi = preferredPack.abi;
         const device = androidConfig.supportedDevices[0];
-        const timeout = androidConfig.deviceBootReadinessWaitTime;
-        const noOfRetries = androidConfig.deviceBootStatusPollRetries;
-        let port = await AndroidSDKUtils.getNextAndroidAdbPort();
-        let spinner = cli.action;
+        let requestedPort = await AndroidSDKUtils.getNextAndroidAdbPort();
+        const spinner = cli.action;
         // need to incr by 2, one for console port and next for adb
-        port =
-            port < androidConfig.defaultAdbPort
+        requestedPort =
+            requestedPort < androidConfig.defaultAdbPort
                 ? androidConfig.defaultAdbPort
-                : port + 2;
+                : requestedPort + 2;
         const emuName = this.emulatorName;
         spinner.start(`Launching`, `Searching for ${emuName}`, {
             stdout: true
@@ -51,21 +55,15 @@ export class AndroidLauncher {
                 spinner.start(`Launching`, `Starting device ${emuName}`, {
                     stdout: true
                 });
-                return AndroidSDKUtils.startEmulator(emuName, port);
+                return AndroidSDKUtils.startEmulator(emuName, requestedPort);
             })
-            .then((resolve) => {
+            .then(async (actualPort) => {
                 spinner.start(`Launching`, `Waiting for ${emuName} to boot`, {
                     stdout: true
                 });
-                return AndroidSDKUtils.pollDeviceStatus(
-                    port,
-                    noOfRetries,
-                    timeout
-                );
-            })
-            .then((resolve) => {
+                await AndroidSDKUtils.pollDeviceStatus(actualPort);
                 spinner.stop('Opening Browser');
-                return AndroidSDKUtils.launchURLIntent(url, port);
+                return AndroidSDKUtils.launchURLIntent(url, actualPort);
             })
             .catch((error) => {
                 spinner.stop('Error encountered during launch');

@@ -2,5 +2,9 @@
     "extends": [
       "tslint:latest",
       "tslint-config-prettier"
-    ]
+    ],
+    "rules": {
+      "interface-name": [true, "never-prefix"],
+      "no-implicit-dependencies": [true, "dev"]
+    }
 }

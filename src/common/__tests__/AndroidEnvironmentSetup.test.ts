@@ -1,18 +1,24 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
 const ORIG_ANDROID_HOME = process.env.ANDROID_HOME;
+// tslint:disable: no-unused-expression
 const MOCK_ANDROID_HOME = '/mock-android-home';
 process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 
-import { AndroidPackage } from '../AndroidTypes';
-import { AndroidMockData } from './AndroidMockData';
-import { AndroidSDKUtils } from '../AndroidUtils';
+import { Logger, Messages } from '@salesforce/core';
 import { AndroidEnvironmentSetup } from '../AndroidEnvironmentSetup';
-import { Messages, Logger } from '@salesforce/core';
+import { AndroidSDKUtils } from '../AndroidUtils';
+import { AndroidMockData } from './AndroidMockData';
 
-let myCommandBlockMock = jest.fn((): string => {
+const myCommandBlockMock = jest.fn((): string => {
     return AndroidMockData.mockRawPacakgesString;
 });
 
-let badBlockMock = jest.fn((): string => {
+const badBlockMock = jest.fn((): string => {
     return AndroidMockData.badMockRawPacakagesString;
 });
 
@@ -35,7 +41,9 @@ describe('Android enviroment setup tests', () => {
         jest.spyOn(AndroidSDKUtils, 'isAndroidHomeSet').mockImplementation(
             () => true
         );
-        let aPromise = andrEnvironment.isAndroidHomeSet().catch((error) => {});
+        const aPromise = andrEnvironment
+            .isAndroidHomeSet()
+            .catch(() => undefined);
         expect(aPromise).resolves;
     });
 
@@ -43,7 +51,9 @@ describe('Android enviroment setup tests', () => {
         jest.spyOn(AndroidSDKUtils, 'isAndroidHomeSet').mockImplementation(
             () => false
         );
-        let aPromise = andrEnvironment.isAndroidHomeSet().catch((error) => {});
+        const aPromise = andrEnvironment
+            .isAndroidHomeSet()
+            .catch(() => undefined);
         expect(aPromise).rejects;
     });
 
@@ -51,9 +61,9 @@ describe('Android enviroment setup tests', () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
             () => MOCK_ANDROID_HOME
         );
-        let aPromise = andrEnvironment
+        const aPromise = andrEnvironment
             .isAndroidSDKToolsInstalled()
-            .catch((error) => {});
+            .catch(() => undefined);
         expect(aPromise).resolves;
     });
 
@@ -61,9 +71,9 @@ describe('Android enviroment setup tests', () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(() => {
             throw new Error('None');
         });
-        let aPromise = andrEnvironment
+        const aPromise = andrEnvironment
             .isAndroidSDKToolsInstalled()
-            .catch((error) => {});
+            .catch(() => undefined);
         expect(aPromise).rejects;
     });
 
@@ -71,9 +81,9 @@ describe('Android enviroment setup tests', () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
             () => MOCK_ANDROID_HOME
         );
-        let aPromise = andrEnvironment
+        const aPromise = andrEnvironment
             .isAndroidSDKPlatformToolsInstalled()
-            .catch((error) => {});
+            .catch(() => undefined);
         expect(aPromise).resolves;
     });
 
@@ -81,9 +91,9 @@ describe('Android enviroment setup tests', () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(() => {
             throw new Error('None');
         });
-        let aPromise = andrEnvironment
+        const aPromise = andrEnvironment
             .isAndroidSDKPlatformToolsInstalled()
-            .catch((error) => {});
+            .catch(() => undefined);
         expect(aPromise).rejects;
     });
 });

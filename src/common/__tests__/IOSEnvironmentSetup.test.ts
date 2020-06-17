@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
 import { Logger, Messages } from '@salesforce/core';
 
 const myUnameMock = jest.fn(
@@ -59,7 +65,7 @@ describe('IOS Environment Setup tests', () => {
         );
         const setup = new IOSEnvironmentSetup(logger);
         await setup.isSupportedEnvironment();
-        return expect(myUnameMock).toHaveBeenCalledWith('/usr/bin/uname');
+        expect(myUnameMock).toHaveBeenCalledWith('/usr/bin/uname');
     });
 
     it('Should throw an error for an unsupported OS environment', async () => {
@@ -74,9 +80,12 @@ describe('IOS Environment Setup tests', () => {
 
     it('Checks to see that the logger is set', async () => {
         const logInfo = jest.spyOn(logger, 'info');
+        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(
+            myUnameMock
+        );
         const setup = new IOSEnvironmentSetup(logger);
         await setup.isSupportedEnvironment();
-        return expect(logInfo).toHaveBeenCalled();
+        expect(logInfo).toHaveBeenCalled();
     });
 
     it('Should attempt to validate supported Xcode environment', async () => {
@@ -85,7 +94,7 @@ describe('IOS Environment Setup tests', () => {
         );
         const setup = new IOSEnvironmentSetup(logger);
         await setup.isXcodeInstalled();
-        return expect(myXcodeSelectMock).toHaveBeenCalledWith(
+        expect(myXcodeSelectMock).toHaveBeenCalledWith(
             '/usr/bin/xcode-select -p'
         );
     });
@@ -106,6 +115,6 @@ describe('IOS Environment Setup tests', () => {
         );
         const setup = new IOSEnvironmentSetup(logger);
         await setup.hasSupportedSimulatorRuntime();
-        return expect(runtimesMockBlock).toHaveBeenCalled();
+        expect(runtimesMockBlock).toHaveBeenCalled();
     });
 });

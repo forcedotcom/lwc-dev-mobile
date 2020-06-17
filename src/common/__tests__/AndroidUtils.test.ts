@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
 const ORIG_ANDROID_HOME = process.env.ANDROID_HOME;
 const MOCK_ANDROID_HOME = '/mock-android-home';
 process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
@@ -31,13 +37,29 @@ describe('Android utils', () => {
     afterEach(() => {
         jest.restoreAllMocks();
     });
+    test('Should attempt to verify Android SDK prerequisites are met', async () => {
+        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+            myGenericVersionsCommandBlockMock
+        );
+        await AndroidSDKUtils.androidSDKPrerequisitesCheck();
+        expect(
+            myGenericVersionsCommandBlockMock
+        ).toHaveBeenCalledWith(
+            MOCK_ANDROID_HOME + '/tools/bin/sdkmanager --version',
+            ['ignore', 'pipe', 'pipe']
+        );
+    });
+
     test('Should attempt to look for android sdk tools (sdkmanager)', async () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
             myGenericVersionsCommandBlockMock
         );
         await AndroidSDKUtils.fetchAndroidSDKToolsLocation();
-        expect(myGenericVersionsCommandBlockMock).toHaveBeenCalledWith(
-            MOCK_ANDROID_HOME + '/tools/bin/sdkmanager --version'
+        expect(
+            myGenericVersionsCommandBlockMock
+        ).toHaveBeenCalledWith(
+            MOCK_ANDROID_HOME + '/tools/bin/sdkmanager --version',
+            ['ignore', 'pipe', 'ignore']
         );
     });
 
@@ -86,7 +108,7 @@ describe('Android utils', () => {
             myCommandBlockMock
         );
         const packages = await AndroidSDKUtils.fetchInstalledPackages();
-        expect(packages.size == AndroidMockData.mockRawStringPackageLength);
+        expect(packages.size === AndroidMockData.mockRawStringPackageLength);
     });
 
     test('Should attempt to invoke the sdkmanager and retrieve an empty list for a bad sdkmanager list', async () => {
@@ -94,7 +116,7 @@ describe('Android utils', () => {
             badBlockMock
         );
         const packages = await AndroidSDKUtils.fetchInstalledPackages();
-        expect(packages.size != 0);
+        expect(packages.size !== 0);
     });
 
     test('Should have no cache before first list packages call', async () => {
