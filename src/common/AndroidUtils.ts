@@ -122,7 +122,15 @@ export class AndroidSDKUtils {
                     );
 
                     if (idx !== -1) {
-                        reject('unsupported Java version');
+                        reject(new Error('unsupported Java version'));
+                    } else if (error.status === 127) {
+                        reject(
+                            new Error(
+                                'SDK Manager not found. Expected at ' +
+                                    AndroidSDKUtils.getSDKManagerCmd() +
+                                    '.'
+                            )
+                        );
                     } else {
                         reject(error);
                     }
@@ -463,22 +471,32 @@ export class AndroidSDKUtils {
         const numberOfRetries = androidConfig.deviceBootStatusPollRetries;
         return new Promise<boolean>((resolve, reject) => {
             const timeoutFunc = (commandStr: string, noOfRetries: number) => {
-                const stdout = AndroidSDKUtils.executeCommand(commandStr);
-                if (stdout && stdout.trim() === '1') {
-                    resolve(true);
-                } else {
-                    if (noOfRetries === 0) {
-                        reject(
-                            `Timeout waiting for emulator-${portNumber} to boot.`
-                        );
+                try {
+                    const stdout = AndroidSDKUtils.executeCommand(commandStr);
+                    if (stdout && stdout.trim() === '1') {
+                        resolve(true);
                     } else {
-                        setTimeout(
-                            timeoutFunc,
-                            timeout,
-                            commandStr,
-                            noOfRetries - 1
-                        );
+                        if (noOfRetries === 0) {
+                            reject(
+                                new Error(
+                                    `Timeout waiting for emulator-${portNumber} to boot.`
+                                )
+                            );
+                        } else {
+                            setTimeout(
+                                timeoutFunc,
+                                timeout,
+                                commandStr,
+                                noOfRetries - 1
+                            );
+                        }
                     }
+                } catch (error) {
+                    reject(
+                        new Error(
+                            `Unable to communicate with emulator via ADB.`
+                        )
+                    );
                 }
             };
             setTimeout(timeoutFunc, 1000, command, numberOfRetries);
