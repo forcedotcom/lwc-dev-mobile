@@ -98,6 +98,12 @@ export class AndroidSDKUtils {
             : false;
     }
 
+    public static isJavaHomeSet(): boolean {
+        return process.env.JAVA_HOME
+            ? process.env.JAVA_HOME.trim().length > 0
+            : false;
+    }
+
     public static clearCaches() {
         AndroidSDKUtils.packageCache.clear();
     }
@@ -121,9 +127,13 @@ export class AndroidSDKUtils {
                         'java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema'
                     );
 
+                    if (!AndroidSDKUtils.isJavaHomeSet()) {
+                        reject(new Error('JAVA_HOME is not set.'));
+                    }
                     if (idx !== -1) {
-                        reject(new Error('unsupported Java version'));
-                    } else if (error.status === 127) {
+                        reject(new Error('unsupported Java version.'));
+                    }
+                    if (error.status === 127) {
                         reject(
                             new Error(
                                 'SDK Manager not found. Expected at ' +
@@ -131,9 +141,8 @@ export class AndroidSDKUtils {
                                     '.'
                             )
                         );
-                    } else {
-                        reject(error);
                     }
+                    reject(error.message);
                 });
         });
     }
