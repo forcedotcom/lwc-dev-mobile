@@ -172,12 +172,12 @@ export class AndroidVirtualDevice {
                 const sepIdx = lowerCasedRawString.indexOf('---', startIdx);
                 endIdx = sepIdx > -1 ? sepIdx - 1 : -1;
 
-                let chunck =
+                let chunk =
                     endIdx > -1
                         ? cleanedRawString.substring(startIdx, endIdx)
                         : cleanedRawString.substring(startIdx);
-                chunck = chunck.replace('Tag/ABI:', '\nTag/ABI:'); // put ABI info on a line of its own
-                const split = chunck.split('\n');
+                chunk = chunk.replace('Tag/ABI:', '\nTag/ABI:'); // put ABI info on a line of its own
+                const split = chunk.split('\n');
                 results.push(split);
             }
 

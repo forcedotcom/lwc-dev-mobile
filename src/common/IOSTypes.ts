@@ -14,7 +14,7 @@ export class IOSSimulatorDevice {
         const NAME_KEY = 'name';
         const UDID_KEY = 'udid';
         const STATE_KEY = 'state';
-        const IS_AVILABLE_KEY = 'isAvailable';
+        const IS_AVAILABLE_KEY = 'isAvailable';
         const runtimeMatchRegex = new RegExp(
             `\.SimRuntime\.(${supportedRuntimes.join('|')})`
         );
@@ -36,7 +36,7 @@ export class IOSSimulatorDevice {
                     device[UDID_KEY],
                     device[STATE_KEY],
                     runtimeIdentifier,
-                    device[IS_AVILABLE_KEY]
+                    device[IS_AVAILABLE_KEY]
                 );
 
                 simDevices.push(sim);
