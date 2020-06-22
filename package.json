@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/lwc-dev-mobile",
   "description": "Salesforce CLI plugin for mobile extensions to Local Development",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "author": "Raj Rao @trooper2013",
   "bugs": "https://github.com/forcedotcom/lwc-dev-mobile/issues",
   "dependencies": {
@@ -10,7 +10,7 @@
     "@oclif/errors": "^1",
     "@salesforce/command": "^2.0.0",
     "@salesforce/core": "^2.0.1",
-    "@salesforce/lwc-dev-server": "^1",
+    "@salesforce/lwc-dev-server": ">=1",
     "@salesforce/telemetry": "^1.2.2",
     "@salesforce/ts-types": "^1.1.4",
     "shelljs": "^0.8.3",
