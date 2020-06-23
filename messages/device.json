@@ -1,5 +1,5 @@
 {
-    "commandDescription": "List the available mobile environments for Lightning Web Component development.",
+    "commandDescription": "List the available virtual mobile devices for Lightning Web Component development.",
     "platformFlagDescription": "Specify platform ('iOS' or 'Android').",
     "error:invalidInputFlagsDescription": "Invalid input value for platform.",
     "remedy:invalidInputFlagsDescription": "Specify a platform using ' -p [iOS|Android]'"
