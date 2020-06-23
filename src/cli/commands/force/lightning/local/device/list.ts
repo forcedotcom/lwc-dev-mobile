@@ -68,18 +68,16 @@ export default class List extends Setup {
         });
     }
 
-    public iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
-        return XcodeUtils.getSupportedSimulators().then((result) => {
-            this.showDeviceList(result);
-            return result;
-        });
+    public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
+        const result = await XcodeUtils.getSupportedSimulators();
+        this.showDeviceList(result);
+        return result;
     }
 
-    public androidDeviceList(): Promise<AndroidVirtualDevice[]> {
-        return AndroidSDKUtils.fetchEmulators().then((result) => {
-            this.showDeviceList(result);
-            return result;
-        });
+    public async androidDeviceList(): Promise<AndroidVirtualDevice[]> {
+        const result = await AndroidSDKUtils.fetchEmulators();
+        this.showDeviceList(result);
+        return result;
     }
 
     protected async init(): Promise<void> {
