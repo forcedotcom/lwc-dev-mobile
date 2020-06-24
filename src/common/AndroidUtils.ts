@@ -98,6 +98,12 @@ export class AndroidSDKUtils {
             : false;
     }
 
+    public static isJavaHomeSet(): boolean {
+        return process.env.JAVA_HOME
+            ? process.env.JAVA_HOME.trim().length > 0
+            : false;
+    }
+
     public static clearCaches() {
         AndroidSDKUtils.packageCache.clear();
     }
@@ -121,11 +127,22 @@ export class AndroidSDKUtils {
                         'java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema'
                     );
 
-                    if (idx !== -1) {
-                        reject('unsupported Java version');
-                    } else {
-                        reject(error);
+                    if (!AndroidSDKUtils.isJavaHomeSet()) {
+                        reject(new Error('JAVA_HOME is not set.'));
                     }
+                    if (idx !== -1) {
+                        reject(new Error('unsupported Java version.'));
+                    }
+                    if (error.status === 127) {
+                        reject(
+                            new Error(
+                                'SDK Manager not found. Expected at ' +
+                                    AndroidSDKUtils.getSDKManagerCmd() +
+                                    '.'
+                            )
+                        );
+                    }
+                    reject(error.message);
                 });
         });
     }
@@ -463,22 +480,32 @@ export class AndroidSDKUtils {
         const numberOfRetries = androidConfig.deviceBootStatusPollRetries;
         return new Promise<boolean>((resolve, reject) => {
             const timeoutFunc = (commandStr: string, noOfRetries: number) => {
-                const stdout = AndroidSDKUtils.executeCommand(commandStr);
-                if (stdout && stdout.trim() === '1') {
-                    resolve(true);
-                } else {
-                    if (noOfRetries === 0) {
-                        reject(
-                            `Timeout waiting for emulator-${portNumber} to boot.`
-                        );
+                try {
+                    const stdout = AndroidSDKUtils.executeCommand(commandStr);
+                    if (stdout && stdout.trim() === '1') {
+                        resolve(true);
                     } else {
-                        setTimeout(
-                            timeoutFunc,
-                            timeout,
-                            commandStr,
-                            noOfRetries - 1
-                        );
+                        if (noOfRetries === 0) {
+                            reject(
+                                new Error(
+                                    `Timeout waiting for emulator-${portNumber} to boot.`
+                                )
+                            );
+                        } else {
+                            setTimeout(
+                                timeoutFunc,
+                                timeout,
+                                commandStr,
+                                noOfRetries - 1
+                            );
+                        }
                     }
+                } catch (error) {
+                    reject(
+                        new Error(
+                            `Unable to communicate with emulator via ADB.`
+                        )
+                    );
                 }
             };
             setTimeout(timeoutFunc, 1000, command, numberOfRetries);
