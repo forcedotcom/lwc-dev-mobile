@@ -54,6 +54,28 @@
             ]
         },
         {
+            "type": "node",
+            "request": "launch",
+            "name": "iOS - Device List",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:local:device:list",
+                "-p",
+                "iOS"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Android - Device List",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:local:device:list",
+                "-p",
+                "android"
+            ]
+        },
+        {
             "name": "ts-node",
             "type": "node",
             "request": "launch",

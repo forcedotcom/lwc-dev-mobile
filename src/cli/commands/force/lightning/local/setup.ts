@@ -22,11 +22,6 @@ const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'setup');
 export default class Setup extends SfdxCommand {
     public static description = messages.getMessage('commandDescription');
 
-    public static examples = [
-        `$ sfdx force:lightning:lwc:setup -p iOS`,
-        `$ sfdx force:lightning:lwc:setup -p Android`
-    ];
-
     public static readonly flagsConfig: FlagsConfig = {
         platform: flags.string({
             char: 'p',
@@ -36,6 +31,11 @@ export default class Setup extends SfdxCommand {
         })
     };
 
+    public examples = [
+        `sfdx force:lightning:local:setup -p iOS`,
+        `sfdx force:lightning:local:setup -p Android`
+    ];
+
     public async run(): Promise<any> {
         const valid = this.validatePlatformValue(this.flags.platform);
         if (!valid) {
@@ -43,11 +43,7 @@ export default class Setup extends SfdxCommand {
                 new SfdxError(
                     messages.getMessage('error:invalidInputFlagsDescription'),
                     'lwc-dev-mobile',
-                    [
-                        `${messages.getMessage(
-                            'remedy:invalidInputFlagsDescription'
-                        )}`
-                    ]
+                    this.examples
                 )
             );
         }
