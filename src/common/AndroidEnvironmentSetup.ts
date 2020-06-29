@@ -101,7 +101,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                     resolve(this.fulfilledMessage);
                 })
                 .catch((error) => {
-                    reject(util.format(this.unfulfilledMessage, error));
+                    reject(util.format(this.unfulfilledMessage, error.message));
                 });
         });
     }
@@ -158,6 +158,15 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                     );
                 })
                 .catch((error) => {
+                    if (error.status === 127) {
+                        reject(
+                            new Error(
+                                'Platform tools not found. Expected at ' +
+                                    AndroidSDKUtils.ANDROID_PLATFORM_TOOLS +
+                                    '.'
+                            )
+                        );
+                    }
                     reject(
                         util.format(
                             this.unfulfilledMessage,
