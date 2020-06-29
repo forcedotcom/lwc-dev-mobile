@@ -137,8 +137,7 @@ export class AndroidSDKUtils {
                         reject(
                             new Error(
                                 'SDK Manager not found. Expected at ' +
-                                    AndroidSDKUtils.getSDKManagerCmd() +
-                                    '.'
+                                    AndroidSDKUtils.ANDROID_SDK_MANAGER_CMD
                             )
                         );
                     }
