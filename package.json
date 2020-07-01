@@ -10,7 +10,6 @@
     "@oclif/errors": "^1",
     "@salesforce/command": "^2.0.0",
     "@salesforce/core": "^2.0.1",
-    "@salesforce/lwc-dev-server": ">=1",
     "@salesforce/telemetry": "^1.2.2",
     "@salesforce/ts-types": "^1.1.4",
     "shelljs": "^0.8.3",
@@ -82,13 +81,15 @@
   "oclif": {
     "commands": "./lib/cli/commands",
     "bin": "lwc-dev-mobile",
+    "hooks": {
+      "installserverplugin": "./lib/cli/hooks/InstallLwcServerPlugin"
+    },
     "topics": {
       "hello": {
         "description": "Sfdx Lightning local development for mobile platforms."
       }
     },
     "plugins": [
-      "@salesforce/lwc-dev-server"
     ],
     "devPlugins": [
       "@oclif/plugin-help",

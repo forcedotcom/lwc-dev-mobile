@@ -37,6 +37,7 @@ export default class Setup extends SfdxCommand {
     ];
 
     public async run(): Promise<any> {
+        await this.config.runHook('installserverplugin', { id: 'setup' });
         const valid = this.validatePlatformValue(this.flags.platform);
         if (!valid) {
             return Promise.reject(

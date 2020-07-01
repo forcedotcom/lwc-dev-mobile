@@ -19,19 +19,11 @@ export class IOSEnvironmentSetup extends BaseSetup {
     ): Promise<{ stdout: string; stderr: string }> {
         return XcodeUtils.executeCommand(command);
     }
-    // NOTE: The following properties are just place holders to help with typescript compile.
-    private title: string = '';
-    private fulfilledMessage: string = '';
-    private unfulfilledMessage: string = '';
-    private setupMessages = Messages.loadMessages(
-        '@salesforce/lwc-dev-mobile',
-        'setup'
-    );
 
     constructor(logger: Logger) {
         super(logger);
         const messages = this.setupMessages;
-        super.requirements = [
+        const requirements = [
             {
                 checkFunction: this.isSupportedEnvironment,
                 fulfilledMessage: `${messages.getMessage(
@@ -66,6 +58,7 @@ export class IOSEnvironmentSetup extends BaseSetup {
                 )}`
             }
         ];
+        super.addRequirements(requirements);
     }
 
     public async isSupportedEnvironment(): Promise<string> {
