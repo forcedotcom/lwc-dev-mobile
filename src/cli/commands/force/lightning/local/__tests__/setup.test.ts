@@ -6,6 +6,7 @@
  */
 import * as Config from '@oclif/config';
 import { Logger } from '@salesforce/core';
+import { CommandLineUtils } from '../../../../../../common/Common';
 import { SetupTestResult } from '../../../../../../common/Requirements';
 import Setup from '../setup';
 enum PlatformType {
@@ -38,7 +39,7 @@ describe('Setup Tests', () => {
         const mockCall = jest.fn(() => {
             return true;
         });
-        setup.validatePlatformValue = mockCall;
+        CommandLineUtils.platformFlagIsValid = mockCall;
         await setup.run();
         expect(mockCall).toHaveBeenCalledWith('ios');
     });

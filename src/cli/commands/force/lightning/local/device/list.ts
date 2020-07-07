@@ -22,7 +22,7 @@ Messages.importMessagesDirectory(__dirname);
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'device');
 
-export default class List extends Setup {
+export default class List extends SfdxCommand {
     public static description = messages.getMessage('commandDescription');
 
     public static readonly flagsConfig: FlagsConfig = {
@@ -42,6 +42,16 @@ export default class List extends Setup {
     public async run(): Promise<any> {
         const platform = this.flags.platform;
         this.logger.info(`Device List command invoked for ${platform}`);
+
+        if (!CommandLineUtils.platformFlagIsValid(platform)) {
+            return Promise.reject(
+                new SfdxError(
+                    messages.getMessage('error:invalidInputFlagsDescription'),
+                    'lwc-dev-mobile',
+                    this.examples
+                )
+            );
+        }
 
         return new Promise<any>((resolve, reject) => {
             const deviceList = CommandLineUtils.platformFlagIsIOS(platform)

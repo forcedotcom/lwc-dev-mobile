@@ -55,4 +55,11 @@ export class CommandLineUtils {
         }
         return false;
     }
+
+    public static platformFlagIsValid(platformFlag: string) {
+        return (
+            CommandLineUtils.platformFlagIsIOS(platformFlag) ||
+            CommandLineUtils.platformFlagIsAndroid(platformFlag)
+        );
+    }
 }
