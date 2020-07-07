@@ -13,6 +13,7 @@ import shell from 'shelljs';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidPackage, AndroidVirtualDevice } from './AndroidTypes';
 import { MapUtils } from './Common';
+import { CommonUtils } from './CommonUtils';
 
 const execSync = childProcess.execSync;
 const spawn = childProcess.spawn;
@@ -87,9 +88,7 @@ export class AndroidSDKUtils {
         command: string,
         stdioOptions: StdioOptions = ['ignore', 'pipe', 'ignore']
     ): string {
-        return execSync(command, {
-            stdio: stdioOptions
-        }).toString();
+        return CommonUtils.executeCommand(command, stdioOptions).toString();
     }
 
     public static isAndroidHomeSet(): boolean {

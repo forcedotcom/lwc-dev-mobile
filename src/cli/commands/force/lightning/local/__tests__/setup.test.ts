@@ -12,6 +12,9 @@ enum PlatformType {
     android = 'android',
     ios = 'ios'
 }
+const passedHooksMock = jest.fn((ars: any) => {
+    return Promise.resolve();
+});
 
 describe('Setup Tests', () => {
     let setup: Setup;
@@ -19,7 +22,9 @@ describe('Setup Tests', () => {
     afterEach(() => undefined);
 
     beforeEach(() => {
-        setup = new Setup([], new Config.Config(({} as any) as Config.Options));
+        const config = new Config.Config(({} as any) as Config.Options);
+        setup = new Setup([], config);
+        jest.spyOn(config, 'runHook').mockImplementation(passedHooksMock);
     });
 
     afterEach(() => {
