@@ -44,27 +44,11 @@ export default class List extends Setup {
         this.logger.info(`Device List command invoked for ${platform}`);
 
         return new Promise<any>((resolve, reject) => {
-            super
-                .run() // run setup first
-                .then((result) => {
-                    this.logger.info(
-                        'Setup requirements met, continuing with device list'
-                    );
+            const deviceList = CommandLineUtils.platformFlagIsIOS(platform)
+                ? this.iOSDeviceList()
+                : this.androidDeviceList();
 
-                    const deviceList = CommandLineUtils.platformFlagIsIOS(
-                        platform
-                    )
-                        ? this.iOSDeviceList()
-                        : this.androidDeviceList();
-
-                    resolve(deviceList);
-                })
-                .catch((error) => {
-                    this.logger.warn(
-                        `Device list failed for ${platform}. Setup requirements have not been met.`
-                    );
-                    reject(error);
-                });
+            resolve(deviceList);
         });
     }
 
