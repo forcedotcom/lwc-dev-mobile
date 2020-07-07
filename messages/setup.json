@@ -33,7 +33,7 @@
     "android:reqs:emulatorimages:fulfilledMessage" : "Android emulator image (%s) was detected.",
     "android:reqs:emulatorimages:unfulfilledMessage" : "Install at least one of these emulator images: %s",
    
-    "common:reqs:serverplugin:title" : "Checking sfdx LWC server plugin",
-    "common:reqs:serverplugin:fulfilledMessage" : "Sfdx LWC server plugin is installed.",
-    "common:reqs:serverplugin:unfulfilledMessage" : "Install the sfdx LWC server plugin."
+    "common:reqs:serverplugin:title" : "Checking @salesforce/lwc-dev-server plugin",
+    "common:reqs:serverplugin:fulfilledMessage" : "@salesforce/lwc-dev-server plugin is installed.",
+    "common:reqs:serverplugin:unfulfilledMessage" : "Install the @salesforce/lwc-dev-server plugin."
 }
