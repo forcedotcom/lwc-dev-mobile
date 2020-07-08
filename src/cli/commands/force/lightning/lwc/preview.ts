@@ -9,6 +9,7 @@ import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { AndroidLauncher } from '../../../../../common/AndroidLauncher';
 import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
+import { SetupTestResult } from '../../../../../common/Requirements';
 import androidConfig from '../../../../../config/androidconfig.json';
 import iOSConfig from '../../../../../config/iosconfig.json';
 import Setup from '../local/setup';
@@ -61,29 +62,15 @@ export default class Preview extends Setup {
     public async run(): Promise<any> {
         const platform = this.flags.platform;
         this.logger.info(`Preview command invoked for ${platform}`);
-
-        super
-            .run() // run setup first
+        return Promise.all<void, SetupTestResult>([
+            this.validateAdditionalInputs(),
+            super.run()
+        ])
             .then((result) => {
-                const isValid = this.validateComponentNameValue(
-                    this.flags.componentname
+                this.logger.info(
+                    'Setup requirements met, continuing with preview'
                 );
-                if (!isValid) {
-                    return Promise.reject(
-                        new SfdxError(
-                            messages.getMessage(
-                                'error:invalidInputFlagsDescription'
-                            ),
-                            'lwc-dev-mobile',
-                            Preview.examples
-                        )
-                    );
-                } else {
-                    this.logger.info(
-                        'Setup requirements met, continuing with preview'
-                    );
-                    return this.launchPreview();
-                }
+                return this.launchPreview();
             })
             .catch((error) => {
                 this.logger.warn(
@@ -93,9 +80,27 @@ export default class Preview extends Setup {
             });
     }
 
-    public validateComponentNameValue(compName: string): boolean {
-        this.logger.debug('Invoked validateComponentName in preview');
-        return compName ? compName.trim().length > 0 : false;
+    public validateAdditionalInputs(): Promise<void> {
+        const compName = this.flags.componentname;
+        return new Promise<void>((resolve, reject) => {
+            const isValid: boolean = compName
+                ? compName.trim().length > 0
+                : false;
+            if (isValid === false) {
+                this.logger.debug('Invoked validateComponentName in preview');
+                reject(
+                    new SfdxError(
+                        messages.getMessage(
+                            'error:invalidInputFlagsDescription'
+                        ),
+                        'lwc-dev-mobile',
+                        Preview.examples
+                    )
+                );
+            } else {
+                resolve();
+            }
+        });
     }
 
     public launchPreview(): Promise<boolean> {

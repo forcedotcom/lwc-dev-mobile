@@ -50,13 +50,11 @@ describe('Preview Tests', () => {
         const logger = new Logger('test-preview');
         setupLogger(logger);
         const compPathCalValidationlMock = jest.fn(() => {
-            return true;
+            return Promise.resolve();
         });
-        preview.validateComponentNameValue = compPathCalValidationlMock;
+        preview.validateAdditionalInputs = compPathCalValidationlMock;
         await preview.run();
-        expect(compPathCalValidationlMock).toHaveBeenCalledWith(
-            'mockcomponentname'
-        );
+        expect(compPathCalValidationlMock).toHaveBeenCalled();
     });
 
     test('Checks that launch for target platform  for Android is invoked', async () => {
