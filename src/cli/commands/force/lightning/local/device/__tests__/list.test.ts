@@ -60,25 +60,6 @@ describe('List Tests', () => {
         expect(iOSListCommandBlockMock).toHaveBeenCalled();
     });
 
-    test('Checks that setup is invoked', async () => {
-        setupPlatformFlag('android');
-        const logger = new Logger('test-list');
-        setupLogger(logger);
-        await list.run();
-        expect(passedSetupMock).toHaveBeenCalled();
-    });
-
-    test('Device List should throw an error if setup fails', async () => {
-        setupPlatformFlag('android');
-        const logger = new Logger('test-list');
-        setupLogger(logger);
-        jest.spyOn(Setup.prototype, 'run').mockImplementation(failedSetupMock);
-        list.run().catch((error) => {
-            expect(error && error instanceof SfdxError).toBeTruthy();
-        });
-        expect(failedSetupMock).toHaveBeenCalled();
-    });
-
     test('Logger must be initialized and invoked', async () => {
         const logger = new Logger('test-list');
         setupLogger(logger);

@@ -80,18 +80,19 @@ export class XcodeUtils {
         IOSSimulatorDevice[]
     > {
         return new Promise(async (resolve, reject) => {
+            let devices: IOSSimulatorDevice[] = [];
             try {
                 const devicesCmd = `${XCRUN_CMD} simctl list --json devices available`;
                 const supportedRuntimes = await XcodeUtils.getSupportedRuntimes();
                 const { stdout } = await XcodeUtils.executeCommand(devicesCmd);
-                const sims = IOSSimulatorDevice.parseJSONString(
+                devices = IOSSimulatorDevice.parseJSONString(
                     stdout,
                     supportedRuntimes
                 );
-                return resolve(sims);
             } catch (runtimesError) {
-                return reject(runtimesError);
+                XcodeUtils.logger.warn(runtimesError);
             }
+            return resolve(devices);
         });
     }
 

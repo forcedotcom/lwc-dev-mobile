@@ -38,8 +38,7 @@ export default class Setup extends SfdxCommand {
 
     public async run(): Promise<any> {
         await this.config.runHook('installserverplugin', { id: 'setup' });
-        const valid = this.validatePlatformValue(this.flags.platform);
-        if (!valid) {
+        if (!CommandLineUtils.platformFlagIsValid(this.flags.platform)) {
             return Promise.reject(
                 new SfdxError(
                     messages.getMessage('error:invalidInputFlagsDescription'),
@@ -71,13 +70,6 @@ export default class Setup extends SfdxCommand {
 
     public executeSetup(setup: BaseSetup): Promise<SetupTestResult> {
         return setup.executeSetup();
-    }
-
-    public validatePlatformValue(platform: string): boolean {
-        return (
-            CommandLineUtils.platformFlagIsIOS(platform) ||
-            CommandLineUtils.platformFlagIsAndroid(platform)
-        );
     }
 
     protected async init(): Promise<void> {

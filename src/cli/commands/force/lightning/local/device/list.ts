@@ -22,7 +22,7 @@ Messages.importMessagesDirectory(__dirname);
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'device');
 
-export default class List extends Setup {
+export default class List extends SfdxCommand {
     public static description = messages.getMessage('commandDescription');
 
     public static readonly flagsConfig: FlagsConfig = {
@@ -43,28 +43,22 @@ export default class List extends Setup {
         const platform = this.flags.platform;
         this.logger.info(`Device List command invoked for ${platform}`);
 
+        if (!CommandLineUtils.platformFlagIsValid(platform)) {
+            return Promise.reject(
+                new SfdxError(
+                    messages.getMessage('error:invalidInputFlagsDescription'),
+                    'lwc-dev-mobile',
+                    this.examples
+                )
+            );
+        }
+
         return new Promise<any>((resolve, reject) => {
-            super
-                .run() // run setup first
-                .then((result) => {
-                    this.logger.info(
-                        'Setup requirements met, continuing with device list'
-                    );
+            const deviceList = CommandLineUtils.platformFlagIsIOS(platform)
+                ? this.iOSDeviceList()
+                : this.androidDeviceList();
 
-                    const deviceList = CommandLineUtils.platformFlagIsIOS(
-                        platform
-                    )
-                        ? this.iOSDeviceList()
-                        : this.androidDeviceList();
-
-                    resolve(deviceList);
-                })
-                .catch((error) => {
-                    this.logger.warn(
-                        `Device list failed for ${platform}. Setup requirements have not been met.`
-                    );
-                    reject(error);
-                });
+            resolve(deviceList);
         });
     }
 
