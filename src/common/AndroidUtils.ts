@@ -543,6 +543,46 @@ export class AndroidSDKUtils {
         return adjustedPort;
     }
 
+    // This method is public for testing purposes.
+    public static updateEmulatorConfig(emulatorName: string): Promise<boolean> {
+        return new Promise(async (resolve, reject) => {
+            const config = await AndroidSDKUtils.readEmulatorConfig(
+                emulatorName
+            );
+            if (config.size === 0) {
+                // If we cannot edit the AVD config, fail silently.
+                // This will be a degraded experience but should still work.
+                resolve(true);
+                return;
+            }
+
+            // Utilize hardware.
+            config.set('hw.keyboard', 'yes');
+            config.set('hw.gpu.mode', 'auto');
+            config.set('hw.gpu.enabled', 'yes');
+
+            // Give emulator the appropriate skin.
+            let skinName = config.get('hw.device.name') || '';
+            if (skinName) {
+                if (skinName === 'pixel') {
+                    skinName = 'pixel_silver';
+                } else if (skinName === 'pixel_xl') {
+                    skinName = 'pixel_xl_silver';
+                }
+                config.set('skin.name', skinName);
+                config.set(
+                    'skin.path',
+                    `${AndroidSDKUtils.ANDROID_HOME}/skins/${skinName}`
+                );
+                config.set('skin.dynamic', 'yes');
+                config.set('showDeviceFrame', 'yes');
+            }
+
+            AndroidSDKUtils.writeEmulatorConfig(emulatorName, config);
+            resolve(true);
+        });
+    }
+
     private static logger: Logger = new Logger(
         'force:lightning:mobile:android'
     );
@@ -588,47 +628,6 @@ export class AndroidSDKUtils {
         return `'${pathName}'`;
     }
 
-    private static updateEmulatorConfig(
-        emulatorName: string
-    ): Promise<boolean> {
-        return new Promise(async (resolve, reject) => {
-            const config = await AndroidSDKUtils.readEmulatorConfig(
-                emulatorName
-            );
-            if (config.size === 0) {
-                // If we cannot edit the AVD config, fail silently.
-                // This will be a degraded experience but should still work.
-                resolve(true);
-                return;
-            }
-
-            // Utilize hardware.
-            config.set('hw.keyboard', 'yes');
-            config.set('hw.gpu.mode', 'auto');
-            config.set('hw.gpu.enabled', 'yes');
-
-            // Give emulator the appropriate skin.
-            let skinName = config.get('hw.device.name') || '';
-            if (skinName) {
-                if (skinName === 'pixel') {
-                    skinName = 'pixel_silver';
-                } else if (skinName === 'pixel_xl') {
-                    skinName = 'pixel_xl_silver';
-                }
-                config.set('skin.name', skinName);
-                config.set(
-                    'skin.path',
-                    `${AndroidSDKUtils.ANDROID_HOME}/skins/${skinName}`
-                );
-                config.set('skin.dynamic', 'yes');
-                config.set('showDeviceFrame', 'yes');
-            }
-
-            AndroidSDKUtils.writeEmulatorConfig(emulatorName, config);
-            resolve(true);
-        });
-    }
-
     private static async fetchInstalledSystemImages(
         androidApi: string
     ): Promise<Map<string, AndroidPackage>> {
@@ -672,12 +671,11 @@ export class AndroidSDKUtils {
     private static async readEmulatorConfig(
         emulatorName: string
     ): Promise<Map<string, string>> {
+        const filePath =
+            AndroidSDKUtils.USER_HOME +
+            `/.android/avd/${emulatorName}.avd/config.ini`;
         try {
-            const configFile = fs.readFileSync(
-                AndroidSDKUtils.USER_HOME +
-                    `/.android/avd/${emulatorName}.avd/config.ini`,
-                'utf8'
-            );
+            const configFile = fs.readFileSync(filePath, 'utf8');
             const configMap = new Map();
             for (const line of configFile.split('\n')) {
                 const config = line.split('=');
@@ -688,6 +686,9 @@ export class AndroidSDKUtils {
 
             return configMap;
         } catch (error) {
+            AndroidSDKUtils.logger.warn(
+                'Unable to read emulator config at: ' + filePath
+            );
             return new Map<string, string>();
         }
     }
@@ -701,16 +702,17 @@ export class AndroidSDKUtils {
         config.forEach((value, key) => {
             configString += key + '=' + value + '\n';
         });
+        const filePath =
+            AndroidSDKUtils.USER_HOME +
+            `/.android/avd/${emulatorName}.avd/config.ini`;
         try {
-            fs.writeFileSync(
-                AndroidSDKUtils.USER_HOME +
-                    `/.android/avd/${emulatorName}.avd/config.ini`,
-                configString,
-                'utf8'
-            );
+            fs.writeFileSync(filePath, configString, 'utf8');
         } catch (error) {
             // If we cannot edit the AVD config, fail silently.
             // This will be a degraded experience but should still work.
+            AndroidSDKUtils.logger.warn(
+                'Unable to write emulator config at: ' + filePath
+            );
         }
     }
 }
