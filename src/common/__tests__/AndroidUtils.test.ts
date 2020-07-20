@@ -7,7 +7,7 @@
 const ORIG_ANDROID_HOME = process.env.ANDROID_HOME;
 const MOCK_ANDROID_HOME = '/mock-android-home';
 process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
-
+import fs from 'fs';
 import { AndroidSDKUtils } from '../AndroidUtils';
 import { AndroidMockData } from './AndroidMockData';
 
@@ -27,16 +27,29 @@ const badBlockMock = jest.fn((): string => {
     return AndroidMockData.badMockRawPacakagesString;
 });
 
+const throwMock = jest.fn((): void => {
+    throw new Error('test error');
+});
+
+let readFileSpy: jest.SpyInstance<any>;
+let writeFileSpy: jest.SpyInstance<any>;
+
 describe('Android utils', () => {
     beforeEach(() => {
         myCommandBlockMock.mockClear();
         badBlockMock.mockClear();
         AndroidSDKUtils.clearCaches();
+        throwMock.mockClear();
+        readFileSpy = jest.spyOn(fs, 'readFileSync');
+        writeFileSpy = jest
+            .spyOn(fs, 'writeFileSync')
+            .mockImplementation(jest.fn());
     });
 
     afterEach(() => {
         jest.restoreAllMocks();
     });
+
     test('Should attempt to verify Android SDK prerequisites are met', async () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
             myGenericVersionsCommandBlockMock
@@ -212,5 +225,98 @@ describe('Android utils', () => {
         AndroidSDKUtils.findRequiredEmulatorImages().catch((error) => {
             expect(error).toBeTruthy();
         });
+    });
+
+    // Original Pixel/Pixel XL is a special case for skin path.
+    test('Should update Pixel config with skin', async () => {
+        const avdName = 'configTest';
+        const testConfig = 'hw.device.name=pixel\n';
+        const expectedConfig =
+            'hw.device.name=pixel\n' +
+            'hw.keyboard=yes\n' +
+            'hw.gpu.mode=auto\n' +
+            'hw.gpu.enabled=yes\n' +
+            'skin.name=pixel_silver\n' +
+            `skin.path=${MOCK_ANDROID_HOME}/skins/pixel_silver\n` +
+            'skin.dynamic=yes\n' +
+            'showDeviceFrame=yes\n';
+
+        readFileSpy.mockReturnValue(testConfig);
+        await AndroidSDKUtils.updateEmulatorConfig(avdName);
+
+        expect(readFileSpy).toHaveBeenCalled();
+        expect(writeFileSpy).toHaveBeenCalledWith(
+            AndroidSDKUtils.USER_HOME +
+                `/.android/avd/${avdName}.avd/config.ini`,
+            expectedConfig,
+            'utf8'
+        );
+    });
+
+    test('Should update Pixel 3 config with skin', async () => {
+        const avdName = 'configTest';
+        const testConfig = 'hw.device.name=pixel_3\n';
+        const expectedConfig =
+            'hw.device.name=pixel_3\n' +
+            'hw.keyboard=yes\n' +
+            'hw.gpu.mode=auto\n' +
+            'hw.gpu.enabled=yes\n' +
+            'skin.name=pixel_3\n' +
+            `skin.path=${MOCK_ANDROID_HOME}/skins/pixel_3\n` +
+            'skin.dynamic=yes\n' +
+            'showDeviceFrame=yes\n';
+
+        readFileSpy.mockReturnValue(testConfig);
+        await AndroidSDKUtils.updateEmulatorConfig(avdName);
+
+        expect(readFileSpy).toHaveBeenCalled();
+        expect(writeFileSpy).toHaveBeenCalledWith(
+            AndroidSDKUtils.USER_HOME +
+                `/.android/avd/${avdName}.avd/config.ini`,
+            expectedConfig,
+            'utf8'
+        );
+    });
+
+    test('Should update unknown device config without skin', async () => {
+        const avdName = 'configTest';
+        const testConfig = 'hw.device.manufacture=Google\n';
+        const expectedConfig =
+            'hw.device.manufacture=Google\n' +
+            'hw.keyboard=yes\n' +
+            'hw.gpu.mode=auto\n' +
+            'hw.gpu.enabled=yes\n';
+
+        readFileSpy.mockReturnValue(testConfig);
+        await AndroidSDKUtils.updateEmulatorConfig(avdName);
+
+        expect(readFileSpy).toHaveBeenCalled();
+        expect(writeFileSpy).toHaveBeenCalledWith(
+            AndroidSDKUtils.USER_HOME +
+                `/.android/avd/${avdName}.avd/config.ini`,
+            expectedConfig,
+            'utf8'
+        );
+    });
+
+    test('Should not write config if size is 0', async () => {
+        const avdName = 'configTest';
+        const testConfig = '';
+
+        readFileSpy.mockReturnValue(testConfig);
+        await AndroidSDKUtils.updateEmulatorConfig(avdName);
+
+        expect(readFileSpy).toHaveBeenCalled();
+        expect(writeFileSpy).toHaveBeenCalledTimes(0);
+    });
+
+    test('Should not write config on read error', async () => {
+        const avdName = 'configTest';
+
+        readFileSpy.mockImplementation(throwMock);
+        await AndroidSDKUtils.updateEmulatorConfig(avdName);
+
+        expect(readFileSpy).toHaveBeenCalled();
+        expect(writeFileSpy).toHaveBeenCalledTimes(0);
     });
 });
