@@ -9,6 +9,7 @@ const MOCK_ANDROID_HOME = '/mock-android-home';
 process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 import fs from 'fs';
 import { AndroidSDKUtils } from '../AndroidUtils';
+import { CommandLineUtils, PreviewUtils } from '../Common';
 import { AndroidMockData } from './AndroidMockData';
 
 const myGenericVersionsCommandBlockMock = jest.fn((): string => {
@@ -31,6 +32,14 @@ const throwMock = jest.fn((): void => {
     throw new Error('test error');
 });
 
+const launchCommandMock = jest.fn((): string => {
+    return '';
+});
+
+const launchCommandThrowsMock = jest.fn((): string => {
+    throw new Error(' Mock Error');
+});
+
 let readFileSpy: jest.SpyInstance<any>;
 let writeFileSpy: jest.SpyInstance<any>;
 
@@ -40,6 +49,8 @@ describe('Android utils', () => {
         badBlockMock.mockClear();
         AndroidSDKUtils.clearCaches();
         throwMock.mockClear();
+        launchCommandMock.mockClear();
+        launchCommandThrowsMock.mockClear();
         readFileSpy = jest.spyOn(fs, 'readFileSync');
         writeFileSpy = jest
             .spyOn(fs, 'writeFileSync')
@@ -318,5 +329,94 @@ describe('Android utils', () => {
 
         expect(readFileSpy).toHaveBeenCalled();
         expect(writeFileSpy).toHaveBeenCalledTimes(0);
+    });
+
+    test('Should attempt to launch url and resolve.', async () => {
+        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+            launchCommandMock
+        );
+        const url = 'mock.url';
+        const port = 1234;
+        const expectedCommand = `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${port} shell am start -a android.intent.action.VIEW -d ${url}`;
+        await AndroidSDKUtils.launchURLIntent(url, port);
+        expect(launchCommandMock).toHaveBeenCalledWith(expectedCommand);
+    });
+
+    test('Should attempt to launch url and reject if error is encountered.', async () => {
+        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+            launchCommandThrowsMock
+        );
+        const url = 'mock.url';
+        const port = 1234;
+        return AndroidSDKUtils.launchURLIntent(url, port).catch((error) => {
+            expect(error).toBeTruthy();
+        });
+    });
+
+    test('Should attempt to launch native app and resolve.', async () => {
+        const compName = 'mock.compName';
+        const projectDir = '/mock/path';
+        const targetApp = 'com.mock.app';
+        const targetAppArgs = 'arg1,arg2,arg3';
+        const port = 1234;
+        const launchArgs = PreviewUtils.getFormattedLaunchArgs(
+            CommandLineUtils.ANDROID_FLAG,
+            compName,
+            projectDir,
+            targetAppArgs
+        );
+
+        const mockCmd = jest.fn((): string => {
+            return `${targetApp}/.MainActivity`;
+        });
+
+        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+            mockCmd
+        );
+
+        await AndroidSDKUtils.launchNativeApp(
+            compName,
+            projectDir,
+            targetApp,
+            targetAppArgs,
+            port
+        );
+
+        expect(mockCmd).toBeCalledTimes(2);
+
+        expect(mockCmd).nthCalledWith(
+            1,
+            `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${port}` +
+                ` shell cmd package resolve-activity --brief -c android.intent.category.LAUNCHER ${targetApp} | tail -1`
+        );
+
+        expect(mockCmd).nthCalledWith(
+            2,
+            `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${port}` +
+                ` shell am start -S -n "${targetApp}/.MainActivity"` +
+                ' -a android.intent.action.MAIN' +
+                ' -c android.intent.category.LAUNCHER' +
+                ` ${launchArgs}`
+        );
+    });
+
+    test('Should attempt to launch native app and reject if error is encountered.', async () => {
+        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+            launchCommandThrowsMock
+        );
+        const compName = 'mock.compName';
+        const projectDir = '/mock/path';
+        const targetApp = 'com.mock.app';
+        const targetAppArgs = 'arg1,arg2,arg3';
+        const port = 1234;
+        return AndroidSDKUtils.launchNativeApp(
+            compName,
+            projectDir,
+            targetApp,
+            targetAppArgs,
+            port
+        ).catch((error) => {
+            expect(error).toBeTruthy();
+        });
     });
 });

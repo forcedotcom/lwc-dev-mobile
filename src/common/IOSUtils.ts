@@ -9,6 +9,7 @@ import childProcess from 'child_process';
 import cli from 'cli-ux';
 import util from 'util';
 import iOSConfig from '../config/iosconfig.json';
+import { CommandLineUtils, PreviewUtils } from './Common';
 import { IOSSimulatorDevice } from './IOSTypes';
 
 const exec = util.promisify(childProcess.exec);
@@ -236,7 +237,7 @@ export class XcodeUtils {
             });
         } catch (error) {
             return new Promise<boolean>((resolve, reject) => {
-                reject(`The command '${command}' failed to execute ${error}`);
+                reject(`The command '${command}' failed to execute: ${error}`);
             });
         }
     }
@@ -264,8 +265,84 @@ export class XcodeUtils {
                 return this.waitUntilDeviceIsReady(udid);
             })
             .then(() => {
-                spinner.stop('Opening Browser');
+                spinner.stop(`Opening Browser with url ${url}`);
                 return this.launchURLInBootedSimulator(udid, url);
+            });
+    }
+
+    public static async launchAppInBootedSimulator(
+        udid: string,
+        compName: string,
+        projectDir: string,
+        targetApp: string,
+        targetAppArguments: string
+    ): Promise<boolean> {
+        const launchArgs = PreviewUtils.getFormattedLaunchArgs(
+            CommandLineUtils.IOS_FLAG,
+            compName,
+            projectDir,
+            targetAppArguments
+        );
+
+        const terminateCommand = `${XCRUN_CMD} simctl terminate "${udid}" ${targetApp}`;
+        const launchCommand = `${XCRUN_CMD} simctl launch "${udid}" ${targetApp} ${launchArgs}`;
+
+        // attempt at terminating the app first (in case it is already running) and then try to launch it again with new arguments.
+        // if we hit issues with terminating, just ignore and continue.
+        try {
+            await XcodeUtils.executeCommand(terminateCommand);
+        } catch {
+            // ignore and continue
+        }
+
+        try {
+            const { stdout } = await XcodeUtils.executeCommand(launchCommand);
+            return new Promise<boolean>((resolve, reject) => {
+                resolve(true);
+            });
+        } catch (error) {
+            return new Promise<boolean>((resolve, reject) => {
+                reject(
+                    `The command '${launchCommand}' failed to execute: ${error}`
+                );
+            });
+        }
+    }
+
+    public static async launchNativeApp(
+        compName: string,
+        compPath: string,
+        targetApp: string,
+        targetAppArguments: string,
+        udid: string,
+        spinner: typeof cli.action
+    ): Promise<boolean> {
+        return XcodeUtils.launchSimulatorApp()
+            .then(() => {
+                spinner.start(`Launching`, `Starting device ${udid}`, {
+                    stdout: true
+                });
+                return XcodeUtils.bootDevice(udid);
+            })
+            .then(() => {
+                spinner.start(
+                    `Launching`,
+                    `Waiting for device ${udid} to boot`,
+                    {
+                        stdout: true
+                    }
+                );
+                return this.waitUntilDeviceIsReady(udid);
+            })
+            .then(() => {
+                spinner.stop(`Launching App ${targetApp}`);
+                return this.launchAppInBootedSimulator(
+                    udid,
+                    compName,
+                    compPath,
+                    targetApp,
+                    targetAppArguments
+                );
             });
     }
 

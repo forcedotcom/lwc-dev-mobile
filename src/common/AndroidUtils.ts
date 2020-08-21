@@ -11,7 +11,7 @@ import os from 'os';
 import path from 'path';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidPackage, AndroidVirtualDevice } from './AndroidTypes';
-import { MapUtils } from './Common';
+import { CommandLineUtils, MapUtils, PreviewUtils } from './Common';
 import { CommonUtils } from './CommonUtils';
 
 const execSync = childProcess.execSync;
@@ -545,6 +545,44 @@ export class AndroidSDKUtils {
                 reject(error);
             }
         });
+    }
+
+    public static launchNativeApp(
+        compName: string,
+        projectDir: string,
+        targetApp: string,
+        targetAppArguments: string,
+        emulatorPort: number
+    ): Promise<boolean> {
+        const getLauncherActivityCommand =
+            `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${emulatorPort}` +
+            ` shell cmd package resolve-activity --brief -c android.intent.category.LAUNCHER ${targetApp} | tail -1`;
+
+        try {
+            const appAndLauncherActivity = AndroidSDKUtils.executeCommand(
+                getLauncherActivityCommand
+            ).trim();
+
+            const launchArgs = PreviewUtils.getFormattedLaunchArgs(
+                CommandLineUtils.ANDROID_FLAG,
+                compName,
+                projectDir,
+                targetAppArguments
+            );
+
+            const launchCommand =
+                `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${emulatorPort}` +
+                ` shell am start -S -n "${appAndLauncherActivity}"` +
+                ' -a android.intent.action.MAIN' +
+                ' -c android.intent.category.LAUNCHER' +
+                ` ${launchArgs}`;
+
+            AndroidSDKUtils.executeCommand(launchCommand);
+
+            return Promise.resolve(true);
+        } catch (error) {
+            return Promise.reject(error);
+        }
     }
 
     public static getEmulatorPort(

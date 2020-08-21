@@ -7,6 +7,7 @@
 import childProcess from 'child_process';
 import cli from 'cli-ux';
 import util from 'util';
+import { CommandLineUtils, PreviewUtils } from './Common';
 import { XcodeUtils } from './IOSUtils';
 const exec = util.promisify(childProcess.exec);
 
@@ -17,7 +18,12 @@ export class IOSLauncher {
         this.simulatorName = simulatorName;
     }
 
-    public async launchNativeBrowser(url: string): Promise<boolean> {
+    public async launchNativeBrowserOrApp(
+        compName: string,
+        projectDir: string,
+        targetApp: string,
+        targetAppArguments: string
+    ): Promise<boolean> {
         const availableDevices: string[] = await XcodeUtils.getSupportedDevices();
         const supportedRuntimes: string[] = await XcodeUtils.getSupportedRuntimes();
         const currentSimulator = await XcodeUtils.getSimulator(
@@ -52,7 +58,23 @@ export class IOSLauncher {
             });
             deviceUDID = currentSimulatorUDID;
         }
-        return XcodeUtils.openUrlInNativeBrowser(url, deviceUDID, spinner);
+
+        if (PreviewUtils.isTargetingBrowser(targetApp)) {
+            const url = PreviewUtils.getComponentPreviewUrl(
+                CommandLineUtils.IOS_FLAG,
+                compName
+            );
+            return XcodeUtils.openUrlInNativeBrowser(url, deviceUDID, spinner);
+        } else {
+            return XcodeUtils.launchNativeApp(
+                compName,
+                projectDir,
+                targetApp,
+                targetAppArguments,
+                deviceUDID,
+                spinner
+            );
+        }
     }
 }
 

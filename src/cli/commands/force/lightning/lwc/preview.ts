@@ -7,7 +7,7 @@
 import { flags, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { AndroidLauncher } from '../../../../../common/AndroidLauncher';
-import { CommandLineUtils } from '../../../../../common/Common';
+import { CommandLineUtils, PreviewUtils } from '../../../../../common/Common';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
 import { SetupTestResult } from '../../../../../common/Requirements';
 import androidConfig from '../../../../../config/androidconfig.json';
@@ -38,9 +38,25 @@ export default class Preview extends Setup {
             description: messages.getMessage('platformFlagDescription'),
             required: true
         }),
+        projectdir: flags.string({
+            char: 'd',
+            description: messages.getMessage('projectDirFlagDescription'),
+            required: false
+        }),
         target: flags.string({
             char: 't',
             description: messages.getMessage('targetFlagDescription'),
+            required: false
+        }),
+        targetapp: flags.string({
+            char: 'a',
+            description: messages.getMessage('targetAppFlagDescription'),
+            required: false
+        }),
+        targetapparguments: flags.string({
+            description: messages.getMessage(
+                'targetAppArgumentsFlagDescription'
+            ),
             required: false
         })
     };
@@ -116,24 +132,68 @@ export default class Preview extends Setup {
     }
 
     public launchIOS(): Promise<boolean> {
-        const simName = this.flags.target
-            ? this.flags.target
-            : iOSConfig.defaultSimulatorName;
+        const simName = CommandLineUtils.resolveFlag(
+            this.flags.target,
+            iOSConfig.defaultSimulatorName
+        );
+
+        const targetApp = CommandLineUtils.resolveFlag(
+            this.flags.targetapp,
+            PreviewUtils.BROWSER_TARGET_APP
+        );
+
+        const targetAppArguments = CommandLineUtils.resolveFlag(
+            this.flags.targetapparguments,
+            ''
+        );
+
+        const projectDir = CommandLineUtils.resolveFlag(
+            this.flags.projectdir,
+            __dirname
+        );
+
+        const componentName = this.flags.componentname;
+
         const launcher = new IOSLauncher(simName);
-        const compPath = this.prefixRouteIfNeeded(this.flags.componentname);
-        return launcher.launchNativeBrowser(
-            `http://localhost:3333/lwc/preview/${compPath}`
+
+        return launcher.launchNativeBrowserOrApp(
+            componentName,
+            projectDir,
+            targetApp,
+            targetAppArguments
         );
     }
 
     public launchAndroid(): Promise<boolean> {
-        const emulatorName = this.flags.target
-            ? this.flags.target
-            : androidConfig.defaultEmulatorName;
+        const emulatorName = CommandLineUtils.resolveFlag(
+            this.flags.target,
+            androidConfig.defaultEmulatorName
+        );
+
+        const targetApp = CommandLineUtils.resolveFlag(
+            this.flags.targetapp,
+            PreviewUtils.BROWSER_TARGET_APP
+        );
+
+        const targetAppArguments = CommandLineUtils.resolveFlag(
+            this.flags.targetapparguments,
+            ''
+        );
+
+        const projectDir = CommandLineUtils.resolveFlag(
+            this.flags.projectdir,
+            __dirname
+        );
+
+        const componentName = this.flags.componentname;
+
         const launcher = new AndroidLauncher(emulatorName);
-        const compPath = this.prefixRouteIfNeeded(this.flags.componentname);
-        return launcher.launchNativeBrowser(
-            `http://10.0.2.2:3333/lwc/preview/${compPath}`
+
+        return launcher.launchNativeBrowserOrApp(
+            componentName,
+            projectDir,
+            targetApp,
+            targetAppArguments
         );
     }
 
@@ -141,12 +201,5 @@ export default class Preview extends Setup {
         await super.init();
         const logger = await Logger.child('mobile:preview', {});
         this.logger = logger;
-    }
-
-    private prefixRouteIfNeeded(compName: string): string {
-        if (compName.toLowerCase().startsWith('c/')) {
-            return compName;
-        }
-        return 'c/' + compName;
     }
 }

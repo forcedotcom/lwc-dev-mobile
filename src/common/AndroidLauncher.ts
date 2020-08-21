@@ -7,6 +7,7 @@
 import cli from 'cli-ux';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
+import { CommandLineUtils, PreviewUtils } from './Common';
 
 export class AndroidLauncher {
     private emulatorName: string;
@@ -15,7 +16,12 @@ export class AndroidLauncher {
         this.emulatorName = emulatorName;
     }
 
-    public async launchNativeBrowser(url: string): Promise<boolean> {
+    public async launchNativeBrowserOrApp(
+        compName: string,
+        projectDir: string,
+        targetApp: string,
+        targetAppArguments: string
+    ): Promise<boolean> {
         const preferredPack = await AndroidSDKUtils.findRequiredEmulatorImages();
         const emuImage = preferredPack.platformEmulatorImage || 'default';
         const androidApi = preferredPack.platformAPI;
@@ -62,8 +68,24 @@ export class AndroidLauncher {
                     stdout: true
                 });
                 await AndroidSDKUtils.pollDeviceStatus(actualPort);
-                spinner.stop('Opening Browser');
-                return AndroidSDKUtils.launchURLIntent(url, actualPort);
+
+                if (PreviewUtils.isTargetingBrowser(targetApp)) {
+                    const url = PreviewUtils.getComponentPreviewUrl(
+                        CommandLineUtils.ANDROID_FLAG,
+                        compName
+                    );
+                    spinner.stop(`Opening Browser with url ${url}`);
+                    return AndroidSDKUtils.launchURLIntent(url, actualPort);
+                } else {
+                    spinner.stop(`Launching App ${targetApp}`);
+                    return AndroidSDKUtils.launchNativeApp(
+                        compName,
+                        projectDir,
+                        targetApp,
+                        targetAppArguments,
+                        actualPort
+                    );
+                }
             })
             .catch((error) => {
                 spinner.stop('Error encountered during launch');

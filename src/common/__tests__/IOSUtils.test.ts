@@ -8,6 +8,7 @@ import childProcess from 'child_process';
 import { ActionBase } from 'cli-ux';
 import 'jest-chain';
 import 'jest-extended';
+import { CommandLineUtils, PreviewUtils } from '../Common';
 import { XcodeUtils } from '../IOSUtils';
 import { IOSMockData } from './IOSMockData';
 
@@ -201,6 +202,62 @@ describe('IOS utils tests', () => {
         );
     });
 
+    test('Should attempt to launch native app in a booted simulator and resolve.', async () => {
+        jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
+            launchCommandMock
+        );
+        const udid = 'MOCK-UDID';
+        const compName = 'mock.compName';
+        const projectDir = '/mock/path';
+        const targetApp = 'com.mock.app';
+        const targetAppArgs = 'arg1,arg2,arg3';
+        const launchArgs = PreviewUtils.getFormattedLaunchArgs(
+            CommandLineUtils.IOS_FLAG,
+            compName,
+            projectDir,
+            targetAppArgs
+        );
+        await XcodeUtils.launchAppInBootedSimulator(
+            udid,
+            compName,
+            projectDir,
+            targetApp,
+            targetAppArgs
+        );
+
+        expect(launchCommandMock).toBeCalledTimes(2);
+
+        expect(launchCommandMock).nthCalledWith(
+            1,
+            `/usr/bin/xcrun simctl terminate "${udid}" ${targetApp}`
+        );
+
+        expect(launchCommandMock).nthCalledWith(
+            2,
+            `/usr/bin/xcrun simctl launch "${udid}" ${targetApp} ${launchArgs}`
+        );
+    });
+
+    test('Should attempt to launch native app in a booted simulator and reject if error is encountered.', async () => {
+        jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
+            launchCommandThrowsMock
+        );
+        const udid = 'MOCK-UDID';
+        const compName = 'mock.compName';
+        const projectDir = '/mock/path';
+        const targetApp = 'com.mock.app';
+        const targetAppArgs = 'arg1,arg2,arg3';
+        return XcodeUtils.launchAppInBootedSimulator(
+            udid,
+            compName,
+            projectDir,
+            targetApp,
+            targetAppArgs
+        ).catch((error) => {
+            expect(error).toBeTruthy();
+        });
+    });
+
     test('Should attempt to invoke the xcrun for fetching sim runtimes and return an array of values', async () => {
         jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
             myCommandRouterBlock
@@ -281,5 +338,46 @@ describe('IOS utils tests', () => {
         expect(launchSimApp).toHaveBeenCalledBefore(bootDevice);
         expect(bootDevice).toHaveBeenCalledBefore(waitUntilReady);
         expect(waitUntilReady).toHaveBeenCalledBefore(launchURLInSim);
+    });
+
+    test('Launch Native App Invocation sequence test', async () => {
+        jest.spyOn(XcodeUtils, 'executeCommand').mockImplementation(
+            myCommandRouterBlock
+        );
+        const launchSimApp = jest
+            .fn()
+            .mockImplementation(resolvedBoolPromiseBlock);
+        const bootDevice = jest
+            .fn()
+            .mockImplementation(resolvedBoolPromiseBlock);
+        const waitUntilReady = jest
+            .fn()
+            .mockImplementation(resolvedBoolPromiseBlock);
+        const launchAppInSim = jest
+            .fn()
+            .mockImplementation(resolvedBoolPromiseBlock);
+
+        jest.spyOn(XcodeUtils, 'launchSimulatorApp').mockImplementation(
+            launchSimApp
+        );
+        jest.spyOn(XcodeUtils, 'waitUntilDeviceIsReady').mockImplementation(
+            waitUntilReady
+        );
+        jest.spyOn(XcodeUtils, 'launchAppInBootedSimulator').mockImplementation(
+            launchAppInSim
+        );
+        jest.spyOn(XcodeUtils, 'bootDevice').mockImplementation(bootDevice);
+
+        await XcodeUtils.launchNativeApp(
+            'mock.compName',
+            '/mock/path',
+            'com.mock.app',
+            'arg1,arg2,arg3',
+            'MOCK-UDID',
+            new mockSpinner()
+        );
+        expect(launchSimApp).toHaveBeenCalledBefore(bootDevice);
+        expect(bootDevice).toHaveBeenCalledBefore(waitUntilReady);
+        expect(waitUntilReady).toHaveBeenCalledBefore(launchAppInSim);
     });
 });
