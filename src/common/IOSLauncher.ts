@@ -8,7 +8,7 @@ import childProcess from 'child_process';
 import cli from 'cli-ux';
 import util from 'util';
 import { PreviewUtils } from './Common';
-import { XcodeUtils } from './IOSUtils';
+import { IOSUtils } from './IOSUtils';
 const exec = util.promisify(childProcess.exec);
 
 export class IOSLauncher {
@@ -24,9 +24,9 @@ export class IOSLauncher {
         targetApp: string,
         targetAppArguments: string
     ): Promise<boolean> {
-        const availableDevices: string[] = await XcodeUtils.getSupportedDevices();
-        const supportedRuntimes: string[] = await XcodeUtils.getSupportedRuntimes();
-        const currentSimulator = await XcodeUtils.getSimulator(
+        const availableDevices: string[] = await IOSUtils.getSupportedDevices();
+        const supportedRuntimes: string[] = await IOSUtils.getSupportedRuntimes();
+        const currentSimulator = await IOSUtils.getSimulator(
             this.simulatorName
         );
         const currentSimulatorUDID: string | null =
@@ -44,7 +44,7 @@ export class IOSLauncher {
                     stdout: true
                 }
             );
-            deviceUDID = await XcodeUtils.createNewDevice(
+            deviceUDID = await IOSUtils.createNewDevice(
                 this.simulatorName,
                 availableDevices[0],
                 supportedRuntimes[0]
@@ -62,9 +62,9 @@ export class IOSLauncher {
         if (PreviewUtils.isTargetingBrowser(targetApp)) {
             const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
             const url = `http://localhost:3333/lwc/preview/${compPath}`;
-            return XcodeUtils.openUrlInNativeBrowser(url, deviceUDID, spinner);
+            return IOSUtils.openUrlInNativeBrowser(url, deviceUDID, spinner);
         } else {
-            return XcodeUtils.launchNativeApp(
+            return IOSUtils.launchNativeApp(
                 compName,
                 projectDir,
                 targetApp,
