@@ -12,7 +12,7 @@ import { AndroidVirtualDevice } from '../../../../../../common/AndroidTypes';
 import { AndroidSDKUtils } from '../../../../../../common/AndroidUtils';
 import { CommandLineUtils } from '../../../../../../common/Common';
 import { IOSSimulatorDevice } from '../../../../../../common/IOSTypes';
-import { XcodeUtils } from '../../../../../../common/IOSUtils';
+import { IOSUtils } from '../../../../../../common/IOSUtils';
 import Setup from '../setup';
 
 // Initialize Messages with the current plugin directory
@@ -63,7 +63,7 @@ export default class List extends SfdxCommand {
     }
 
     public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
-        const result = await XcodeUtils.getSupportedSimulators();
+        const result = await IOSUtils.getSupportedSimulators();
         this.showDeviceList(result);
         return result;
     }

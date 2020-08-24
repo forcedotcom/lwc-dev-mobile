@@ -42,16 +42,19 @@ export class SetUtils {
 
 // tslint:disable-next-line: max-classes-per-file
 export class CommandLineUtils {
+    public static IOS_FLAG = 'ios';
+    public static ANDROID_FLAG = 'android';
+
     public static platformFlagIsIOS(input: string): boolean {
         if (input) {
-            return input.toLowerCase() === 'ios';
+            return input.toLowerCase() === CommandLineUtils.IOS_FLAG;
         }
         return false;
     }
 
     public static platformFlagIsAndroid(input: string): boolean {
         if (input) {
-            return input.toLowerCase() === 'android';
+            return input.toLowerCase() === CommandLineUtils.ANDROID_FLAG;
         }
         return false;
     }
@@ -61,5 +64,35 @@ export class CommandLineUtils {
             CommandLineUtils.platformFlagIsIOS(platformFlag) ||
             CommandLineUtils.platformFlagIsAndroid(platformFlag)
         );
+    }
+
+    public static resolveFlag(flag: any, defaultValue: string): string {
+        const resolvedFlag = flag as string;
+        if (resolvedFlag && resolvedFlag.length > 0) {
+            return resolvedFlag;
+        } else {
+            return defaultValue;
+        }
+    }
+}
+
+// tslint:disable-next-line: max-classes-per-file
+export class PreviewUtils {
+    public static BROWSER_TARGET_APP = 'browser';
+    public static CUSTOM_ARGS_PREFIX = 'customargs';
+    public static COMPONENT_NAME_ARG_PREFIX = 'componentname';
+    public static PROJECT_DIR_ARG_PREFIX = 'projectdir';
+
+    public static isTargetingBrowser(targetApp: string): boolean {
+        return (
+            targetApp.trim().toLowerCase() === PreviewUtils.BROWSER_TARGET_APP
+        );
+    }
+
+    public static prefixRouteIfNeeded(compName: string): string {
+        if (compName.toLowerCase().startsWith('c/')) {
+            return compName;
+        }
+        return 'c/' + compName;
     }
 }
