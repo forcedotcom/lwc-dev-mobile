@@ -8,7 +8,7 @@ import childProcess from 'child_process';
 import { ActionBase } from 'cli-ux';
 import 'jest-chain';
 import 'jest-extended';
-import { CommandLineUtils, PreviewUtils } from '../Common';
+import { PreviewUtils } from '../Common';
 import { XcodeUtils } from '../IOSUtils';
 import { IOSMockData } from './IOSMockData';
 
@@ -211,12 +211,11 @@ describe('IOS utils tests', () => {
         const projectDir = '/mock/path';
         const targetApp = 'com.mock.app';
         const targetAppArgs = 'arg1,arg2,arg3';
-        const launchArgs = PreviewUtils.getFormattedLaunchArgs(
-            CommandLineUtils.IOS_FLAG,
-            compName,
-            projectDir,
-            targetAppArgs
-        );
+        const launchArgs =
+            `${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}=${compName}` +
+            ` ${PreviewUtils.PROJECT_DIR_ARG_PREFIX}=${projectDir}` +
+            ` ${PreviewUtils.CUSTOM_ARGS_PREFIX}=${targetAppArgs}`;
+
         await XcodeUtils.launchAppInBootedSimulator(
             udid,
             compName,

@@ -7,7 +7,7 @@
 import cli from 'cli-ux';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
-import { CommandLineUtils, PreviewUtils } from './Common';
+import { PreviewUtils } from './Common';
 
 export class AndroidLauncher {
     private emulatorName: string;
@@ -16,7 +16,7 @@ export class AndroidLauncher {
         this.emulatorName = emulatorName;
     }
 
-    public async launchNativeBrowserOrApp(
+    public async launchPreview(
         compName: string,
         projectDir: string,
         targetApp: string,
@@ -70,10 +70,8 @@ export class AndroidLauncher {
                 await AndroidSDKUtils.pollDeviceStatus(actualPort);
 
                 if (PreviewUtils.isTargetingBrowser(targetApp)) {
-                    const url = PreviewUtils.getComponentPreviewUrl(
-                        CommandLineUtils.ANDROID_FLAG,
-                        compName
-                    );
+                    const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
+                    const url = `http://10.0.2.2:3333/lwc/preview/${compPath}`;
                     spinner.stop(`Opening Browser with url ${url}`);
                     return AndroidSDKUtils.launchURLIntent(url, actualPort);
                 } else {

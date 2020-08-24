@@ -9,7 +9,7 @@ import childProcess from 'child_process';
 import cli from 'cli-ux';
 import util from 'util';
 import iOSConfig from '../config/iosconfig.json';
-import { CommandLineUtils, PreviewUtils } from './Common';
+import { PreviewUtils } from './Common';
 import { IOSSimulatorDevice } from './IOSTypes';
 
 const exec = util.promisify(childProcess.exec);
@@ -277,12 +277,12 @@ export class XcodeUtils {
         targetApp: string,
         targetAppArguments: string
     ): Promise<boolean> {
-        const launchArgs = PreviewUtils.getFormattedLaunchArgs(
-            CommandLineUtils.IOS_FLAG,
-            compName,
-            projectDir,
-            targetAppArguments
-        );
+        let launchArgs =
+            `${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}=${compName}` +
+            ` ${PreviewUtils.PROJECT_DIR_ARG_PREFIX}=${projectDir}`;
+        if (targetAppArguments.length > 0) {
+            launchArgs += ` ${PreviewUtils.CUSTOM_ARGS_PREFIX}=${targetAppArguments}`;
+        }
 
         const terminateCommand = `${XCRUN_CMD} simctl terminate "${udid}" ${targetApp}`;
         const launchCommand = `${XCRUN_CMD} simctl launch "${udid}" ${targetApp} ${launchArgs}`;

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import { flags, SfdxCommand } from '@salesforce/command';
+import { flags } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { AndroidLauncher } from '../../../../../common/AndroidLauncher';
 import { CommandLineUtils, PreviewUtils } from '../../../../../common/Common';
@@ -149,14 +149,14 @@ export default class Preview extends Setup {
 
         const projectDir = CommandLineUtils.resolveFlag(
             this.flags.projectdir,
-            __dirname
+            process.cwd()
         );
 
         const componentName = this.flags.componentname;
 
         const launcher = new IOSLauncher(simName);
 
-        return launcher.launchNativeBrowserOrApp(
+        return launcher.launchPreview(
             componentName,
             projectDir,
             targetApp,
@@ -182,14 +182,14 @@ export default class Preview extends Setup {
 
         const projectDir = CommandLineUtils.resolveFlag(
             this.flags.projectdir,
-            __dirname
+            process.cwd()
         );
 
         const componentName = this.flags.componentname;
 
         const launcher = new AndroidLauncher(emulatorName);
 
-        return launcher.launchNativeBrowserOrApp(
+        return launcher.launchPreview(
             componentName,
             projectDir,
             targetApp,

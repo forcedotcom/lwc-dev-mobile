@@ -7,7 +7,7 @@
 import childProcess from 'child_process';
 import cli from 'cli-ux';
 import util from 'util';
-import { CommandLineUtils, PreviewUtils } from './Common';
+import { PreviewUtils } from './Common';
 import { XcodeUtils } from './IOSUtils';
 const exec = util.promisify(childProcess.exec);
 
@@ -18,7 +18,7 @@ export class IOSLauncher {
         this.simulatorName = simulatorName;
     }
 
-    public async launchNativeBrowserOrApp(
+    public async launchPreview(
         compName: string,
         projectDir: string,
         targetApp: string,
@@ -60,10 +60,8 @@ export class IOSLauncher {
         }
 
         if (PreviewUtils.isTargetingBrowser(targetApp)) {
-            const url = PreviewUtils.getComponentPreviewUrl(
-                CommandLineUtils.IOS_FLAG,
-                compName
-            );
+            const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
+            const url = `http://localhost:3333/lwc/preview/${compPath}`;
             return XcodeUtils.openUrlInNativeBrowser(url, deviceUDID, spinner);
         } else {
             return XcodeUtils.launchNativeApp(

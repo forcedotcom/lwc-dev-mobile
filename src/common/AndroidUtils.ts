@@ -11,7 +11,7 @@ import os from 'os';
 import path from 'path';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidPackage, AndroidVirtualDevice } from './AndroidTypes';
-import { CommandLineUtils, MapUtils, PreviewUtils } from './Common';
+import { MapUtils, PreviewUtils } from './Common';
 import { CommonUtils } from './CommonUtils';
 
 const execSync = childProcess.execSync;
@@ -563,12 +563,12 @@ export class AndroidSDKUtils {
                 getLauncherActivityCommand
             ).trim();
 
-            const launchArgs = PreviewUtils.getFormattedLaunchArgs(
-                CommandLineUtils.ANDROID_FLAG,
-                compName,
-                projectDir,
-                targetAppArguments
-            );
+            let launchArgs =
+                `--es "${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}" "${compName}"` +
+                ` --es "${PreviewUtils.PROJECT_DIR_ARG_PREFIX}" "${projectDir}"`;
+            if (targetAppArguments.length > 0) {
+                launchArgs += ` --es "${PreviewUtils.CUSTOM_ARGS_PREFIX}" "${targetAppArguments}"`;
+            }
 
             const launchCommand =
                 `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${emulatorPort}` +

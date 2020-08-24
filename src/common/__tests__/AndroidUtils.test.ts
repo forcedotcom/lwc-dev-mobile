@@ -9,7 +9,7 @@ const MOCK_ANDROID_HOME = '/mock-android-home';
 process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 import fs from 'fs';
 import { AndroidSDKUtils } from '../AndroidUtils';
-import { CommandLineUtils, PreviewUtils } from '../Common';
+import { PreviewUtils } from '../Common';
 import { AndroidMockData } from './AndroidMockData';
 
 const myGenericVersionsCommandBlockMock = jest.fn((): string => {
@@ -359,12 +359,10 @@ describe('Android utils', () => {
         const targetApp = 'com.mock.app';
         const targetAppArgs = 'arg1,arg2,arg3';
         const port = 1234;
-        const launchArgs = PreviewUtils.getFormattedLaunchArgs(
-            CommandLineUtils.ANDROID_FLAG,
-            compName,
-            projectDir,
-            targetAppArgs
-        );
+        const launchArgs =
+            `--es "${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}" "${compName}"` +
+            ` --es "${PreviewUtils.PROJECT_DIR_ARG_PREFIX}" "${projectDir}"` +
+            ` --es "${PreviewUtils.CUSTOM_ARGS_PREFIX}" "${targetAppArgs}"`;
 
         const mockCmd = jest.fn((): string => {
             return `${targetApp}/.MainActivity`;
