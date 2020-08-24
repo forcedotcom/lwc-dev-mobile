@@ -240,34 +240,6 @@ export class IOSUtils {
         }
     }
 
-    public static async openUrlInNativeBrowser(
-        url: string,
-        udid: string,
-        spinner: typeof cli.action
-    ): Promise<boolean> {
-        return IOSUtils.launchSimulatorApp()
-            .then(() => {
-                spinner.start(`Launching`, `Starting device ${udid}`, {
-                    stdout: true
-                });
-                return IOSUtils.bootDevice(udid);
-            })
-            .then(() => {
-                spinner.start(
-                    `Launching`,
-                    `Waiting for device ${udid} to boot`,
-                    {
-                        stdout: true
-                    }
-                );
-                return this.waitUntilDeviceIsReady(udid);
-            })
-            .then(() => {
-                spinner.stop(`Opening Browser with url ${url}`);
-                return this.launchURLInBootedSimulator(udid, url);
-            });
-    }
-
     public static async launchAppInBootedSimulator(
         udid: string,
         compName: string,
@@ -305,43 +277,6 @@ export class IOSUtils {
                 );
             });
         }
-    }
-
-    public static async launchNativeApp(
-        compName: string,
-        compPath: string,
-        targetApp: string,
-        targetAppArguments: string,
-        udid: string,
-        spinner: typeof cli.action
-    ): Promise<boolean> {
-        return IOSUtils.launchSimulatorApp()
-            .then(() => {
-                spinner.start(`Launching`, `Starting device ${udid}`, {
-                    stdout: true
-                });
-                return IOSUtils.bootDevice(udid);
-            })
-            .then(() => {
-                spinner.start(
-                    `Launching`,
-                    `Waiting for device ${udid} to boot`,
-                    {
-                        stdout: true
-                    }
-                );
-                return this.waitUntilDeviceIsReady(udid);
-            })
-            .then(() => {
-                spinner.stop(`Launching App ${targetApp}`);
-                return this.launchAppInBootedSimulator(
-                    udid,
-                    compName,
-                    compPath,
-                    targetApp,
-                    targetAppArguments
-                );
-            });
     }
 
     private static logger: Logger = new Logger('force:lightning:mobile:ios');

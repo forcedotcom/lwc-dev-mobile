@@ -59,20 +59,42 @@ export class IOSLauncher {
             deviceUDID = currentSimulatorUDID;
         }
 
-        if (PreviewUtils.isTargetingBrowser(targetApp)) {
-            const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
-            const url = `http://localhost:3333/lwc/preview/${compPath}`;
-            return IOSUtils.openUrlInNativeBrowser(url, deviceUDID, spinner);
-        } else {
-            return IOSUtils.launchNativeApp(
-                compName,
-                projectDir,
-                targetApp,
-                targetAppArguments,
-                deviceUDID,
-                spinner
-            );
-        }
+        return IOSUtils.launchSimulatorApp()
+            .then(() => {
+                spinner.start(`Launching`, `Starting device ${deviceUDID}`, {
+                    stdout: true
+                });
+                return IOSUtils.bootDevice(deviceUDID);
+            })
+            .then(() => {
+                spinner.start(
+                    `Launching`,
+                    `Waiting for device ${deviceUDID} to boot`,
+                    {
+                        stdout: true
+                    }
+                );
+                return IOSUtils.waitUntilDeviceIsReady(deviceUDID);
+            })
+            .then(() => {
+                if (PreviewUtils.isTargetingBrowser(targetApp)) {
+                    const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
+                    const url = `http://localhost:3333/lwc/preview/${compPath}`;
+                    return IOSUtils.launchURLInBootedSimulator(deviceUDID, url);
+                } else {
+                    return IOSUtils.launchAppInBootedSimulator(
+                        deviceUDID,
+                        compName,
+                        projectDir,
+                        targetApp,
+                        targetAppArguments
+                    );
+                }
+            })
+            .catch((error) => {
+                spinner.stop('Error encountered during launch');
+                throw error;
+            });
     }
 }
 
