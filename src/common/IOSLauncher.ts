@@ -7,8 +7,8 @@
 import childProcess from 'child_process';
 import cli from 'cli-ux';
 import util from 'util';
-import { PreviewUtils } from './Common';
 import { IOSUtils } from './IOSUtils';
+import { PreviewUtils } from './PreviewUtils';
 const exec = util.promisify(childProcess.exec);
 
 export class IOSLauncher {
@@ -22,7 +22,7 @@ export class IOSLauncher {
         compName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: string
+        targetAppArguments: Map<string, string>
     ): Promise<boolean> {
         const availableDevices: string[] = await IOSUtils.getSupportedDevices();
         const supportedRuntimes: string[] = await IOSUtils.getSupportedRuntimes();

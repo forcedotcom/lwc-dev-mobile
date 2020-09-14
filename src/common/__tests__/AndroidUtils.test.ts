@@ -9,7 +9,7 @@ const MOCK_ANDROID_HOME = '/mock-android-home';
 process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 import fs from 'fs';
 import { AndroidSDKUtils } from '../AndroidUtils';
-import { PreviewUtils } from '../Common';
+import { PreviewUtils } from '../PreviewUtils';
 import { AndroidMockData } from './AndroidMockData';
 
 const myGenericVersionsCommandBlockMock = jest.fn((): string => {
@@ -357,12 +357,16 @@ describe('Android utils', () => {
         const compName = 'mock.compName';
         const projectDir = '/mock/path';
         const targetApp = 'com.mock.app';
-        const targetAppArgs = 'arg1,arg2,arg3';
+        const targetActivity = '.MainActivity';
+        const targetAppArgs = new Map([
+            ['arg1', 'val1'],
+            ['arg2', 'val2']
+        ]);
         const port = 1234;
         const launchArgs =
             `--es "${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}" "${compName}"` +
             ` --es "${PreviewUtils.PROJECT_DIR_ARG_PREFIX}" "${projectDir}"` +
-            ` --es "${PreviewUtils.CUSTOM_ARGS_PREFIX}" "${targetAppArgs}"`;
+            ` --es "arg1" "val1" --es "arg2" "val2"`;
 
         const mockCmd = jest.fn((): string => {
             return `${targetApp}/.MainActivity`;
@@ -377,21 +381,15 @@ describe('Android utils', () => {
             projectDir,
             targetApp,
             targetAppArgs,
+            targetActivity,
             port
         );
 
-        expect(mockCmd).toBeCalledTimes(2);
-
+        expect(mockCmd).toBeCalledTimes(1);
         expect(mockCmd).nthCalledWith(
             1,
             `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${port}` +
-                ` shell cmd package resolve-activity --brief -c android.intent.category.LAUNCHER ${targetApp} | tail -1`
-        );
-
-        expect(mockCmd).nthCalledWith(
-            2,
-            `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${port}` +
-                ` shell am start -S -n "${targetApp}/.MainActivity"` +
+                ` shell am start -S -n "${targetApp}/${targetActivity}"` +
                 ' -a android.intent.action.MAIN' +
                 ' -c android.intent.category.LAUNCHER' +
                 ` ${launchArgs}`
@@ -405,13 +403,18 @@ describe('Android utils', () => {
         const compName = 'mock.compName';
         const projectDir = '/mock/path';
         const targetApp = 'com.mock.app';
-        const targetAppArgs = 'arg1,arg2,arg3';
+        const targetActivity = '.MainActivity';
+        const targetAppArgs = new Map([
+            ['arg1', 'val1'],
+            ['arg2', 'val2']
+        ]);
         const port = 1234;
         return AndroidSDKUtils.launchNativeApp(
             compName,
             projectDir,
             targetApp,
             targetAppArgs,
+            targetActivity,
             port
         ).catch((error) => {
             expect(error).toBeTruthy();

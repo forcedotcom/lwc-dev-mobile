@@ -3,8 +3,12 @@
     "platformFlagDescription": "Specify platform ('iOS' or 'Android').",
     "targetFlagDescription": "Specify name of target simulator or emulator.",
     "targetAppFlagDescription": "Identifies the target app. Defaults to the browser app.",
-    "targetAppArgumentsFlagDescription": "Comma separated values defining extra arguments to be passed to the target app.",
+    "configHelpFlagDescription": "Displays the format of the preview config file.",
+    "configFileFlagDescription": "Extended configuration options for preview. Note: this is required for previewing against a mobile app, as apps require extended configuration.",
     "componentnameFlagDescription": "Component name.",
     "projectDirFlagDescription": "Path to the root of the component project. Defaults to the current working directory.",
-    "error:invalidInputFlagsDescription": "Invalid input values for flags."
+    "ignoringConfigFileFlagDescription": "Configuration file will be ignored when target app is browser.",
+    "error:invalidInputFlagsDescription": "Invalid input values for flags.",
+    "error:invalidConfigFile:genericDescription": "Invalid configuration file: %s",
+    "error:invalidConfigFile:missingAppConfigDescription": "No configuration found for %s for platform %s"
  }

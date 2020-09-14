@@ -7,7 +7,7 @@
 import cli from 'cli-ux';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
-import { PreviewUtils } from './Common';
+import { PreviewUtils } from './PreviewUtils';
 
 export class AndroidLauncher {
     private emulatorName: string;
@@ -20,7 +20,8 @@ export class AndroidLauncher {
         compName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: string
+        targetAppArguments: Map<string, string>,
+        launchActivity: string
     ): Promise<boolean> {
         const preferredPack = await AndroidSDKUtils.findRequiredEmulatorImages();
         const emuImage = preferredPack.platformEmulatorImage || 'default';
@@ -81,6 +82,7 @@ export class AndroidLauncher {
                         projectDir,
                         targetApp,
                         targetAppArguments,
+                        launchActivity,
                         actualPort
                     );
                 }

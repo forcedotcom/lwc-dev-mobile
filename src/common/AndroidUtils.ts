@@ -11,8 +11,9 @@ import os from 'os';
 import path from 'path';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidPackage, AndroidVirtualDevice } from './AndroidTypes';
-import { MapUtils, PreviewUtils } from './Common';
+import { MapUtils } from './Common';
 import { CommonUtils } from './CommonUtils';
+import { PreviewUtils } from './PreviewUtils';
 
 const execSync = childProcess.execSync;
 const spawn = childProcess.spawn;
@@ -551,28 +552,22 @@ export class AndroidSDKUtils {
         compName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: string,
+        targetAppArguments: Map<string, string>,
+        launchActivity: string,
         emulatorPort: number
     ): Promise<boolean> {
-        const getLauncherActivityCommand =
-            `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${emulatorPort}` +
-            ` shell cmd package resolve-activity --brief -c android.intent.category.LAUNCHER ${targetApp} | tail -1`;
-
         try {
-            const appAndLauncherActivity = AndroidSDKUtils.executeCommand(
-                getLauncherActivityCommand
-            ).trim();
-
             let launchArgs =
                 `--es "${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}" "${compName}"` +
                 ` --es "${PreviewUtils.PROJECT_DIR_ARG_PREFIX}" "${projectDir}"`;
-            if (targetAppArguments.length > 0) {
-                launchArgs += ` --es "${PreviewUtils.CUSTOM_ARGS_PREFIX}" "${targetAppArguments}"`;
-            }
+
+            targetAppArguments.forEach((value: string, key: string) => {
+                launchArgs += ` --es "${key}" "${value}"`;
+            });
 
             const launchCommand =
                 `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${emulatorPort}` +
-                ` shell am start -S -n "${appAndLauncherActivity}"` +
+                ` shell am start -S -n "${targetApp}/${launchActivity}"` +
                 ' -a android.intent.action.MAIN' +
                 ' -c android.intent.category.LAUNCHER' +
                 ` ${launchArgs}`;
