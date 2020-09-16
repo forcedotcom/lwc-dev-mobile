@@ -8,6 +8,7 @@ const ORIG_ANDROID_HOME = process.env.ANDROID_HOME;
 const MOCK_ANDROID_HOME = '/mock-android-home';
 process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 import fs from 'fs';
+import path from 'path';
 import { AndroidSDKUtils } from '../AndroidUtils';
 import { PreviewUtils } from '../PreviewUtils';
 import { AndroidMockData } from './AndroidMockData';
@@ -40,6 +41,9 @@ const launchCommandThrowsMock = jest.fn((): string => {
     throw new Error(' Mock Error');
 });
 
+const sdkCommand = path.normalize(MOCK_ANDROID_HOME + '/tools/bin/sdkmanager');
+const adbCommand = path.normalize(MOCK_ANDROID_HOME + '/platform-tools/adb');
+
 let readFileSpy: jest.SpyInstance<any>;
 let writeFileSpy: jest.SpyInstance<any>;
 
@@ -68,10 +72,11 @@ describe('Android utils', () => {
         await AndroidSDKUtils.androidSDKPrerequisitesCheck();
         expect(
             myGenericVersionsCommandBlockMock
-        ).toHaveBeenCalledWith(
-            MOCK_ANDROID_HOME + '/tools/bin/sdkmanager --version',
-            ['ignore', 'pipe', 'pipe']
-        );
+        ).toHaveBeenCalledWith(`${sdkCommand} --version`, [
+            'ignore',
+            'pipe',
+            'pipe'
+        ]);
     });
 
     test('Should attempt to look for android sdk tools (sdkmanager)', async () => {
@@ -81,10 +86,11 @@ describe('Android utils', () => {
         await AndroidSDKUtils.fetchAndroidSDKToolsLocation();
         expect(
             myGenericVersionsCommandBlockMock
-        ).toHaveBeenCalledWith(
-            MOCK_ANDROID_HOME + '/tools/bin/sdkmanager --version',
-            ['ignore', 'pipe', 'ignore']
-        );
+        ).toHaveBeenCalledWith(`${sdkCommand} --version`, [
+            'ignore',
+            'pipe',
+            'ignore'
+        ]);
     });
 
     test('Should attempt to look for android sdk tools (sdkmanager)', async () => {
@@ -102,7 +108,7 @@ describe('Android utils', () => {
         );
         await AndroidSDKUtils.fetchAndroidSDKPlatformToolsLocation();
         expect(myGenericVersionsCommandBlockMock).toHaveBeenCalledWith(
-            MOCK_ANDROID_HOME + '/platform-tools/adb --version'
+            `${adbCommand} --version`
         );
     });
 
@@ -122,9 +128,7 @@ describe('Android utils', () => {
             myCommandBlockMock
         );
         await AndroidSDKUtils.fetchInstalledPackages();
-        expect(myCommandBlockMock).toHaveBeenCalledWith(
-            MOCK_ANDROID_HOME + '/tools/bin/sdkmanager --list'
-        );
+        expect(myCommandBlockMock).toHaveBeenCalledWith(`${sdkCommand} --list`);
     });
 
     test('Should attempt to invoke the sdkmanager and get installed packages', async () => {
