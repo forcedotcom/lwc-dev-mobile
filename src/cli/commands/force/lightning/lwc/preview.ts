@@ -238,7 +238,7 @@ export default class Preview extends Setup {
         const appConfig = configFile.getAppConfig(platform, targetApp);
 
         const launchArgs: Map<string, string> =
-            appConfig?.launch_arguments || new Map();
+            (appConfig && appConfig.launch_arguments) || new Map();
 
         if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
             return this.launchIOS(
