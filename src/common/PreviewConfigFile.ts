@@ -16,18 +16,20 @@ export class PreviewConfigFile {
         platform: string,
         targetApp: string
     ): IOSAppPreviewConfig | AndroidAppPreviewConfig | undefined {
-        const platformConfigs = CommandLineUtils.platformFlagIsIOS(platform)
-            ? this.apps.ios
-            : this.apps.android;
+        const appConfigs = CommandLineUtils.platformFlagIsIOS(platform)
+            ? this.apps.ios || []
+            : this.apps.android || [];
 
-        const appConfig =
-            platformConfigs?.filter((app) => app.id === targetApp) || [];
+        let config;
 
-        if (appConfig.length === 0) {
-            return undefined;
-        } else {
-            return appConfig[0];
-        }
+        appConfigs.forEach((appConfig) => {
+            if (appConfig.id === targetApp) {
+                config = appConfig;
+                return;
+            }
+        });
+
+        return config;
     }
 }
 
