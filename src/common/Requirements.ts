@@ -4,10 +4,14 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import { Logger, LoggerLevel } from '@salesforce/core';
+import { Logger, LoggerLevel, Messages } from '@salesforce/core';
 import chalk from 'chalk';
 import cli from 'cli-ux';
+import { CommonUtils } from './CommonUtils';
 export type CheckRequirementsFunc = () => Promise<string>;
+
+// Initialize Messages with the current plugin directory
+Messages.importMessagesDirectory(__dirname);
 
 export interface Requirement {
     title: string;
@@ -53,12 +57,34 @@ export function WrappedPromise(promise: Promise<any>) {
 export abstract class BaseSetup implements RequirementList {
     public requirements: Requirement[];
     protected logger: Logger;
+    protected setupMessages = Messages.loadMessages(
+        '@salesforce/lwc-dev-mobile',
+        'setup'
+    );
+    // NOTE: The following properties are just place holders to help with typescript compile.
+    protected title: string = '';
+    protected fulfilledMessage: string = '';
+    protected unfulfilledMessage: string = '';
 
     constructor(logger: Logger) {
-        this.requirements = [];
+        const messages = this.setupMessages;
         this.logger = logger;
+        this.requirements = [
+            {
+                checkFunction: this.isLWCServerPluginInstalled,
+                fulfilledMessage: `${messages.getMessage(
+                    'common:reqs:serverplugin:fulfilledMessage'
+                )}`,
+                logger,
+                title: `${messages.getMessage(
+                    'common:reqs:serverplugin:title'
+                )}`,
+                unfulfilledMessage: `${messages.getMessage(
+                    'common:reqs:serverplugin:unfulfilledMessage'
+                )}`
+            }
+        ];
     }
-
     public async executeSetup(): Promise<SetupTestResult> {
         const allPromises: Array<Promise<any>> = [];
         this.requirements.forEach((requirement) =>
@@ -108,5 +134,23 @@ export abstract class BaseSetup implements RequirementList {
             tree.display();
             return Promise.resolve(testResult);
         });
+    }
+
+    public async isLWCServerPluginInstalled(): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            CommonUtils.isLwcServerPluginInstalled()
+                .then((result) => {
+                    resolve(this.fulfilledMessage);
+                })
+                .catch((error) => {
+                    reject(new Error(this.unfulfilledMessage));
+                });
+        });
+    }
+
+    protected addRequirements(reqs: Requirement[]) {
+        if (reqs) {
+            this.requirements = this.requirements.concat(reqs);
+        }
     }
 }

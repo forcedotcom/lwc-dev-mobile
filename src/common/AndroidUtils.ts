@@ -9,10 +9,10 @@ import * as childProcess from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import shell from 'shelljs';
 import androidConfig from '../config/androidconfig.json';
-import { AndroidPackage } from './AndroidTypes';
+import { AndroidPackage, AndroidVirtualDevice } from './AndroidTypes';
 import { MapUtils } from './Common';
+import { CommonUtils } from './CommonUtils';
 
 const execSync = childProcess.execSync;
 const spawn = childProcess.spawn;
@@ -22,6 +22,8 @@ export class AndroidSDKUtils {
     static get androidHome(): string {
         return process.env.ANDROID_HOME ? process.env.ANDROID_HOME.trim() : '';
     }
+    public static USER_HOME =
+        process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
     public static WINDOWS_OS = 'win32';
     public static ANDROID_SDK_MANAGER_NAME = 'sdkmanager';
     public static ANDROID_AVD_MANAGER_NAME = 'avdmanager';
@@ -52,7 +54,7 @@ export class AndroidSDKUtils {
     );
 
     public static AVDMANAGER_COMMAND = path.join(
-        AndroidSDKUtils.ANDROID_TOOLS_BIN,
+        AndroidSDKUtils.getToolsBin(),
         AndroidSDKUtils.ANDROID_AVD_MANAGER_NAME
     );
 
@@ -62,7 +64,7 @@ export class AndroidSDKUtils {
     );
 
     public static ANDROID_SDK_MANAGER_CMD = path.join(
-        AndroidSDKUtils.ANDROID_TOOLS_BIN,
+        AndroidSDKUtils.getToolsBin(),
         AndroidSDKUtils.ANDROID_SDK_MANAGER_NAME
     );
 
@@ -87,9 +89,7 @@ export class AndroidSDKUtils {
         command: string,
         stdioOptions: StdioOptions = ['ignore', 'pipe', 'ignore']
     ): string {
-        return execSync(command, {
-            stdio: stdioOptions
-        }).toString();
+        return CommonUtils.executeCommand(command, stdioOptions).toString();
     }
 
     public static isAndroidHomeSet(): boolean {
@@ -137,8 +137,7 @@ export class AndroidSDKUtils {
                         reject(
                             new Error(
                                 'SDK Manager not found. Expected at ' +
-                                    AndroidSDKUtils.getSDKManagerCmd() +
-                                    '.'
+                                    AndroidSDKUtils.ANDROID_SDK_MANAGER_CMD
                             )
                         );
                     }
@@ -157,7 +156,7 @@ export class AndroidSDKUtils {
             }
             try {
                 AndroidSDKUtils.executeCommand(
-                    `${AndroidSDKUtils.getSDKManagerCmd()} --version`,
+                    `${AndroidSDKUtils.ANDROID_SDK_MANAGER_CMD} --version`,
                     stdioOptions
                 );
                 resolve(AndroidSDKUtils.getToolsBin());
@@ -197,7 +196,7 @@ export class AndroidSDKUtils {
             if (!AndroidSDKUtils.isCached()) {
                 try {
                     const stdout = AndroidSDKUtils.executeCommand(
-                        `${AndroidSDKUtils.getSDKManagerCmd()} --list`
+                        `${AndroidSDKUtils.ANDROID_SDK_MANAGER_CMD} --list`
                     );
                     if (stdout) {
                         const packages = AndroidPackage.parseRawPackagesString(
@@ -210,6 +209,25 @@ export class AndroidSDKUtils {
                 }
             }
             resolve(AndroidSDKUtils.packageCache);
+        });
+    }
+
+    public static fetchEmulators(): Promise<AndroidVirtualDevice[]> {
+        return new Promise((resolve, reject) => {
+            let devices: AndroidVirtualDevice[] = [];
+            try {
+                const result = execSync(
+                    AndroidSDKUtils.AVDMANAGER_COMMAND + ' list avd'
+                );
+                if (result) {
+                    devices = AndroidVirtualDevice.parseRawString(
+                        result.toString()
+                    );
+                }
+            } catch (exception) {
+                AndroidSDKUtils.logger.warn(exception);
+            }
+            return resolve(devices);
         });
     }
 
@@ -417,7 +435,9 @@ export class AndroidSDKUtils {
         device: string,
         abi: string
     ): Promise<boolean> {
-        const createAvdCommand = `${AndroidSDKUtils.getAVDManagerCmd()} create avd -n ${emulatorName} --force -k ${this.systemImagePath(
+        const createAvdCommand = `${
+            AndroidSDKUtils.AVDMANAGER_COMMAND
+        } create avd -n ${emulatorName} --force -k ${this.systemImagePath(
             platformAPI,
             emulatorimage,
             abi
@@ -442,7 +462,7 @@ export class AndroidSDKUtils {
                 reject(error);
             }
         }).then((resolve) =>
-            AndroidSDKUtils.enableHWKeyboardForEmulator(emulatorName)
+            AndroidSDKUtils.updateEmulatorConfig(emulatorName)
         );
     }
 
@@ -533,10 +553,8 @@ export class AndroidSDKUtils {
     ): number {
         // if config file does not exist, its created but not launched so use the requestedPortNumber
         // else we will read it from emu-launch-params.txt file.
-        const userHome =
-            process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
         const launchFileName = path.join(
-            `${userHome}`,
+            `${AndroidSDKUtils.USER_HOME}`,
             '.android',
             'avd',
             `${emulatorName}.avd`,
@@ -571,6 +589,46 @@ export class AndroidSDKUtils {
         return adjustedPort;
     }
 
+    // This method is public for testing purposes.
+    public static updateEmulatorConfig(emulatorName: string): Promise<boolean> {
+        return new Promise(async (resolve, reject) => {
+            const config = await AndroidSDKUtils.readEmulatorConfig(
+                emulatorName
+            );
+            if (config.size === 0) {
+                // If we cannot edit the AVD config, fail silently.
+                // This will be a degraded experience but should still work.
+                resolve(true);
+                return;
+            }
+
+            // Utilize hardware.
+            config.set('hw.keyboard', 'yes');
+            config.set('hw.gpu.mode', 'auto');
+            config.set('hw.gpu.enabled', 'yes');
+
+            // Give emulator the appropriate skin.
+            let skinName = config.get('hw.device.name') || '';
+            if (skinName) {
+                if (skinName === 'pixel') {
+                    skinName = 'pixel_silver';
+                } else if (skinName === 'pixel_xl') {
+                    skinName = 'pixel_xl_silver';
+                }
+                config.set('skin.name', skinName);
+                config.set(
+                    'skin.path',
+                    `${AndroidSDKUtils.ANDROID_HOME}/skins/${skinName}`
+                );
+                config.set('skin.dynamic', 'yes');
+                config.set('showDeviceFrame', 'yes');
+            }
+
+            AndroidSDKUtils.writeEmulatorConfig(emulatorName, config);
+            resolve(true);
+        });
+    }
+
     private static logger: Logger = new Logger(
         'force:lightning:mobile:android'
     );
@@ -588,22 +646,6 @@ export class AndroidSDKUtils {
         return toolsLocation;
     }
 
-    private static getSDKManagerCmd(): string {
-        const toolsLocation = this.getToolsBin();
-        return path.join(
-            toolsLocation,
-            AndroidSDKUtils.ANDROID_SDK_MANAGER_NAME
-        );
-    }
-
-    private static getAVDManagerCmd(): string {
-        const toolsLocation = this.getToolsBin();
-        return path.join(
-            toolsLocation,
-            AndroidSDKUtils.ANDROID_AVD_MANAGER_NAME
-        );
-    }
-
     private static systemImagePath(
         platformAPI: string,
         emuImage: string,
@@ -614,21 +656,6 @@ export class AndroidSDKUtils {
             return pathName;
         }
         return `'${pathName}'`;
-    }
-
-    private static enableHWKeyboardForEmulator(
-        emulatorName: string
-    ): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            try {
-                shell
-                    .echo('hw.keyboard=yes')
-                    .toEnd(`~/.android/avd/${emulatorName}.avd/config.ini`);
-                resolve(true);
-            } catch (error) {
-                reject(error);
-            }
-        });
     }
 
     private static async fetchInstalledSystemImages(
@@ -645,11 +672,9 @@ export class AndroidSDKUtils {
     }
 
     private static isEmulatorAlreadyStarted(emulatorName: string): boolean {
-        const userHome =
-            process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
         // ram.img.dirty is a one byte file created when avd is started and removed when avd is stopped.
         const launchFileName = path.join(
-            `${userHome}`,
+            `${AndroidSDKUtils.USER_HOME}`,
             '.android',
             'avd',
             `${emulatorName}.avd`,
@@ -670,6 +695,54 @@ export class AndroidSDKUtils {
             const child = spawn(command, { shell: true, detached: true });
             child.unref();
             return child;
+        }
+    }
+
+    private static async readEmulatorConfig(
+        emulatorName: string
+    ): Promise<Map<string, string>> {
+        const filePath =
+            AndroidSDKUtils.USER_HOME +
+            `/.android/avd/${emulatorName}.avd/config.ini`;
+        try {
+            const configFile = fs.readFileSync(filePath, 'utf8');
+            const configMap = new Map();
+            for (const line of configFile.split('\n')) {
+                const config = line.split('=');
+                if (config.length > 1) {
+                    configMap.set(config[0], config[1]);
+                }
+            }
+
+            return configMap;
+        } catch (error) {
+            AndroidSDKUtils.logger.warn(
+                'Unable to read emulator config at: ' + filePath
+            );
+            return new Map<string, string>();
+        }
+    }
+
+    private static writeEmulatorConfig(
+        emulatorName: string,
+        config: Map<string, string>
+    ): void {
+        let configString = '';
+        // This looks wrong, but the callback signature of forEach is function(value,key,map).
+        config.forEach((value, key) => {
+            configString += key + '=' + value + '\n';
+        });
+        const filePath =
+            AndroidSDKUtils.USER_HOME +
+            `/.android/avd/${emulatorName}.avd/config.ini`;
+        try {
+            fs.writeFileSync(filePath, configString, 'utf8');
+        } catch (error) {
+            // If we cannot edit the AVD config, fail silently.
+            // This will be a degraded experience but should still work.
+            AndroidSDKUtils.logger.warn(
+                'Unable to write emulator config at: ' + filePath
+            );
         }
     }
 }

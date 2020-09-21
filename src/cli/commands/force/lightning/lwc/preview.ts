@@ -9,6 +9,7 @@ import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { AndroidLauncher } from '../../../../../common/AndroidLauncher';
 import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
+import { SetupTestResult } from '../../../../../common/Requirements';
 import androidConfig from '../../../../../config/androidconfig.json';
 import iOSConfig from '../../../../../config/iosconfig.json';
 import Setup from '../local/setup';
@@ -20,17 +21,12 @@ Messages.importMessagesDirectory(__dirname);
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'preview');
 
-export default class Preview extends SfdxCommand {
+export default class Preview extends Setup {
     public static description = messages.getMessage('commandDescription');
-
-    public static examples = [
-        `$ sfdx force:lightning:lwc:preview -p iOS -t LWCSim2 -n HelloWorldComponent`,
-        `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -n HelloWorldComponent`
-    ];
 
     public static args = [{ name: 'file' }];
 
-    protected static flagsConfig = {
+    public static flagsConfig = {
         // flag with a value (-n, --name=VALUE)
         componentname: flags.string({
             char: 'n',
@@ -58,41 +54,53 @@ export default class Preview extends SfdxCommand {
     // Set this to true if your command requires a project workspace; 'requiresProject' is false by default
     protected static requiresProject = false;
 
+    public examples = [
+        `$ sfdx force:lightning:lwc:preview -p iOS -t LWCSim2 -n HellowWordComponent`,
+        `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -n HellowWordComponent`
+    ];
+
     public async run(): Promise<any> {
-        this.logger.info('Preview Command invoked');
-        let isValid = this.validateComponentNameValue(this.flags.componentname);
-        isValid = isValid && this.validatePlatformValue(this.flags.platform);
-        if (!isValid) {
-            return Promise.reject(
-                new SfdxError(
-                    messages.getMessage('error:invalidInputFlagsDescription'),
-                    'lwc-dev-mobile',
-                    Preview.examples
-                )
-            );
-        }
-
-        const setupResult = await Setup.run(['-p', this.flags.platform]);
-        if (!setupResult || !setupResult.hasMetAllRequirements) {
-            this.logger.warn(
-                `Preview failed for ${this.flags.platform}. Setup requirements have not been met.`
-            );
-            return Promise.resolve(false);
-        }
-        this.logger.info('Setup requirements met, continuing with preview');
-        return this.launchPreview();
+        const platform = this.flags.platform;
+        this.logger.info(`Preview command invoked for ${platform}`);
+        return Promise.all<void, SetupTestResult>([
+            this.validateAdditionalInputs(),
+            super.run()
+        ])
+            .then((result) => {
+                this.logger.info(
+                    'Setup requirements met, continuing with preview'
+                );
+                return this.launchPreview();
+            })
+            .catch((error) => {
+                this.logger.warn(
+                    `Preview failed for ${platform}. Setup requirements have not been met.`
+                );
+                return Promise.reject(error);
+            });
     }
 
-    public validateComponentNameValue(compName: string): boolean {
-        this.logger.debug('Invoked validateComponentName in preview');
-        return compName ? compName.trim().length > 0 : false;
-    }
-
-    public validatePlatformValue(platform: string): boolean {
-        return (
-            CommandLineUtils.platformFlagIsIOS(platform) ||
-            CommandLineUtils.platformFlagIsAndroid(platform)
-        );
+    public validateAdditionalInputs(): Promise<void> {
+        const compName = this.flags.componentname;
+        return new Promise<void>((resolve, reject) => {
+            const isValid: boolean = compName
+                ? compName.trim().length > 0
+                : false;
+            if (isValid === false) {
+                this.logger.debug('Invoked validateComponentName in preview');
+                reject(
+                    new SfdxError(
+                        messages.getMessage(
+                            'error:invalidInputFlagsDescription'
+                        ),
+                        'lwc-dev-mobile',
+                        Preview.examples
+                    )
+                );
+            } else {
+                resolve();
+            }
+        });
     }
 
     public launchPreview(): Promise<boolean> {

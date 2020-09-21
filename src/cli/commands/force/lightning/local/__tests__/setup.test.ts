@@ -6,12 +6,16 @@
  */
 import * as Config from '@oclif/config';
 import { Logger } from '@salesforce/core';
+import { CommandLineUtils } from '../../../../../../common/Common';
 import { SetupTestResult } from '../../../../../../common/Requirements';
 import Setup from '../setup';
 enum PlatformType {
     android = 'android',
     ios = 'ios'
 }
+const passedHooksMock = jest.fn((ars: any) => {
+    return Promise.resolve();
+});
 
 describe('Setup Tests', () => {
     let setup: Setup;
@@ -19,7 +23,9 @@ describe('Setup Tests', () => {
     afterEach(() => undefined);
 
     beforeEach(() => {
-        setup = new Setup([], new Config.Config(({} as any) as Config.Options));
+        const config = new Config.Config(({} as any) as Config.Options);
+        setup = new Setup([], config);
+        jest.spyOn(config, 'runHook').mockImplementation(passedHooksMock);
     });
 
     afterEach(() => {
@@ -33,7 +39,7 @@ describe('Setup Tests', () => {
         const mockCall = jest.fn(() => {
             return true;
         });
-        setup.validatePlatformValue = mockCall;
+        CommandLineUtils.platformFlagIsValid = mockCall;
         await setup.run();
         expect(mockCall).toHaveBeenCalledWith('ios');
     });

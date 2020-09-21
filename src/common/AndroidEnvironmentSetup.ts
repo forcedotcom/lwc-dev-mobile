@@ -11,18 +11,10 @@ import { AndroidSDKUtils } from './AndroidUtils';
 import { BaseSetup } from './Requirements';
 
 export class AndroidEnvironmentSetup extends BaseSetup {
-    // NOTE: The following properties are just place holders to help with typescript compile.
-    private title: string = '';
-    private fulfilledMessage: string = '';
-    private unfulfilledMessage: string = '';
-    private setupMessages = Messages.loadMessages(
-        '@salesforce/lwc-dev-mobile',
-        'setup'
-    );
     constructor(logger: Logger) {
         super(logger);
         const messages = this.setupMessages;
-        super.requirements = [
+        const requirements = [
             {
                 checkFunction: this.isAndroidHomeSet,
                 fulfilledMessage: messages.getMessage(
@@ -92,6 +84,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                 )
             }
         ];
+        super.addRequirements(requirements);
     }
 
     public async isJava8Available(): Promise<string> {
