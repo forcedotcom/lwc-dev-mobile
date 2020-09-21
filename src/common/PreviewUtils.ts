@@ -46,10 +46,10 @@ export class PreviewUtils {
     ): Promise<ValidationResult> {
         try {
             const ajv = new Ajv({ allErrors: true });
-            const result = await ajv.validate(schema, configFileJson);
+            const validationResult = await ajv.validate(schema, configFileJson);
             const hasError = ajv.errors ? ajv.errors.length > 0 : false;
             const errorText = ajv.errors ? ajv.errorsText() : '';
-            const isValid = result === true && hasError === false;
+            const isValid = validationResult === true && hasError === false;
             return Promise.resolve({
                 errorMessage: errorText,
                 passed: isValid
@@ -98,9 +98,7 @@ export class PreviewUtils {
                     PreviewUtils.CONFIG_FILE_VALUE_KEY
                 ) as string;
 
-                if (name && value) {
-                    launchArguments.set(name, value);
-                }
+                launchArguments.set(name, value);
             });
         }
 

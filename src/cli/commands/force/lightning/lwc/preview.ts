@@ -6,7 +6,7 @@
  */
 import { flags } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
-import util from 'util';
+import fs from 'fs';
 import { AndroidLauncher } from '../../../../../common/AndroidLauncher';
 import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
@@ -109,7 +109,7 @@ export default class Preview extends Setup {
         const compName = CommandLineUtils.resolveFlag(
             this.flags.componentname,
             ''
-        );
+        ).trim();
 
         const targetApp = CommandLineUtils.resolveFlag(
             this.flags.targetapp,
@@ -119,13 +119,14 @@ export default class Preview extends Setup {
         const configFile = CommandLineUtils.resolveFlag(
             this.flags.configfile,
             ''
-        );
+        ).trim();
 
-        const hasConfigFile = configFile.trim().length > 0;
+        const hasConfigFile =
+            configFile.length > 0 && fs.existsSync(configFile);
 
         const isBrowserTargetApp = PreviewUtils.isTargetingBrowser(targetApp);
 
-        const isValidCompName = compName.trim().length > 0;
+        const isValidCompName = compName.length > 0;
 
         this.logger.debug('Validating Preview command inputs.');
 
@@ -137,13 +138,25 @@ export default class Preview extends Setup {
             );
         }
 
-        if (
-            isValidCompName === false ||
-            (isBrowserTargetApp === false && hasConfigFile === false)
-        ) {
+        if (isValidCompName === false) {
             return Promise.reject(
                 new SfdxError(
-                    messages.getMessage('error:invalidInputFlagsDescription'),
+                    messages.getMessage(
+                        'error:invalidComponentNameFlagsDescription'
+                    ),
+                    'lwc-dev-mobile',
+                    Preview.examples
+                )
+            );
+        }
+
+        if (isBrowserTargetApp === false && hasConfigFile === false) {
+            return Promise.reject(
+                new SfdxError(
+                    messages.getMessage(
+                        'error:invalidConfigFile:missingDescription',
+                        [configFile]
+                    ),
                     'lwc-dev-mobile',
                     Preview.examples
                 )
@@ -161,11 +174,9 @@ export default class Preview extends Setup {
             if (validationResult.passed === false) {
                 return Promise.reject(
                     new SfdxError(
-                        util.format(
-                            messages.getMessage(
-                                'error:invalidConfigFile:genericDescription'
-                            ),
-                            validationResult.errorMessage
+                        messages.getMessage(
+                            'error:invalidConfigFile:genericDescription',
+                            [configFile, validationResult.errorMessage]
                         ),
                         'lwc-dev-mobile'
                     )
@@ -179,20 +190,15 @@ export default class Preview extends Setup {
                 targetApp
             );
             if (appConfig === null || appConfig === undefined) {
-                const errMsg = util.format(
-                    messages.getMessage(
-                        'error:invalidConfigFile:missingAppConfigDescription'
-                    ),
-                    targetApp,
-                    platform
+                const errMsg = messages.getMessage(
+                    'error:invalidConfigFile:missingAppConfigDescription',
+                    [targetApp, platform]
                 );
                 return Promise.reject(
                     new SfdxError(
-                        util.format(
-                            messages.getMessage(
-                                'error:invalidConfigFile:genericDescription'
-                            ),
-                            errMsg
+                        messages.getMessage(
+                            'error:invalidConfigFile:genericDescription',
+                            [configFile, errMsg]
                         ),
                         'lwc-dev-mobile'
                     )
@@ -281,52 +287,7 @@ export default class Preview extends Setup {
         if (isCommandHelp) {
             super._help();
         } else {
-            const message = `
-Below is a sample configuration:
-
-{
-    "apps": {
-        "ios": [
-        {
-            "id": "com.domain.sampleapp",
-            "name": "My Sample App",
-            "get_app_bundle": "configure_test_app.js",
-            "launch_arguments": [
-            { "name": "arg1", "value": "val1" },
-            { "name": "arg2", "value": "val2" }
-            ]
-        }
-        ],
-        "android": [
-        {
-            "id": "com.domain.sampleapp",
-            "name": "My Sample App",
-            "activity": ".MainActivity",
-            "get_app_bundle": "configure_test_app.js",
-            "launch_arguments": [
-            { "name": "arg1", "value": "val1" },
-            { "name": "arg2", "value": "val2" }
-            ]
-        }
-        ]
-    }
-}
-
-Notes:
-    ● Any app desired to be targeted for preview must be in this list.
-    ● id: (Required) - The id of the app to be launched.
-    ● name: (Required) - The name of the app to be launched.
-    ● activity: (Required for Android) - The activity to be used for launching the app.
-    ● get_app_bundle: (Optional) - Command to provide the app bundle to be launched.
-        ○ If not present, the app must already be installed.
-        ○ Presence of this option infers that the configured command will be run to configure the app to be installed, prior to preview.
-        ○ If not absolute, the path to the module should be relative to the configuration file.
-        ○ Interface:
-            ■ The implementation must be a JS/Node module.
-            ■ The module must expose a run() method, returning a string denoting the absolute path to the bundle to install. All other implementation details for surfacing the app bundle are the responsibility of the module.
-    ● launch_arguments: (Optional) - Additional name/value arguments to pass when launching the app.
-            `;
-
+            const message = messages.getMessage('configFileHelpDescription');
             // tslint:disable-next-line: no-console
             console.log(`${message}`);
         }
