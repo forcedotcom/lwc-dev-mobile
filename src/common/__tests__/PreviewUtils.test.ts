@@ -5,9 +5,17 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 import * as configSchema from '../../cli/commands/force/lightning/lwc/previewConfigurationSchema.json';
+import {
+    AndroidAppPreviewConfig,
+    IOSAppPreviewConfig
+} from '../PreviewConfigFile';
 import { PreviewUtils } from '../PreviewUtils';
 
 describe('Preview utils tests', () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     test('Checks for targetting browser or app', async () => {
         expect(PreviewUtils.isTargetingBrowser('browser')).toBeTrue();
         expect(PreviewUtils.isTargetingBrowser('com.mock.app')).toBeFalse();
@@ -16,9 +24,12 @@ describe('Preview utils tests', () => {
     test('Config validation fails when app id is not defined', async () => {
         const json = '{"apps": {"ios": [{"name": "LWC Test App"}]}}';
         const configFileJson = JSON.parse(json);
+        jest.spyOn(PreviewUtils, 'getConfigFileAsJson').mockReturnValue(
+            configFileJson
+        );
 
         const validationResult = await PreviewUtils.validateConfigFileWithSchema(
-            configFileJson,
+            'myConfig.json',
             configSchema
         );
 
@@ -31,9 +42,12 @@ describe('Preview utils tests', () => {
     test('Config validation fails when app name is not defined', async () => {
         const json = '{"apps": {"ios": [{"id": "com.salesforce.Test"}]}}';
         const configFileJson = JSON.parse(json);
+        jest.spyOn(PreviewUtils, 'getConfigFileAsJson').mockReturnValue(
+            configFileJson
+        );
 
         const validationResult = await PreviewUtils.validateConfigFileWithSchema(
-            configFileJson,
+            'myConfig.json',
             configSchema
         );
 
@@ -60,9 +74,12 @@ describe('Preview utils tests', () => {
             }
         }`;
         const configFileJson = JSON.parse(json);
+        jest.spyOn(PreviewUtils, 'getConfigFileAsJson').mockReturnValue(
+            configFileJson
+        );
 
         const validationResult = await PreviewUtils.validateConfigFileWithSchema(
-            configFileJson,
+            'myConfig.json',
             configSchema
         );
 
@@ -85,9 +102,12 @@ describe('Preview utils tests', () => {
             }
         }`;
         const configFileJson = JSON.parse(json);
+        jest.spyOn(PreviewUtils, 'getConfigFileAsJson').mockReturnValue(
+            configFileJson
+        );
 
         const validationResult = await PreviewUtils.validateConfigFileWithSchema(
-            configFileJson,
+            'myConfig.json',
             configSchema
         );
 
@@ -114,18 +134,21 @@ describe('Preview utils tests', () => {
             }
         }`;
         const configFileJson = JSON.parse(json);
-
-        const launchArguments = PreviewUtils.getAppLaunchArguments(
-            configFileJson,
-            'ios',
-            'com.salesforce.Test'
+        jest.spyOn(PreviewUtils, 'getConfigFileAsJson').mockReturnValue(
+            configFileJson
         );
 
-        const arr = Array.from(launchArguments);
+        const configFile = PreviewUtils.loadConfigFile('myConfig.json');
+        const appConfig = configFile.getAppConfig(
+            'ios',
+            'com.salesforce.Test'
+        ) as IOSAppPreviewConfig;
 
+        const args = appConfig.launch_arguments || new Map();
+        const arr = Array.from(args);
         expect(arr.length).toBe(2);
-        expect(arr[0]).toStrictEqual(['arg1', 'val1']);
-        expect(arr[1]).toStrictEqual(['arg2', 'val2']);
+        expect(arr[0]).toStrictEqual({ name: 'arg1', value: 'val1' });
+        expect(arr[1]).toStrictEqual({ name: 'arg2', value: 'val2' });
     });
 
     test('Can retrieve launch activity from config file', async () => {
@@ -142,12 +165,16 @@ describe('Preview utils tests', () => {
             }
         }`;
         const configFileJson = JSON.parse(json);
-
-        const launchActivity = PreviewUtils.getAppLaunchActivity(
-            configFileJson,
-            'com.salesforce.Test'
+        jest.spyOn(PreviewUtils, 'getConfigFileAsJson').mockReturnValue(
+            configFileJson
         );
 
-        expect(launchActivity).toBe('.MyActivity');
+        const configFile = PreviewUtils.loadConfigFile('myConfig.json');
+        const appConfig = configFile.getAppConfig(
+            'android',
+            'com.salesforce.Test'
+        ) as AndroidAppPreviewConfig;
+
+        expect(appConfig.activity).toBe('.MyActivity');
     });
 });

@@ -10,6 +10,7 @@ import fs from 'fs';
 import { AndroidLauncher } from '../../../../../common/AndroidLauncher';
 import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
+import { AndroidAppPreviewConfig } from '../../../../../common/PreviewConfigFile';
 import { PreviewUtils } from '../../../../../common/PreviewUtils';
 import { SetupTestResult } from '../../../../../common/Requirements';
 import androidConfig from '../../../../../config/androidconfig.json';
@@ -116,13 +117,13 @@ export default class Preview extends Setup {
             PreviewUtils.BROWSER_TARGET_APP
         );
 
-        const configFile = CommandLineUtils.resolveFlag(
+        const configFileName = CommandLineUtils.resolveFlag(
             this.flags.configfile,
             ''
         ).trim();
 
         const hasConfigFile =
-            configFile.length > 0 && fs.existsSync(configFile);
+            configFileName.length > 0 && fs.existsSync(configFileName);
 
         const isBrowserTargetApp = PreviewUtils.isTargetingBrowser(targetApp);
 
@@ -155,7 +156,7 @@ export default class Preview extends Setup {
                 new SfdxError(
                     messages.getMessage(
                         'error:invalidConfigFile:missingDescription',
-                        [configFile]
+                        [configFileName]
                     ),
                     'lwc-dev-mobile',
                     Preview.examples
@@ -164,11 +165,9 @@ export default class Preview extends Setup {
         }
 
         if (isBrowserTargetApp === false && hasConfigFile === true) {
-            const configFileJson = PreviewUtils.getConfigFileAsJson(configFile);
-
             // 1. validate config file against schema
             const validationResult = await PreviewUtils.validateConfigFileWithSchema(
-                configFileJson,
+                configFileName,
                 configSchema
             );
             if (validationResult.passed === false) {
@@ -176,7 +175,7 @@ export default class Preview extends Setup {
                     new SfdxError(
                         messages.getMessage(
                             'error:invalidConfigFile:genericDescription',
-                            [configFile, validationResult.errorMessage]
+                            [configFileName, validationResult.errorMessage]
                         ),
                         'lwc-dev-mobile'
                     )
@@ -184,12 +183,9 @@ export default class Preview extends Setup {
             }
 
             // 2. validate that a matching app configuration is included in the config file
-            const appConfig = PreviewUtils.getAppConfig(
-                configFileJson,
-                platform,
-                targetApp
-            );
-            if (appConfig === null || appConfig === undefined) {
+            const configFile = PreviewUtils.loadConfigFile(configFileName);
+            const appConfig = configFile.getAppConfig(platform, targetApp);
+            if (appConfig === undefined) {
                 const errMsg = messages.getMessage(
                     'error:invalidConfigFile:missingAppConfigDescription',
                     [targetApp, platform]
@@ -198,7 +194,7 @@ export default class Preview extends Setup {
                     new SfdxError(
                         messages.getMessage(
                             'error:invalidConfigFile:genericDescription',
-                            [configFile, errMsg]
+                            [configFileName, errMsg]
                         ),
                         'lwc-dev-mobile'
                     )
@@ -231,45 +227,38 @@ export default class Preview extends Setup {
             process.cwd()
         );
 
-        const configFile = CommandLineUtils.resolveFlag(
+        const configFileName = CommandLineUtils.resolveFlag(
             this.flags.configfile,
             ''
         );
 
         const component = this.flags.componentname;
 
-        let targetAppArguments: Map<string, string> = new Map();
-        let launchActivity: string = '';
-        if (PreviewUtils.isTargetingBrowser(targetApp) === false) {
-            const json = PreviewUtils.getConfigFileAsJson(configFile);
+        const configFile = PreviewUtils.loadConfigFile(configFileName);
+        const appConfig = configFile.getAppConfig(platform, targetApp);
 
-            targetAppArguments = PreviewUtils.getAppLaunchArguments(
-                json,
-                platform,
-                targetApp
+        const launchArgs: Map<string, string> =
+            appConfig?.launch_arguments || new Map();
+
+        if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
+            return this.launchIOS(
+                device,
+                component,
+                projectDir,
+                targetApp,
+                launchArgs
             );
-
-            launchActivity = PreviewUtils.getAppLaunchActivity(json, targetApp);
+        } else {
+            const config = appConfig as AndroidAppPreviewConfig;
+            return this.launchAndroid(
+                device,
+                component,
+                projectDir,
+                targetApp,
+                launchArgs,
+                config.activity
+            );
         }
-
-        const promise = CommandLineUtils.platformFlagIsIOS(this.flags.platform)
-            ? this.launchIOS(
-                  device,
-                  component,
-                  projectDir,
-                  targetApp,
-                  targetAppArguments
-              )
-            : this.launchAndroid(
-                  device,
-                  component,
-                  projectDir,
-                  targetApp,
-                  targetAppArguments,
-                  launchActivity
-              );
-
-        return promise;
     }
 
     protected async init(): Promise<void> {
