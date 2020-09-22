@@ -7,10 +7,14 @@
 import { flags } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
 import fs from 'fs';
+import path from 'path';
 import { AndroidLauncher } from '../../../../../common/AndroidLauncher';
 import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
-import { AndroidAppPreviewConfig } from '../../../../../common/PreviewConfigFile';
+import {
+    AndroidAppPreviewConfig,
+    LaunchArgument
+} from '../../../../../common/PreviewConfigFile';
 import { PreviewUtils } from '../../../../../common/PreviewUtils';
 import { SetupTestResult } from '../../../../../common/Requirements';
 import androidConfig from '../../../../../config/androidconfig.json';
@@ -122,8 +126,10 @@ export default class Preview extends Setup {
             ''
         ).trim();
 
+        const configFilePath = path.resolve(configFileName);
+
         const hasConfigFile =
-            configFileName.length > 0 && fs.existsSync(configFileName);
+            configFilePath.length > 0 && fs.existsSync(configFilePath);
 
         const isBrowserTargetApp = PreviewUtils.isTargetingBrowser(targetApp);
 
@@ -156,7 +162,7 @@ export default class Preview extends Setup {
                 new SfdxError(
                     messages.getMessage(
                         'error:invalidConfigFile:missingDescription',
-                        [configFileName]
+                        [configFilePath]
                     ),
                     'lwc-dev-mobile',
                     Preview.examples
@@ -167,7 +173,7 @@ export default class Preview extends Setup {
         if (isBrowserTargetApp === false && hasConfigFile === true) {
             // 1. validate config file against schema
             const validationResult = await PreviewUtils.validateConfigFileWithSchema(
-                configFileName,
+                configFilePath,
                 configSchema
             );
             if (validationResult.passed === false) {
@@ -175,7 +181,7 @@ export default class Preview extends Setup {
                     new SfdxError(
                         messages.getMessage(
                             'error:invalidConfigFile:genericDescription',
-                            [configFileName, validationResult.errorMessage]
+                            [configFilePath, validationResult.errorMessage]
                         ),
                         'lwc-dev-mobile'
                     )
@@ -183,7 +189,7 @@ export default class Preview extends Setup {
             }
 
             // 2. validate that a matching app configuration is included in the config file
-            const configFile = PreviewUtils.loadConfigFile(configFileName);
+            const configFile = PreviewUtils.loadConfigFile(configFilePath);
             const appConfig = configFile.getAppConfig(platform, targetApp);
             if (appConfig === undefined) {
                 const errMsg = messages.getMessage(
@@ -194,7 +200,7 @@ export default class Preview extends Setup {
                     new SfdxError(
                         messages.getMessage(
                             'error:invalidConfigFile:genericDescription',
-                            [configFileName, errMsg]
+                            [configFilePath, errMsg]
                         ),
                         'lwc-dev-mobile'
                     )
@@ -234,11 +240,12 @@ export default class Preview extends Setup {
 
         const component = this.flags.componentname;
 
-        const configFile = PreviewUtils.loadConfigFile(configFileName);
+        const configFilePath = path.resolve(configFileName);
+        const configFile = PreviewUtils.loadConfigFile(configFilePath);
         const appConfig = configFile.getAppConfig(platform, targetApp);
 
-        const launchArgs: Map<string, string> =
-            (appConfig && appConfig.launch_arguments) || new Map();
+        const launchArgs: LaunchArgument[] =
+            (appConfig && appConfig.launch_arguments) || [];
 
         if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
             return this.launchIOS(
@@ -289,7 +296,7 @@ export default class Preview extends Setup {
         componentName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: Map<string, string>
+        targetAppArguments: LaunchArgument[]
     ): Promise<boolean> {
         const launcher = new IOSLauncher(deviceName);
 
@@ -306,7 +313,7 @@ export default class Preview extends Setup {
         componentName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: Map<string, string>,
+        targetAppArguments: LaunchArgument[],
         launchActivity: string
     ): Promise<boolean> {
         const launcher = new AndroidLauncher(deviceName);

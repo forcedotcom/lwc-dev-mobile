@@ -13,6 +13,7 @@ import androidConfig from '../config/androidconfig.json';
 import { AndroidPackage, AndroidVirtualDevice } from './AndroidTypes';
 import { MapUtils } from './Common';
 import { CommonUtils } from './CommonUtils';
+import { LaunchArgument } from './PreviewConfigFile';
 import { PreviewUtils } from './PreviewUtils';
 
 const execSync = childProcess.execSync;
@@ -552,7 +553,7 @@ export class AndroidSDKUtils {
         compName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: Map<string, string>,
+        targetAppArguments: LaunchArgument[],
         launchActivity: string,
         emulatorPort: number
     ): Promise<boolean> {
@@ -561,8 +562,8 @@ export class AndroidSDKUtils {
                 `--es "${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}" "${compName}"` +
                 ` --es "${PreviewUtils.PROJECT_DIR_ARG_PREFIX}" "${projectDir}"`;
 
-            targetAppArguments.forEach((value: string, key: string) => {
-                launchArgs += ` --es "${key}" "${value}"`;
+            targetAppArguments.forEach((arg) => {
+                launchArgs += ` --es "${arg.name}" "${arg.value}"`;
             });
 
             const launchCommand =

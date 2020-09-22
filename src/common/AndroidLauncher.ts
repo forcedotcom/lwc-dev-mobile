@@ -7,6 +7,7 @@
 import cli from 'cli-ux';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
+import { LaunchArgument } from './PreviewConfigFile';
 import { PreviewUtils } from './PreviewUtils';
 
 export class AndroidLauncher {
@@ -20,7 +21,7 @@ export class AndroidLauncher {
         compName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: Map<string, string>,
+        targetAppArguments: LaunchArgument[],
         launchActivity: string
     ): Promise<boolean> {
         const preferredPack = await AndroidSDKUtils.findRequiredEmulatorImages();

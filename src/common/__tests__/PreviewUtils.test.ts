@@ -144,11 +144,10 @@ describe('Preview utils tests', () => {
             'com.salesforce.Test'
         ) as IOSAppPreviewConfig;
 
-        const args = appConfig.launch_arguments || new Map();
-        const arr = Array.from(args);
-        expect(arr.length).toBe(2);
-        expect(arr[0]).toStrictEqual({ name: 'arg1', value: 'val1' });
-        expect(arr[1]).toStrictEqual({ name: 'arg2', value: 'val2' });
+        const args = appConfig.launch_arguments || [];
+        expect(args.length).toBe(2);
+        expect(args[0]).toStrictEqual({ name: 'arg1', value: 'val1' });
+        expect(args[1]).toStrictEqual({ name: 'arg2', value: 'val2' });
     });
 
     test('Can retrieve launch activity from config file', async () => {

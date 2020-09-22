@@ -208,10 +208,10 @@ describe('IOS utils tests', () => {
         const compName = 'mock.compName';
         const projectDir = '/mock/path';
         const targetApp = 'com.mock.app';
-        const targetAppArgs = new Map([
-            ['arg1', 'val1'],
-            ['arg2', 'val2']
-        ]);
+        const targetAppArgs = [
+            { name: 'arg1', value: 'val1' },
+            { name: 'arg2', value: 'val2' }
+        ];
         const launchArgs =
             `${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}=${compName}` +
             ` ${PreviewUtils.PROJECT_DIR_ARG_PREFIX}=${projectDir}` +
@@ -246,10 +246,10 @@ describe('IOS utils tests', () => {
         const compName = 'mock.compName';
         const projectDir = '/mock/path';
         const targetApp = 'com.mock.app';
-        const targetAppArgs = new Map([
-            ['arg1', 'val1'],
-            ['arg2', 'val2']
-        ]);
+        const targetAppArgs = [
+            { name: 'arg1', value: 'val1' },
+            { name: 'arg2', value: 'val2' }
+        ];
         return IOSUtils.launchAppInBootedSimulator(
             udid,
             compName,

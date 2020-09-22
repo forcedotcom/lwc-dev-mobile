@@ -362,10 +362,10 @@ describe('Android utils', () => {
         const projectDir = '/mock/path';
         const targetApp = 'com.mock.app';
         const targetActivity = '.MainActivity';
-        const targetAppArgs = new Map([
-            ['arg1', 'val1'],
-            ['arg2', 'val2']
-        ]);
+        const targetAppArgs = [
+            { name: 'arg1', value: 'val1' },
+            { name: 'arg2', value: 'val2' }
+        ];
         const port = 1234;
         const launchArgs =
             `--es "${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}" "${compName}"` +
@@ -408,10 +408,10 @@ describe('Android utils', () => {
         const projectDir = '/mock/path';
         const targetApp = 'com.mock.app';
         const targetActivity = '.MainActivity';
-        const targetAppArgs = new Map([
-            ['arg1', 'val1'],
-            ['arg2', 'val2']
-        ]);
+        const targetAppArgs = [
+            { name: 'arg1', value: 'val1' },
+            { name: 'arg2', value: 'val2' }
+        ];
         const port = 1234;
         return AndroidSDKUtils.launchNativeApp(
             compName,

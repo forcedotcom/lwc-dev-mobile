@@ -20,17 +20,18 @@ export class PreviewConfigFile {
             ? this.apps.ios || []
             : this.apps.android || [];
 
-        let config;
-
-        appConfigs.forEach((appConfig) => {
-            if (appConfig.id === targetApp) {
-                config = appConfig;
-                return;
-            }
-        });
+        const config = appConfigs.find(
+            (appConfig) => appConfig.id === targetApp
+        );
 
         return config;
     }
+}
+
+// tslint:disable-next-line: max-classes-per-file
+export class LaunchArgument {
+    public name!: string;
+    public value!: string;
 }
 
 // tslint:disable-next-line: max-classes-per-file
@@ -40,7 +41,7 @@ class BaseAppPreviewConfig {
     // tslint:disable-next-line: variable-name
     public get_app_bundle?: string;
     // tslint:disable-next-line: variable-name
-    public launch_arguments?: Map<string, string>;
+    public launch_arguments?: LaunchArgument[];
 }
 
 // tslint:disable-next-line: max-classes-per-file
