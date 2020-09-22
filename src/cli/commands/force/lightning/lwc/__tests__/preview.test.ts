@@ -9,13 +9,7 @@ import { Logger, SfdxError } from '@salesforce/core';
 import Setup from '../../local/setup';
 import Preview from '../preview';
 
-const myPreviewAndroidCommandBlockMock = jest.fn(
-    (): Promise<boolean> => {
-        return Promise.resolve(true);
-    }
-);
-
-const myPreviewiOSCommandBlockMock = jest.fn(
+const myPreviewCommandBlockMock = jest.fn(
     (): Promise<boolean> => {
         return Promise.resolve(true);
     }
@@ -40,8 +34,7 @@ describe('Preview Tests', () => {
             [],
             new Config.Config(({} as any) as Config.Options)
         );
-        preview.launchIOS = myPreviewiOSCommandBlockMock;
-        preview.launchAndroid = myPreviewiOSCommandBlockMock;
+        preview.launchPreview = myPreviewCommandBlockMock;
         jest.spyOn(Setup.prototype, 'run').mockImplementation(passedSetupMock);
     });
 
@@ -64,7 +57,7 @@ describe('Preview Tests', () => {
         const targetAndroidCallMock = jest.fn(() => {
             return Promise.resolve(true);
         });
-        preview.launchAndroid = targetAndroidCallMock;
+        preview.launchPreview = targetAndroidCallMock;
         await preview.run();
         expect(targetAndroidCallMock).toHaveBeenCalled();
     });
@@ -76,7 +69,7 @@ describe('Preview Tests', () => {
         const targetIOSCallMock = jest.fn(() => {
             return Promise.resolve(true);
         });
-        preview.launchIOS = targetIOSCallMock;
+        preview.launchPreview = targetIOSCallMock;
         await preview.run();
         expect(targetIOSCallMock).toHaveBeenCalled();
     });

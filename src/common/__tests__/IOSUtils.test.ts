@@ -4,12 +4,11 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import childProcess from 'child_process';
 import { ActionBase } from 'cli-ux';
 import 'jest-chain';
 import 'jest-extended';
-import { PreviewUtils } from '../Common';
 import { IOSUtils } from '../IOSUtils';
+import { PreviewUtils } from '../PreviewUtils';
 import { IOSMockData } from './IOSMockData';
 
 const DEVICE_TYPE_PREFIX = 'com.apple.CoreSimulator.SimDeviceType';
@@ -204,15 +203,19 @@ describe('IOS utils tests', () => {
         jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
             launchCommandMock
         );
+
         const udid = 'MOCK-UDID';
         const compName = 'mock.compName';
         const projectDir = '/mock/path';
         const targetApp = 'com.mock.app';
-        const targetAppArgs = 'arg1,arg2,arg3';
+        const targetAppArgs = [
+            { name: 'arg1', value: 'val1' },
+            { name: 'arg2', value: 'val2' }
+        ];
         const launchArgs =
             `${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}=${compName}` +
             ` ${PreviewUtils.PROJECT_DIR_ARG_PREFIX}=${projectDir}` +
-            ` ${PreviewUtils.CUSTOM_ARGS_PREFIX}=${targetAppArgs}`;
+            ` arg1=val1 arg2=val2`;
 
         await IOSUtils.launchAppInBootedSimulator(
             udid,
@@ -243,7 +246,10 @@ describe('IOS utils tests', () => {
         const compName = 'mock.compName';
         const projectDir = '/mock/path';
         const targetApp = 'com.mock.app';
-        const targetAppArgs = 'arg1,arg2,arg3';
+        const targetAppArgs = [
+            { name: 'arg1', value: 'val1' },
+            { name: 'arg2', value: 'val2' }
+        ];
         return IOSUtils.launchAppInBootedSimulator(
             udid,
             compName,

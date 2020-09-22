@@ -75,24 +75,3 @@ export class CommandLineUtils {
         }
     }
 }
-
-// tslint:disable-next-line: max-classes-per-file
-export class PreviewUtils {
-    public static BROWSER_TARGET_APP = 'browser';
-    public static CUSTOM_ARGS_PREFIX = 'customargs';
-    public static COMPONENT_NAME_ARG_PREFIX = 'componentname';
-    public static PROJECT_DIR_ARG_PREFIX = 'projectdir';
-
-    public static isTargetingBrowser(targetApp: string): boolean {
-        return (
-            targetApp.trim().toLowerCase() === PreviewUtils.BROWSER_TARGET_APP
-        );
-    }
-
-    public static prefixRouteIfNeeded(compName: string): string {
-        if (compName.toLowerCase().startsWith('c/')) {
-            return compName;
-        }
-        return 'c/' + compName;
-    }
-}

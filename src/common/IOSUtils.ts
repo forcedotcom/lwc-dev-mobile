@@ -6,11 +6,11 @@
  */
 import { Logger } from '@salesforce/core';
 import childProcess from 'child_process';
-import cli from 'cli-ux';
 import util from 'util';
 import iOSConfig from '../config/iosconfig.json';
-import { PreviewUtils } from './Common';
 import { IOSSimulatorDevice } from './IOSTypes';
+import { LaunchArgument } from './PreviewConfigFile';
+import { PreviewUtils } from './PreviewUtils';
 
 const exec = util.promisify(childProcess.exec);
 
@@ -245,14 +245,15 @@ export class IOSUtils {
         compName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: string
+        targetAppArguments: LaunchArgument[]
     ): Promise<boolean> {
         let launchArgs =
             `${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}=${compName}` +
             ` ${PreviewUtils.PROJECT_DIR_ARG_PREFIX}=${projectDir}`;
-        if (targetAppArguments.length > 0) {
-            launchArgs += ` ${PreviewUtils.CUSTOM_ARGS_PREFIX}=${targetAppArguments}`;
-        }
+
+        targetAppArguments.forEach((arg) => {
+            launchArgs += ` ${arg.name}=${arg.value}`;
+        });
 
         const terminateCommand = `${XCRUN_CMD} simctl terminate "${udid}" ${targetApp}`;
         const launchCommand = `${XCRUN_CMD} simctl launch "${udid}" ${targetApp} ${launchArgs}`;
