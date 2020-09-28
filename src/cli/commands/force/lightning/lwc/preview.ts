@@ -13,6 +13,7 @@ import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
 import {
     AndroidAppPreviewConfig,
+    IOSAppPreviewConfig,
     LaunchArgument
 } from '../../../../../common/PreviewConfigFile';
 import { PreviewUtils } from '../../../../../common/PreviewUtils';
@@ -240,9 +241,19 @@ export default class Preview extends Setup {
 
         const component = this.flags.componentname;
 
-        const configFilePath = path.resolve(configFileName);
-        const configFile = PreviewUtils.loadConfigFile(configFilePath);
-        const appConfig = configFile.getAppConfig(platform, targetApp);
+        let appConfig:
+            | IOSAppPreviewConfig
+            | AndroidAppPreviewConfig
+            | undefined;
+
+        if (
+            PreviewUtils.isTargetingBrowser(targetApp) === false &&
+            configFileName.trim().length > 0
+        ) {
+            const configFilePath = path.resolve(configFileName);
+            const configFile = PreviewUtils.loadConfigFile(configFilePath);
+            appConfig = configFile.getAppConfig(platform, targetApp);
+        }
 
         const launchArgs: LaunchArgument[] =
             (appConfig && appConfig.launch_arguments) || [];
@@ -256,14 +267,15 @@ export default class Preview extends Setup {
                 launchArgs
             );
         } else {
-            const config = appConfig as AndroidAppPreviewConfig;
+            const config = appConfig && (appConfig as AndroidAppPreviewConfig);
+            const activity = (config && config.activity) || '';
             return this.launchAndroid(
                 device,
                 component,
                 projectDir,
                 targetApp,
                 launchArgs,
-                config.activity
+                activity
             );
         }
     }
