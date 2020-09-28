@@ -8,7 +8,7 @@ import childProcess from 'child_process';
 import cli from 'cli-ux';
 import util from 'util';
 import { IOSUtils } from './IOSUtils';
-import { LaunchArgument } from './PreviewConfigFile';
+import { IOSAppPreviewConfig, LaunchArgument } from './PreviewConfigFile';
 import { PreviewUtils } from './PreviewUtils';
 const exec = util.promisify(childProcess.exec);
 
@@ -23,7 +23,7 @@ export class IOSLauncher {
         compName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: LaunchArgument[]
+        appConfig: IOSAppPreviewConfig | undefined
     ): Promise<boolean> {
         const availableDevices: string[] = await IOSUtils.getSupportedDevices();
         const supportedRuntimes: string[] = await IOSUtils.getSupportedRuntimes();
@@ -83,6 +83,8 @@ export class IOSLauncher {
                     const url = `http://localhost:3333/lwc/preview/${compPath}`;
                     return IOSUtils.launchURLInBootedSimulator(deviceUDID, url);
                 } else {
+                    const targetAppArguments: LaunchArgument[] =
+                        (appConfig && appConfig.launch_arguments) || [];
                     return IOSUtils.launchAppInBootedSimulator(
                         deviceUDID,
                         compName,

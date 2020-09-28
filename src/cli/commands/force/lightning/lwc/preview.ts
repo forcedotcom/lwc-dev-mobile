@@ -255,27 +255,23 @@ export default class Preview extends Setup {
             appConfig = configFile.getAppConfig(platform, targetApp);
         }
 
-        const launchArgs: LaunchArgument[] =
-            (appConfig && appConfig.launch_arguments) || [];
-
         if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
+            const config = appConfig && (appConfig as IOSAppPreviewConfig);
             return this.launchIOS(
                 device,
                 component,
                 projectDir,
                 targetApp,
-                launchArgs
+                config
             );
         } else {
             const config = appConfig && (appConfig as AndroidAppPreviewConfig);
-            const activity = (config && config.activity) || '';
             return this.launchAndroid(
                 device,
                 component,
                 projectDir,
                 targetApp,
-                launchArgs,
-                activity
+                config
             );
         }
     }
@@ -308,7 +304,7 @@ export default class Preview extends Setup {
         componentName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: LaunchArgument[]
+        appConfig: IOSAppPreviewConfig | undefined
     ): Promise<boolean> {
         const launcher = new IOSLauncher(deviceName);
 
@@ -316,7 +312,7 @@ export default class Preview extends Setup {
             componentName,
             projectDir,
             targetApp,
-            targetAppArguments
+            appConfig
         );
     }
 
@@ -325,8 +321,7 @@ export default class Preview extends Setup {
         componentName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: LaunchArgument[],
-        launchActivity: string
+        appConfig: AndroidAppPreviewConfig | undefined
     ): Promise<boolean> {
         const launcher = new AndroidLauncher(deviceName);
 
@@ -334,8 +329,7 @@ export default class Preview extends Setup {
             componentName,
             projectDir,
             targetApp,
-            targetAppArguments,
-            launchActivity
+            appConfig
         );
     }
 }
