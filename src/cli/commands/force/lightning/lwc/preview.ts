@@ -13,6 +13,7 @@ import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
 import {
     AndroidAppPreviewConfig,
+    IOSAppPreviewConfig,
     LaunchArgument
 } from '../../../../../common/PreviewConfigFile';
 import { PreviewUtils } from '../../../../../common/PreviewUtils';
@@ -240,30 +241,37 @@ export default class Preview extends Setup {
 
         const component = this.flags.componentname;
 
-        const configFilePath = path.resolve(configFileName);
-        const configFile = PreviewUtils.loadConfigFile(configFilePath);
-        const appConfig = configFile.getAppConfig(platform, targetApp);
+        let appConfig:
+            | IOSAppPreviewConfig
+            | AndroidAppPreviewConfig
+            | undefined;
 
-        const launchArgs: LaunchArgument[] =
-            (appConfig && appConfig.launch_arguments) || [];
+        if (
+            PreviewUtils.isTargetingBrowser(targetApp) === false &&
+            configFileName.trim().length > 0
+        ) {
+            const configFilePath = path.resolve(configFileName);
+            const configFile = PreviewUtils.loadConfigFile(configFilePath);
+            appConfig = configFile.getAppConfig(platform, targetApp);
+        }
 
         if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
+            const config = appConfig && (appConfig as IOSAppPreviewConfig);
             return this.launchIOS(
                 device,
                 component,
                 projectDir,
                 targetApp,
-                launchArgs
+                config
             );
         } else {
-            const config = appConfig as AndroidAppPreviewConfig;
+            const config = appConfig && (appConfig as AndroidAppPreviewConfig);
             return this.launchAndroid(
                 device,
                 component,
                 projectDir,
                 targetApp,
-                launchArgs,
-                config.activity
+                config
             );
         }
     }
@@ -296,7 +304,7 @@ export default class Preview extends Setup {
         componentName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: LaunchArgument[]
+        appConfig: IOSAppPreviewConfig | undefined
     ): Promise<boolean> {
         const launcher = new IOSLauncher(deviceName);
 
@@ -304,7 +312,7 @@ export default class Preview extends Setup {
             componentName,
             projectDir,
             targetApp,
-            targetAppArguments
+            appConfig
         );
     }
 
@@ -313,8 +321,7 @@ export default class Preview extends Setup {
         componentName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: LaunchArgument[],
-        launchActivity: string
+        appConfig: AndroidAppPreviewConfig | undefined
     ): Promise<boolean> {
         const launcher = new AndroidLauncher(deviceName);
 
@@ -322,8 +329,7 @@ export default class Preview extends Setup {
             componentName,
             projectDir,
             targetApp,
-            targetAppArguments,
-            launchActivity
+            appConfig
         );
     }
 }

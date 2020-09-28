@@ -7,7 +7,7 @@
 import cli from 'cli-ux';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
-import { LaunchArgument } from './PreviewConfigFile';
+import { AndroidAppPreviewConfig, LaunchArgument } from './PreviewConfigFile';
 import { PreviewUtils } from './PreviewUtils';
 
 export class AndroidLauncher {
@@ -21,8 +21,7 @@ export class AndroidLauncher {
         compName: string,
         projectDir: string,
         targetApp: string,
-        targetAppArguments: LaunchArgument[],
-        launchActivity: string
+        appConfig: AndroidAppPreviewConfig | undefined
     ): Promise<boolean> {
         const preferredPack = await AndroidSDKUtils.findRequiredEmulatorImages();
         const emuImage = preferredPack.platformEmulatorImage || 'default';
@@ -78,6 +77,12 @@ export class AndroidLauncher {
                     return AndroidSDKUtils.launchURLIntent(url, actualPort);
                 } else {
                     spinner.stop(`Launching App ${targetApp}`);
+
+                    const launchActivity =
+                        (appConfig && appConfig.activity) || '';
+
+                    const targetAppArguments: LaunchArgument[] =
+                        (appConfig && appConfig.launch_arguments) || [];
                     return AndroidSDKUtils.launchNativeApp(
                         compName,
                         projectDir,
