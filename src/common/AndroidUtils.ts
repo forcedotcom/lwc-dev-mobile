@@ -131,18 +131,17 @@ export class AndroidSDKUtils {
 
                     if (!AndroidSDKUtils.isJavaHomeSet()) {
                         reject(new Error('JAVA_HOME is not set.'));
-                    }
-                    if (idx !== -1) {
+                    } else if (idx !== -1) {
                         reject(new Error('unsupported Java version.'));
-                    }
-                    if (error.status && error.status === 127) {
+                    } else if (error.status && error.status === 127) {
                         reject(
                             new Error(
                                 `SDK Manager not found. Expected at ${AndroidSDKUtils.ANDROID_SDK_MANAGER_CMD}`
                             )
                         );
+                    } else {
+                        reject(error);
                     }
-                    reject(error.message);
                 });
         });
     }
