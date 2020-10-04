@@ -16,9 +16,10 @@ import { CommonUtils } from './CommonUtils';
 import { LaunchArgument } from './PreviewConfigFile';
 import { PreviewUtils } from './PreviewUtils';
 
-const execSync = childProcess.execSync;
 const spawn = childProcess.spawn;
 type StdioOptions = childProcess.StdioOptions;
+
+const LOGGER_NAME = 'force:lightning:mobile:android';
 
 export class AndroidSDKUtils {
     static get androidHome(): string {
@@ -73,10 +74,9 @@ export class AndroidSDKUtils {
     public static ADB_SHELL_COMMAND_VERSION =
         AndroidSDKUtils.ADB_SHELL_COMMAND + ' --version';
 
-    public static setLogger(logger: Logger) {
-        if (logger) {
-            AndroidSDKUtils.logger = logger;
-        }
+    public static async initializeLogger(): Promise<void> {
+        AndroidSDKUtils.logger = await Logger.child(LOGGER_NAME);
+        return Promise.resolve();
     }
 
     public static convertToUnixPath(dirPath: string): string {
@@ -135,11 +135,10 @@ export class AndroidSDKUtils {
                     if (idx !== -1) {
                         reject(new Error('unsupported Java version.'));
                     }
-                    if (error.status === 127) {
+                    if (error.status && error.status === 127) {
                         reject(
                             new Error(
-                                'SDK Manager not found. Expected at ' +
-                                    AndroidSDKUtils.ANDROID_SDK_MANAGER_CMD
+                                `SDK Manager not found. Expected at ${AndroidSDKUtils.ANDROID_SDK_MANAGER_CMD}`
                             )
                         );
                     }
@@ -218,7 +217,7 @@ export class AndroidSDKUtils {
         return new Promise((resolve, reject) => {
             let devices: AndroidVirtualDevice[] = [];
             try {
-                const result = execSync(
+                const result = AndroidSDKUtils.executeCommand(
                     AndroidSDKUtils.AVDMANAGER_COMMAND + ' list avd'
                 );
                 if (result) {
@@ -663,21 +662,23 @@ export class AndroidSDKUtils {
         });
     }
 
-    private static logger: Logger = new Logger(
-        'force:lightning:mobile:android'
-    );
+    private static logger: Logger = new Logger(LOGGER_NAME);
     private static DEFAULT_ADB_CONSOLE_PORT = 5554;
     private static packageCache: Map<string, AndroidPackage> = new Map();
+    private static toolsBinLocation: string;
 
     private static getToolsBin(): string {
-        let toolsLocation = AndroidSDKUtils.ANDROID_TOOLS_BIN;
-        if (
-            !fs.existsSync(toolsLocation) &&
-            fs.existsSync(AndroidSDKUtils.ANDROID_CMD_LINE_TOOLS_BIN)
-        ) {
-            toolsLocation = AndroidSDKUtils.ANDROID_CMD_LINE_TOOLS_BIN;
+        if (this.toolsBinLocation === undefined) {
+            this.toolsBinLocation = AndroidSDKUtils.ANDROID_TOOLS_BIN;
+            if (
+                !fs.existsSync(this.toolsBinLocation) &&
+                fs.existsSync(AndroidSDKUtils.ANDROID_CMD_LINE_TOOLS_BIN)
+            ) {
+                this.toolsBinLocation =
+                    AndroidSDKUtils.ANDROID_CMD_LINE_TOOLS_BIN;
+            }
         }
-        return toolsLocation;
+        return this.toolsBinLocation;
     }
 
     private static systemImagePath(
