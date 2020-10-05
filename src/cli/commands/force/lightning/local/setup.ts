@@ -4,12 +4,15 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
+import util from 'util';
+
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
-import util from 'util';
+
 import { AndroidEnvironmentSetup } from '../../../../../common/AndroidEnvironmentSetup';
 import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSEnvironmentSetup } from '../../../../../common/IOSEnvironmentSetup';
+import { LoggerSetup } from '../../../../../common/LoggerSetup';
 import { BaseSetup, SetupTestResult } from '../../../../../common/Requirements';
 
 // Initialize Messages with the current plugin directory
@@ -76,6 +79,7 @@ export default class Setup extends SfdxCommand {
         await super.init();
         const logger = await Logger.child('mobile:setup', {});
         this.logger = logger;
+        await LoggerSetup.initializePluginLoggers();
     }
 
     protected setup(): BaseSetup {

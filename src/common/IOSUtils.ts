@@ -12,13 +12,18 @@ import { IOSSimulatorDevice } from './IOSTypes';
 import { LaunchArgument } from './PreviewConfigFile';
 import { PreviewUtils } from './PreviewUtils';
 
-const exec = util.promisify(childProcess.exec);
-
 const XCRUN_CMD = '/usr/bin/xcrun';
 const DEVICE_TYPE_PREFIX = 'com.apple.CoreSimulator.SimDeviceType';
 const RUNTIME_TYPE_PREFIX = 'com.apple.CoreSimulator.SimRuntime';
 
+const LOGGER_NAME = 'force:lightning:mobile:ios';
+
 export class IOSUtils {
+    public static async initializeLogger(): Promise<void> {
+        IOSUtils.logger = await Logger.child(LOGGER_NAME);
+        return Promise.resolve();
+    }
+
     public static async bootDevice(udid: string): Promise<boolean> {
         const command = `${XCRUN_CMD} simctl boot ${udid}`;
         try {
@@ -98,7 +103,22 @@ export class IOSUtils {
     public static async executeCommand(
         command: string
     ): Promise<{ stdout: string; stderr: string }> {
-        return exec(command);
+        return new Promise<{ stdout: string; stderr: string }>(
+            (resolve, reject) => {
+                IOSUtils.logger.debug(`Executing command: '${command}'.`);
+                childProcess.exec(command, (error, stdout, stderr) => {
+                    if (error) {
+                        IOSUtils.logger.error(
+                            `Error executing command '${command}':`
+                        );
+                        IOSUtils.logger.error(`${error}`);
+                        reject(error);
+                    } else {
+                        resolve({ stdout, stderr });
+                    }
+                });
+            }
+        );
     }
 
     public static async getSupportedDevices(): Promise<string[]> {
@@ -280,7 +300,7 @@ export class IOSUtils {
         }
     }
 
-    private static logger: Logger = new Logger('force:lightning:mobile:ios');
+    private static logger: Logger = new Logger(LOGGER_NAME);
 
     private static isDeviceAlreadyBootedError(error: Error): boolean {
         return error.message

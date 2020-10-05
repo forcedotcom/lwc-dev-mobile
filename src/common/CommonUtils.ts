@@ -6,17 +6,34 @@
  */
 import * as childProcess from 'child_process';
 
+import { Logger } from '@salesforce/core';
+
 const execSync = childProcess.execSync;
 const spawn = childProcess.spawn;
 type StdioOptions = childProcess.StdioOptions;
+
+const LOGGER_NAME = 'force:lightning:mobile:common';
+
 export class CommonUtils {
+    public static async initializeLogger(): Promise<void> {
+        CommonUtils.logger = await Logger.child(LOGGER_NAME);
+        return Promise.resolve();
+    }
+
     public static executeCommand(
         command: string,
         stdioOptions: StdioOptions = ['ignore', 'pipe', 'ignore']
     ): string {
-        return execSync(command, {
-            stdio: stdioOptions
-        }).toString();
+        CommonUtils.logger.debug(`Executing command: '${command}'.`);
+        try {
+            return execSync(command, {
+                stdio: stdioOptions
+            }).toString();
+        } catch (error) {
+            CommonUtils.logger.error(`Error executing command '${command}':`);
+            CommonUtils.logger.error(`${error}`);
+            throw error;
+        }
     }
 
     public static async isLwcServerPluginInstalled(): Promise<void> {
@@ -31,4 +48,6 @@ export class CommonUtils {
             }
         });
     }
+
+    private static logger: Logger = new Logger(LOGGER_NAME);
 }
