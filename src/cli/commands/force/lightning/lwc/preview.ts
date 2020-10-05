@@ -4,15 +4,24 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import { flags, SfdxCommand } from '@salesforce/command';
+import { flags } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
+import fs from 'fs';
+import path from 'path';
 import { AndroidLauncher } from '../../../../../common/AndroidLauncher';
 import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
+import {
+    AndroidAppPreviewConfig,
+    IOSAppPreviewConfig,
+    LaunchArgument
+} from '../../../../../common/PreviewConfigFile';
+import { PreviewUtils } from '../../../../../common/PreviewUtils';
 import { SetupTestResult } from '../../../../../common/Requirements';
 import androidConfig from '../../../../../config/androidconfig.json';
 import iOSConfig from '../../../../../config/iosconfig.json';
 import Setup from '../local/setup';
+import * as configSchema from './previewConfigurationSchema.json';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -33,14 +42,34 @@ export default class Preview extends Setup {
             description: messages.getMessage('componentnameFlagDescription'),
             required: true
         }),
+        configfile: flags.string({
+            char: 'f',
+            description: messages.getMessage('configFileFlagDescription'),
+            required: false
+        }),
+        confighelp: flags.help({
+            default: false,
+            description: messages.getMessage('configHelpFlagDescription'),
+            required: false
+        }),
         platform: flags.string({
             char: 'p',
             description: messages.getMessage('platformFlagDescription'),
             required: true
         }),
+        projectdir: flags.string({
+            char: 'd',
+            description: messages.getMessage('projectDirFlagDescription'),
+            required: false
+        }),
         target: flags.string({
             char: 't',
             description: messages.getMessage('targetFlagDescription'),
+            required: false
+        }),
+        targetapp: flags.string({
+            char: 'a',
+            description: messages.getMessage('targetAppFlagDescription'),
             required: false
         })
     };
@@ -80,61 +109,171 @@ export default class Preview extends Setup {
             });
     }
 
-    public validateAdditionalInputs(): Promise<void> {
-        const compName = this.flags.componentname;
-        return new Promise<void>((resolve, reject) => {
-            const isValid: boolean = compName
-                ? compName.trim().length > 0
-                : false;
-            if (isValid === false) {
-                this.logger.debug('Invoked validateComponentName in preview');
-                reject(
+    public async validateAdditionalInputs(): Promise<void> {
+        const platform = this.flags.platform;
+
+        const compName = CommandLineUtils.resolveFlag(
+            this.flags.componentname,
+            ''
+        ).trim();
+
+        const targetApp = CommandLineUtils.resolveFlag(
+            this.flags.targetapp,
+            PreviewUtils.BROWSER_TARGET_APP
+        );
+
+        const configFileName = CommandLineUtils.resolveFlag(
+            this.flags.configfile,
+            ''
+        ).trim();
+
+        const configFilePath = path.resolve(configFileName);
+
+        const hasConfigFile =
+            configFilePath.length > 0 && fs.existsSync(configFilePath);
+
+        const isBrowserTargetApp = PreviewUtils.isTargetingBrowser(targetApp);
+
+        const isValidCompName = compName.length > 0;
+
+        this.logger.debug('Validating Preview command inputs.');
+
+        // check if user provided a config file when targetapp=browser
+        // and warn them that the config file will be ignored.
+        if (isBrowserTargetApp && hasConfigFile) {
+            this.logger.warn(
+                messages.getMessage('ignoringConfigFileFlagDescription')
+            );
+        }
+
+        if (isValidCompName === false) {
+            return Promise.reject(
+                new SfdxError(
+                    messages.getMessage(
+                        'error:invalidComponentNameFlagsDescription'
+                    ),
+                    'lwc-dev-mobile',
+                    Preview.examples
+                )
+            );
+        }
+
+        if (isBrowserTargetApp === false && hasConfigFile === false) {
+            return Promise.reject(
+                new SfdxError(
+                    messages.getMessage(
+                        'error:invalidConfigFile:missingDescription',
+                        [configFilePath]
+                    ),
+                    'lwc-dev-mobile',
+                    Preview.examples
+                )
+            );
+        }
+
+        if (isBrowserTargetApp === false && hasConfigFile === true) {
+            // 1. validate config file against schema
+            const validationResult = await PreviewUtils.validateConfigFileWithSchema(
+                configFilePath,
+                configSchema
+            );
+            if (validationResult.passed === false) {
+                return Promise.reject(
                     new SfdxError(
                         messages.getMessage(
-                            'error:invalidInputFlagsDescription'
+                            'error:invalidConfigFile:genericDescription',
+                            [configFilePath, validationResult.errorMessage]
                         ),
-                        'lwc-dev-mobile',
-                        Preview.examples
+                        'lwc-dev-mobile'
                     )
                 );
-            } else {
-                resolve();
             }
-        });
+
+            // 2. validate that a matching app configuration is included in the config file
+            const configFile = PreviewUtils.loadConfigFile(configFilePath);
+            const appConfig = configFile.getAppConfig(platform, targetApp);
+            if (appConfig === undefined) {
+                const errMsg = messages.getMessage(
+                    'error:invalidConfigFile:missingAppConfigDescription',
+                    [targetApp, platform]
+                );
+                return Promise.reject(
+                    new SfdxError(
+                        messages.getMessage(
+                            'error:invalidConfigFile:genericDescription',
+                            [configFilePath, errMsg]
+                        ),
+                        'lwc-dev-mobile'
+                    )
+                );
+            }
+        }
+
+        return Promise.resolve();
     }
 
     public launchPreview(): Promise<boolean> {
-        let promise = Promise.resolve(false);
-        if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
-            promise = this.launchIOS();
-        } else if (
-            CommandLineUtils.platformFlagIsAndroid(this.flags.platform)
-        ) {
-            promise = this.launchAndroid();
-        }
-        return promise;
-    }
+        const platform = this.flags.platform;
 
-    public launchIOS(): Promise<boolean> {
-        const simName = this.flags.target
-            ? this.flags.target
-            : iOSConfig.defaultSimulatorName;
-        const launcher = new IOSLauncher(simName);
-        const compPath = this.prefixRouteIfNeeded(this.flags.componentname);
-        return launcher.launchNativeBrowser(
-            `http://localhost:3333/lwc/preview/${compPath}`
-        );
-    }
-
-    public launchAndroid(): Promise<boolean> {
-        const emulatorName = this.flags.target
-            ? this.flags.target
+        const defaultDeviceName = CommandLineUtils.platformFlagIsIOS(platform)
+            ? iOSConfig.defaultSimulatorName
             : androidConfig.defaultEmulatorName;
-        const launcher = new AndroidLauncher(emulatorName);
-        const compPath = this.prefixRouteIfNeeded(this.flags.componentname);
-        return launcher.launchNativeBrowser(
-            `http://10.0.2.2:3333/lwc/preview/${compPath}`
+
+        const device = CommandLineUtils.resolveFlag(
+            this.flags.target,
+            defaultDeviceName
         );
+
+        const targetApp = CommandLineUtils.resolveFlag(
+            this.flags.targetapp,
+            PreviewUtils.BROWSER_TARGET_APP
+        );
+
+        const projectDir = CommandLineUtils.resolveFlag(
+            this.flags.projectdir,
+            process.cwd()
+        );
+
+        const configFileName = CommandLineUtils.resolveFlag(
+            this.flags.configfile,
+            ''
+        );
+
+        const component = this.flags.componentname;
+
+        let appConfig:
+            | IOSAppPreviewConfig
+            | AndroidAppPreviewConfig
+            | undefined;
+
+        if (
+            PreviewUtils.isTargetingBrowser(targetApp) === false &&
+            configFileName.trim().length > 0
+        ) {
+            const configFilePath = path.resolve(configFileName);
+            const configFile = PreviewUtils.loadConfigFile(configFilePath);
+            appConfig = configFile.getAppConfig(platform, targetApp);
+        }
+
+        if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
+            const config = appConfig && (appConfig as IOSAppPreviewConfig);
+            return this.launchIOS(
+                device,
+                component,
+                projectDir,
+                targetApp,
+                config
+            );
+        } else {
+            const config = appConfig && (appConfig as AndroidAppPreviewConfig);
+            return this.launchAndroid(
+                device,
+                component,
+                projectDir,
+                targetApp,
+                config
+            );
+        }
     }
 
     protected async init(): Promise<void> {
@@ -143,10 +282,54 @@ export default class Preview extends Setup {
         this.logger = logger;
     }
 
-    private prefixRouteIfNeeded(compName: string): string {
-        if (compName.toLowerCase().startsWith('c/')) {
-            return compName;
+    protected _help(): never {
+        const isCommandHelp =
+            this.argv.filter(
+                (v) => v.toLowerCase() === '-h' || v.toLowerCase() === '--help'
+            ).length > 0;
+
+        if (isCommandHelp) {
+            super._help();
+        } else {
+            const message = messages.getMessage('configFileHelpDescription');
+            // tslint:disable-next-line: no-console
+            console.log(`${message}`);
         }
-        return 'c/' + compName;
+
+        return this.exit(0);
+    }
+
+    private launchIOS(
+        deviceName: string,
+        componentName: string,
+        projectDir: string,
+        targetApp: string,
+        appConfig: IOSAppPreviewConfig | undefined
+    ): Promise<boolean> {
+        const launcher = new IOSLauncher(deviceName);
+
+        return launcher.launchPreview(
+            componentName,
+            projectDir,
+            targetApp,
+            appConfig
+        );
+    }
+
+    private launchAndroid(
+        deviceName: string,
+        componentName: string,
+        projectDir: string,
+        targetApp: string,
+        appConfig: AndroidAppPreviewConfig | undefined
+    ): Promise<boolean> {
+        const launcher = new AndroidLauncher(deviceName);
+
+        return launcher.launchPreview(
+            componentName,
+            projectDir,
+            targetApp,
+            appConfig
+        );
     }
 }

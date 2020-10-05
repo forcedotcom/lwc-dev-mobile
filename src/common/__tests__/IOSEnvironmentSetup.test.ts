@@ -42,7 +42,7 @@ const runtimesMockBlock = jest.fn(
 );
 
 import { IOSEnvironmentSetup } from '../IOSEnvironmentSetup';
-import { XcodeUtils } from '../IOSUtils';
+import { IOSUtils } from '../IOSUtils';
 
 Messages.importMessagesDirectory(__dirname);
 const logger = new Logger('test-IOSEnvironmentSetup');
@@ -110,7 +110,7 @@ describe('IOS Environment Setup tests', () => {
     });
 
     it('Should attempt to validate supported Xcode runtime environments', async () => {
-        jest.spyOn(XcodeUtils, 'getSimulatorRuntimes').mockImplementation(
+        jest.spyOn(IOSUtils, 'getSimulatorRuntimes').mockImplementation(
             runtimesMockBlock
         );
         const setup = new IOSEnvironmentSetup(logger);

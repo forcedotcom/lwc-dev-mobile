@@ -8,7 +8,7 @@ import { Logger, Messages } from '@salesforce/core';
 import childProcess from 'child_process';
 import util from 'util';
 import iOSConfig from '../config/iosconfig.json';
-import { XcodeUtils } from './IOSUtils';
+import { IOSUtils } from './IOSUtils';
 import { BaseSetup } from './Requirements';
 
 const exec = util.promisify(childProcess.exec);
@@ -17,7 +17,7 @@ export class IOSEnvironmentSetup extends BaseSetup {
     public static executeCommand(
         command: string
     ): Promise<{ stdout: string; stderr: string }> {
-        return XcodeUtils.executeCommand(command);
+        return IOSUtils.executeCommand(command);
     }
 
     constructor(logger: Logger) {
@@ -132,7 +132,7 @@ export class IOSEnvironmentSetup extends BaseSetup {
     public async hasSupportedSimulatorRuntime(): Promise<string> {
         try {
             this.logger.info('Executing a check for iOS runtimes');
-            const supportedRuntimes = await XcodeUtils.getSupportedRuntimes();
+            const supportedRuntimes = await IOSUtils.getSupportedRuntimes();
             if (supportedRuntimes.length > 0) {
                 return new Promise<string>((resolve, reject) =>
                     resolve(

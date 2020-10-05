@@ -12,8 +12,8 @@ import { AndroidVirtualDevice } from '../../../../../../common/AndroidTypes';
 import { AndroidSDKUtils } from '../../../../../../common/AndroidUtils';
 import { CommandLineUtils } from '../../../../../../common/Common';
 import { IOSSimulatorDevice } from '../../../../../../common/IOSTypes';
-import { XcodeUtils } from '../../../../../../common/IOSUtils';
-import Setup from '../setup';
+import { IOSUtils } from '../../../../../../common/IOSUtils';
+import { LoggerSetup } from '../../../../../../common/LoggerSetup';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -63,7 +63,7 @@ export default class List extends SfdxCommand {
     }
 
     public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
-        const result = await XcodeUtils.getSupportedSimulators();
+        const result = await IOSUtils.getSupportedSimulators();
         this.showDeviceList(result);
         return result;
     }
@@ -78,6 +78,7 @@ export default class List extends SfdxCommand {
         await super.init();
         const logger = await Logger.child('mobile:device:list', {});
         this.logger = logger;
+        await LoggerSetup.initializePluginLoggers();
     }
 
     private showDeviceList(list: any[]) {

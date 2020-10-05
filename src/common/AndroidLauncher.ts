@@ -7,6 +7,8 @@
 import cli from 'cli-ux';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
+import { AndroidAppPreviewConfig, LaunchArgument } from './PreviewConfigFile';
+import { PreviewUtils } from './PreviewUtils';
 
 export class AndroidLauncher {
     private emulatorName: string;
@@ -15,7 +17,12 @@ export class AndroidLauncher {
         this.emulatorName = emulatorName;
     }
 
-    public async launchNativeBrowser(url: string): Promise<boolean> {
+    public async launchPreview(
+        compName: string,
+        projectDir: string,
+        targetApp: string,
+        appConfig: AndroidAppPreviewConfig | undefined
+    ): Promise<boolean> {
         const preferredPack = await AndroidSDKUtils.findRequiredEmulatorImages();
         const emuImage = preferredPack.platformEmulatorImage || 'default';
         const androidApi = preferredPack.platformAPI;
@@ -62,8 +69,29 @@ export class AndroidLauncher {
                     stdout: true
                 });
                 await AndroidSDKUtils.pollDeviceStatus(actualPort);
-                spinner.stop('Opening Browser');
-                return AndroidSDKUtils.launchURLIntent(url, actualPort);
+
+                if (PreviewUtils.isTargetingBrowser(targetApp)) {
+                    const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
+                    const url = `http://10.0.2.2:3333/lwc/preview/${compPath}`;
+                    spinner.stop(`Opening Browser with url ${url}`);
+                    return AndroidSDKUtils.launchURLIntent(url, actualPort);
+                } else {
+                    spinner.stop(`Launching App ${targetApp}`);
+
+                    const launchActivity =
+                        (appConfig && appConfig.activity) || '';
+
+                    const targetAppArguments: LaunchArgument[] =
+                        (appConfig && appConfig.launch_arguments) || [];
+                    return AndroidSDKUtils.launchNativeApp(
+                        compName,
+                        projectDir,
+                        targetApp,
+                        targetAppArguments,
+                        launchActivity,
+                        actualPort
+                    );
+                }
             })
             .catch((error) => {
                 spinner.stop('Error encountered during launch');

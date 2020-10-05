@@ -7,7 +7,9 @@
 import childProcess from 'child_process';
 import cli from 'cli-ux';
 import util from 'util';
-import { XcodeUtils } from './IOSUtils';
+import { IOSUtils } from './IOSUtils';
+import { IOSAppPreviewConfig, LaunchArgument } from './PreviewConfigFile';
+import { PreviewUtils } from './PreviewUtils';
 const exec = util.promisify(childProcess.exec);
 
 export class IOSLauncher {
@@ -17,10 +19,15 @@ export class IOSLauncher {
         this.simulatorName = simulatorName;
     }
 
-    public async launchNativeBrowser(url: string): Promise<boolean> {
-        const availableDevices: string[] = await XcodeUtils.getSupportedDevices();
-        const supportedRuntimes: string[] = await XcodeUtils.getSupportedRuntimes();
-        const currentSimulator = await XcodeUtils.getSimulator(
+    public async launchPreview(
+        compName: string,
+        projectDir: string,
+        targetApp: string,
+        appConfig: IOSAppPreviewConfig | undefined
+    ): Promise<boolean> {
+        const availableDevices: string[] = await IOSUtils.getSupportedDevices();
+        const supportedRuntimes: string[] = await IOSUtils.getSupportedRuntimes();
+        const currentSimulator = await IOSUtils.getSimulator(
             this.simulatorName
         );
         const currentSimulatorUDID: string | null =
@@ -38,7 +45,7 @@ export class IOSLauncher {
                     stdout: true
                 }
             );
-            deviceUDID = await XcodeUtils.createNewDevice(
+            deviceUDID = await IOSUtils.createNewDevice(
                 this.simulatorName,
                 availableDevices[0],
                 supportedRuntimes[0]
@@ -52,7 +59,45 @@ export class IOSLauncher {
             });
             deviceUDID = currentSimulatorUDID;
         }
-        return XcodeUtils.openUrlInNativeBrowser(url, deviceUDID, spinner);
+
+        return IOSUtils.launchSimulatorApp()
+            .then(() => {
+                spinner.start(`Launching`, `Starting device ${deviceUDID}`, {
+                    stdout: true
+                });
+                return IOSUtils.bootDevice(deviceUDID);
+            })
+            .then(() => {
+                spinner.start(
+                    `Launching`,
+                    `Waiting for device ${deviceUDID} to boot`,
+                    {
+                        stdout: true
+                    }
+                );
+                return IOSUtils.waitUntilDeviceIsReady(deviceUDID);
+            })
+            .then(() => {
+                if (PreviewUtils.isTargetingBrowser(targetApp)) {
+                    const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
+                    const url = `http://localhost:3333/lwc/preview/${compPath}`;
+                    return IOSUtils.launchURLInBootedSimulator(deviceUDID, url);
+                } else {
+                    const targetAppArguments: LaunchArgument[] =
+                        (appConfig && appConfig.launch_arguments) || [];
+                    return IOSUtils.launchAppInBootedSimulator(
+                        deviceUDID,
+                        compName,
+                        projectDir,
+                        targetApp,
+                        targetAppArguments
+                    );
+                }
+            })
+            .catch((error) => {
+                spinner.stop('Error encountered during launch');
+                throw error;
+            });
     }
 }
 
