@@ -63,14 +63,16 @@ export default class List extends SfdxCommand {
     }
 
     public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
+        const startTime = new Date().getTime();
         const result = await IOSUtils.getSupportedSimulators();
-        this.showDeviceList(result);
+        this.showDeviceList(result, startTime);
         return result;
     }
 
     public async androidDeviceList(): Promise<AndroidVirtualDevice[]> {
+        const startTime = new Date().getTime();
         const result = await AndroidSDKUtils.fetchEmulators();
-        this.showDeviceList(result);
+        this.showDeviceList(result, startTime);
         return result;
     }
 
@@ -81,11 +83,17 @@ export default class List extends SfdxCommand {
         await LoggerSetup.initializePluginLoggers();
     }
 
-    private showDeviceList(list: any[]) {
+    private showDeviceList(list: any[], startTime: number) {
+        const endTime = new Date().getTime();
+        const duration = Math.abs((endTime - startTime) / 1000);
+
+        const message = `DeviceList (${duration} sec)`;
         const tree = cli.tree();
-        tree.insert('DeviceList');
+        tree.insert(message);
+        const rootNode = tree.nodes[message];
+
         list.forEach((item) => {
-            tree.nodes.DeviceList.insert(chalk.bold.green(item));
+            rootNode.insert(chalk.bold.green(item));
         });
         tree.display();
     }

@@ -25,6 +25,7 @@ export interface SetupTestCase {
     testResult: string;
     message: string;
     hasPassed: boolean;
+    duration: number;
 }
 
 export interface SetupTestResult {
@@ -47,7 +48,7 @@ export interface Launcher {
 // Once the functionality is  available  in the near future this function can be removed.
 // See https://github.com/tc39/proposal-promise-allSettled
 
-export function WrappedPromise(promise: Promise<any>) {
+export function WrappedPromise(promise: Promise<any>): Promise<any> {
     return promise.then(
         (v) => ({ v, status: 'fulfilled' }),
         (e) => ({ e, status: 'rejected' })
@@ -86,54 +87,54 @@ export abstract class BaseSetup implements RequirementList {
         ];
     }
     public async executeSetup(): Promise<SetupTestResult> {
-        const allPromises: Array<Promise<any>> = [];
-        this.requirements.forEach((requirement) =>
-            allPromises.push(WrappedPromise(requirement.checkFunction()))
-        );
-        const logger = this.logger;
-        const reqs = this.requirements;
-        return Promise.all(allPromises).then((results) => {
-            const testResult: SetupTestResult = {
-                hasMetAllRequirements: true,
-                tests: []
-            };
-            let count = 0;
-            results.forEach((result) => {
-                if (result.status === 'fulfilled') {
-                    testResult.tests.push({
-                        hasPassed: true,
-                        message: result.v,
-                        testResult: 'Passed'
-                    });
-                } else if (result.status === 'rejected') {
-                    testResult.hasMetAllRequirements = false;
-                    testResult.tests.push({
-                        hasPassed: false,
-                        message: result.e,
-                        testResult: 'Failed'
-                    });
-                }
-                count++;
-            });
+        const testResult: SetupTestResult = {
+            hasMetAllRequirements: true,
+            tests: []
+        };
 
-            const tree = cli.tree();
-            tree.insert('Setup');
-            testResult.tests.forEach((test) => {
-                tree.nodes.Setup.insert(
-                    `${
-                        test.hasPassed
-                            ? chalk.bold.green(test.testResult)
-                            : chalk.bold.red(test.testResult)
-                    }: ${
-                        test.hasPassed
-                            ? chalk.green(test.message)
-                            : chalk.red(test.message)
-                    }`
-                );
-            });
-            tree.display();
-            return Promise.resolve(testResult);
+        let totalDuration: number = 0;
+        for (const requirement of this.requirements) {
+            const startTime = new Date().getTime();
+            const wrappedPromise = WrappedPromise(requirement.checkFunction());
+            const result = await wrappedPromise;
+            const endTime = new Date().getTime();
+            const diff = Math.abs((endTime - startTime) / 1000);
+            totalDuration += diff;
+            if (result.status === 'fulfilled') {
+                testResult.tests.push({
+                    duration: diff,
+                    hasPassed: true,
+                    message: result.v,
+                    testResult: 'Passed'
+                });
+            } else if (result.status === 'rejected') {
+                testResult.hasMetAllRequirements = false;
+                testResult.tests.push({
+                    duration: diff,
+                    hasPassed: false,
+                    message: result.e,
+                    testResult: 'Failed'
+                });
+            }
+        }
+
+        const setupMessage = `Setup (${totalDuration} sec)`;
+        const tree = cli.tree();
+        tree.insert(setupMessage);
+        const rootNode = tree.nodes[setupMessage];
+        testResult.tests.forEach((test) => {
+            const message = `${test.testResult} (${test.duration} sec): ${test.message}`;
+            rootNode.insert(
+                `${
+                    test.hasPassed
+                        ? chalk.bold.green(message)
+                        : chalk.bold.red(message)
+                }`
+            );
         });
+        tree.display();
+
+        return Promise.resolve(testResult);
     }
 
     public async isLWCServerPluginInstalled(): Promise<string> {
