@@ -118,12 +118,14 @@ export abstract class BaseSetup implements RequirementList {
             }
         }
 
-        const setupMessage = `Setup (${totalDuration} sec)`;
+        const setupMessage = `Setup (${totalDuration.toFixed(3)} sec)`;
         const tree = cli.tree();
         tree.insert(setupMessage);
         const rootNode = tree.nodes[setupMessage];
         testResult.tests.forEach((test) => {
-            const message = `${test.testResult} (${test.duration} sec): ${test.message}`;
+            const message = `${test.testResult} (${test.duration.toFixed(
+                3
+            )} sec): ${test.message}`;
             rootNode.insert(
                 `${
                     test.hasPassed
