@@ -7,6 +7,7 @@
 import { Logger, LoggerLevel, Messages } from '@salesforce/core';
 import chalk from 'chalk';
 import cli from 'cli-ux';
+import { performance, PerformanceObserver } from 'perf_hooks';
 import { CommonUtils } from './CommonUtils';
 export type CheckRequirementsFunc = () => Promise<string>;
 
@@ -93,16 +94,24 @@ export abstract class BaseSetup implements RequirementList {
         };
 
         let totalDuration: number = 0;
+        let stepDuration: number = 0;
+        const obs = new PerformanceObserver((items) => {
+            stepDuration = items.getEntries()[0].duration / 1000;
+            performance.clearMarks();
+        });
+        obs.observe({ entryTypes: ['measure'] });
+
         for (const requirement of this.requirements) {
-            const startTime = new Date().getTime();
+            stepDuration = 0;
+            performance.mark('Start');
             const wrappedPromise = WrappedPromise(requirement.checkFunction());
             const result = await wrappedPromise;
-            const endTime = new Date().getTime();
-            const diff = Math.abs((endTime - startTime) / 1000);
-            totalDuration += diff;
+            performance.mark('End');
+            performance.measure('StepDuration', 'Start', 'End');
+            totalDuration += stepDuration;
             if (result.status === 'fulfilled') {
                 testResult.tests.push({
-                    duration: diff,
+                    duration: stepDuration,
                     hasPassed: true,
                     message: result.v,
                     testResult: 'Passed'
@@ -110,7 +119,7 @@ export abstract class BaseSetup implements RequirementList {
             } else if (result.status === 'rejected') {
                 testResult.hasMetAllRequirements = false;
                 testResult.tests.push({
-                    duration: diff,
+                    duration: stepDuration,
                     hasPassed: false,
                     message: result.e,
                     testResult: 'Failed'

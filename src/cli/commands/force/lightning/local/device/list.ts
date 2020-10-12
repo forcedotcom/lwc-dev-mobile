@@ -8,6 +8,7 @@ import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
 import chalk from 'chalk';
 import cli from 'cli-ux';
+import { performance, PerformanceObserver } from 'perf_hooks';
 import { AndroidVirtualDevice } from '../../../../../../common/AndroidTypes';
 import { AndroidSDKUtils } from '../../../../../../common/AndroidUtils';
 import { CommandLineUtils } from '../../../../../../common/Common';
@@ -63,16 +64,18 @@ export default class List extends SfdxCommand {
     }
 
     public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
-        const startTime = new Date().getTime();
+        performance.mark('StartFetchDevices');
         const result = await IOSUtils.getSupportedSimulators();
-        this.showDeviceList(result, startTime);
+        performance.mark('EndFetchDevices');
+        this.showDeviceList(result);
         return result;
     }
 
     public async androidDeviceList(): Promise<AndroidVirtualDevice[]> {
-        const startTime = new Date().getTime();
+        performance.mark('StartFetchDevices');
         const result = await AndroidSDKUtils.fetchEmulators();
-        this.showDeviceList(result, startTime);
+        performance.mark('EndFetchDevices');
+        this.showDeviceList(result);
         return result;
     }
 
@@ -83,11 +86,22 @@ export default class List extends SfdxCommand {
         await LoggerSetup.initializePluginLoggers();
     }
 
-    private showDeviceList(list: any[], startTime: number) {
-        const endTime = new Date().getTime();
-        const duration = Math.abs((endTime - startTime) / 1000);
+    private showDeviceList(list: any[]) {
+        let duration: number = 0;
 
-        const message = `DeviceList (${duration} sec)`;
+        const obs = new PerformanceObserver((items) => {
+            duration = items.getEntries()[0].duration / 1000;
+            performance.clearMarks();
+        });
+        obs.observe({ entryTypes: ['measure'] });
+
+        performance.measure(
+            'FetchDuration',
+            'StartFetchDevices',
+            'EndFetchDevices'
+        );
+
+        const message = `DeviceList (${duration.toFixed(3)} sec)`;
         const tree = cli.tree();
         tree.insert(message);
         const rootNode = tree.nodes[message];
