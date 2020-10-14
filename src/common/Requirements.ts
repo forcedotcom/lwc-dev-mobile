@@ -9,6 +9,7 @@ import chalk from 'chalk';
 import cli from 'cli-ux';
 import { performance, PerformanceObserver } from 'perf_hooks';
 import { CommonUtils } from './CommonUtils';
+import { PerformanceMarkers } from './PerformanceMarkers';
 export type CheckRequirementsFunc = () => Promise<string>;
 
 // Initialize Messages with the current plugin directory
@@ -68,6 +69,10 @@ export abstract class BaseSetup implements RequirementList {
     protected fulfilledMessage: string = '';
     protected unfulfilledMessage: string = '';
 
+    private perfMarker = PerformanceMarkers.getByName(
+        PerformanceMarkers.REQUIREMENTS_MARKER_KEY
+    )!;
+
     constructor(logger: Logger) {
         const messages = this.setupMessages;
         this.logger = logger;
@@ -97,18 +102,22 @@ export abstract class BaseSetup implements RequirementList {
         let stepDuration: number = 0;
         const obs = new PerformanceObserver((items) => {
             stepDuration = items.getEntries()[0].duration / 1000;
+            totalDuration += stepDuration;
             performance.clearMarks();
         });
         obs.observe({ entryTypes: ['measure'] });
 
         for (const requirement of this.requirements) {
             stepDuration = 0;
-            performance.mark('Start');
+            performance.mark(this.perfMarker.startMarkName);
             const wrappedPromise = WrappedPromise(requirement.checkFunction());
             const result = await wrappedPromise;
-            performance.mark('End');
-            performance.measure('StepDuration', 'Start', 'End');
-            totalDuration += stepDuration;
+            performance.mark(this.perfMarker.endMarkName);
+            performance.measure(
+                this.perfMarker.name,
+                this.perfMarker.startMarkName,
+                this.perfMarker.endMarkName
+            );
             if (result.status === 'fulfilled') {
                 testResult.tests.push({
                     duration: stepDuration,
@@ -126,6 +135,7 @@ export abstract class BaseSetup implements RequirementList {
                 });
             }
         }
+        obs.disconnect();
 
         const setupMessage = `Setup (${totalDuration.toFixed(3)} sec)`;
         const tree = cli.tree();
