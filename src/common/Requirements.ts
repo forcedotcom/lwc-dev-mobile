@@ -7,7 +7,7 @@
 import { Logger, LoggerLevel, Messages } from '@salesforce/core';
 import chalk from 'chalk';
 import cli from 'cli-ux';
-import { performance, PerformanceObserver } from 'perf_hooks';
+import { performance, PerformanceEntry, PerformanceObserver } from 'perf_hooks';
 import { CommonUtils } from './CommonUtils';
 import { PerformanceMarkers } from './PerformanceMarkers';
 export type CheckRequirementsFunc = () => Promise<string>;
@@ -49,11 +49,31 @@ export interface Launcher {
 // rejection. We are looking for the equivalent of Promise.allSettled() which is scheduled for ES2020.
 // Once the functionality is  available  in the near future this function can be removed.
 // See https://github.com/tc39/proposal-promise-allSettled
+export function WrappedPromise(
+    name: string,
+    promise: Promise<any>
+): Promise<any> {
+    const perfMarker = PerformanceMarkers.getByName(
+        PerformanceMarkers.REQUIREMENTS_MARKER_KEY
+    )!;
 
-export function WrappedPromise(promise: Promise<any>): Promise<any> {
+    const start = `${perfMarker.startMarkName}_${name}`;
+    const end = `${perfMarker.endMarkName}_${name}`;
+    const step = `${perfMarker.name}_${name}`;
+
+    performance.mark(start);
+
     return promise.then(
-        (v) => ({ v, status: 'fulfilled' }),
-        (e) => ({ e, status: 'rejected' })
+        (v) => {
+            performance.mark(end);
+            performance.measure(step, start, end);
+            return { v, status: 'fulfilled', title: name };
+        },
+        (e) => {
+            performance.mark(end);
+            performance.measure(step, start, end);
+            return { e, status: 'rejected', title: name };
+        }
     );
 }
 
@@ -92,70 +112,77 @@ export abstract class BaseSetup implements RequirementList {
             }
         ];
     }
+
     public async executeSetup(): Promise<SetupTestResult> {
-        const testResult: SetupTestResult = {
-            hasMetAllRequirements: true,
-            tests: []
-        };
+        const allPromises: Array<Promise<any>> = [];
+        this.requirements.forEach((requirement) =>
+            allPromises.push(
+                WrappedPromise(requirement.title, requirement.checkFunction())
+            )
+        );
 
         let totalDuration: number = 0;
-        let stepDuration: number = 0;
-        const obs = new PerformanceObserver((items) => {
-            stepDuration = items.getEntries()[0].duration / 1000;
-            totalDuration += stepDuration;
-            performance.clearMarks();
+        const perfEntries: PerformanceEntry[] = [];
+        const obs = new PerformanceObserver((items, observer) => {
+            const entry = items.getEntries()[0];
+            perfEntries.push(entry);
+            totalDuration += entry.duration / 1000;
         });
         obs.observe({ entryTypes: ['measure'] });
 
-        for (const requirement of this.requirements) {
-            stepDuration = 0;
-            performance.mark(this.perfMarker.startMarkName);
-            const wrappedPromise = WrappedPromise(requirement.checkFunction());
-            const result = await wrappedPromise;
-            performance.mark(this.perfMarker.endMarkName);
-            performance.measure(
-                this.perfMarker.name,
-                this.perfMarker.startMarkName,
-                this.perfMarker.endMarkName
-            );
-            if (result.status === 'fulfilled') {
-                testResult.tests.push({
-                    duration: stepDuration,
-                    hasPassed: true,
-                    message: result.v,
-                    testResult: 'Passed'
-                });
-            } else if (result.status === 'rejected') {
-                testResult.hasMetAllRequirements = false;
-                testResult.tests.push({
-                    duration: stepDuration,
-                    hasPassed: false,
-                    message: result.e,
-                    testResult: 'Failed'
-                });
-            }
-        }
-        obs.disconnect();
+        return Promise.all(allPromises).then((results) => {
+            obs.disconnect();
 
-        const setupMessage = `Setup (${totalDuration.toFixed(3)} sec)`;
-        const tree = cli.tree();
-        tree.insert(setupMessage);
-        const rootNode = tree.nodes[setupMessage];
-        testResult.tests.forEach((test) => {
-            const message = `${test.testResult} (${test.duration.toFixed(
-                3
-            )} sec): ${test.message}`;
-            rootNode.insert(
-                `${
-                    test.hasPassed
-                        ? chalk.bold.green(message)
-                        : chalk.bold.red(message)
-                }`
-            );
+            const testResult: SetupTestResult = {
+                hasMetAllRequirements: true,
+                tests: []
+            };
+
+            results.forEach((result) => {
+                const matchingName = `${this.perfMarker.name}_${result.title}`;
+                const perfEntry = perfEntries.find(
+                    (entry) => entry.name === matchingName
+                );
+                const stepDuration =
+                    ((perfEntry && perfEntry.duration) || 0) / 1000;
+
+                if (result.status === 'fulfilled') {
+                    testResult.tests.push({
+                        duration: stepDuration,
+                        hasPassed: true,
+                        message: result.v,
+                        testResult: 'Passed'
+                    });
+                } else if (result.status === 'rejected') {
+                    testResult.hasMetAllRequirements = false;
+                    testResult.tests.push({
+                        duration: stepDuration,
+                        hasPassed: false,
+                        message: result.e,
+                        testResult: 'Failed'
+                    });
+                }
+            });
+
+            const setupMessage = `Setup (${totalDuration.toFixed(3)} sec)`;
+            const tree = cli.tree();
+            tree.insert(setupMessage);
+            const rootNode = tree.nodes[setupMessage];
+            testResult.tests.forEach((test) => {
+                const message = `${test.testResult} (${test.duration.toFixed(
+                    3
+                )} sec): ${test.message}`;
+                rootNode.insert(
+                    `${
+                        test.hasPassed
+                            ? chalk.bold.green(message)
+                            : chalk.bold.red(message)
+                    }`
+                );
+            });
+            tree.display();
+            return Promise.resolve(testResult);
         });
-        tree.display();
-
-        return Promise.resolve(testResult);
     }
 
     public async isLWCServerPluginInstalled(): Promise<string> {
