@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import { Logger, LoggerLevel, Messages } from '@salesforce/core';
+import { Logger, Messages } from '@salesforce/core';
 import chalk from 'chalk';
 import cli from 'cli-ux';
-import { performance, PerformanceEntry, PerformanceObserver } from 'perf_hooks';
+import { performance, PerformanceObserver } from 'perf_hooks';
 import { CommonUtils } from './CommonUtils';
 import { PerformanceMarkers } from './PerformanceMarkers';
 export type CheckRequirementsFunc = () => Promise<string>;
@@ -57,24 +57,33 @@ export function WrappedPromise(
         PerformanceMarkers.REQUIREMENTS_MARKER_KEY
     )!;
 
+    let stepDuration: number = -1;
+    const obs = new PerformanceObserver((items) => {
+        stepDuration = items.getEntries()[0].duration / 1000;
+    });
+    obs.observe({ entryTypes: ['measure'] });
+
     const start = `${perfMarker.startMarkName}_${name}`;
     const end = `${perfMarker.endMarkName}_${name}`;
     const step = `${perfMarker.name}_${name}`;
 
     performance.mark(start);
-
-    return promise.then(
-        (v) => {
-            performance.mark(end);
-            performance.measure(step, start, end);
-            return { v, status: 'fulfilled', title: name };
-        },
-        (e) => {
-            performance.mark(end);
-            performance.measure(step, start, end);
-            return { e, status: 'rejected', title: name };
-        }
-    );
+    return promise
+        .then(
+            (v) => {
+                performance.mark(end);
+                performance.measure(step, start, end);
+                return { v, status: 'fulfilled', duration: stepDuration };
+            },
+            (e) => {
+                performance.mark(end);
+                performance.measure(step, start, end);
+                return { e, status: 'rejected', duration: stepDuration };
+            }
+        )
+        .finally(() => {
+            obs.disconnect();
+        });
 }
 
 export abstract class BaseSetup implements RequirementList {
@@ -121,34 +130,19 @@ export abstract class BaseSetup implements RequirementList {
             )
         );
 
-        let totalDuration: number = 0;
-        const perfEntries: PerformanceEntry[] = [];
-        const obs = new PerformanceObserver((items, observer) => {
-            const entry = items.getEntries()[0];
-            perfEntries.push(entry);
-            totalDuration += entry.duration / 1000;
-        });
-        obs.observe({ entryTypes: ['measure'] });
-
         return Promise.all(allPromises).then((results) => {
-            obs.disconnect();
-
             const testResult: SetupTestResult = {
                 hasMetAllRequirements: true,
                 tests: []
             };
 
+            let totalDuration: number = 0;
             results.forEach((result) => {
-                const matchingName = `${this.perfMarker.name}_${result.title}`;
-                const perfEntry = perfEntries.find(
-                    (entry) => entry.name === matchingName
-                );
-                const stepDuration =
-                    ((perfEntry && perfEntry.duration) || 0) / 1000;
+                totalDuration += result.duration;
 
                 if (result.status === 'fulfilled') {
                     testResult.tests.push({
-                        duration: stepDuration,
+                        duration: result.duration,
                         hasPassed: true,
                         message: result.v,
                         testResult: 'Passed'
@@ -156,7 +150,7 @@ export abstract class BaseSetup implements RequirementList {
                 } else if (result.status === 'rejected') {
                     testResult.hasMetAllRequirements = false;
                     testResult.tests.push({
-                        duration: stepDuration,
+                        duration: result.duration,
                         hasPassed: false,
                         message: result.e,
                         testResult: 'Failed'
