@@ -24,6 +24,7 @@ describe('Setup Tests', () => {
 
     beforeEach(() => {
         const config = new Config.Config(({} as any) as Config.Options);
+        config.cacheDir = './';
         setup = new Setup([], config);
         jest.spyOn(config, 'runHook').mockImplementation(passedHooksMock);
     });

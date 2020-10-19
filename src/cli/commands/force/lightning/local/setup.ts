@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import util from 'util';
-
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
+import fs from 'fs';
+import path from 'path';
+import util from 'util';
 
 import { AndroidEnvironmentSetup } from '../../../../../common/AndroidEnvironmentSetup';
 import { CommandLineUtils } from '../../../../../common/Common';
@@ -40,7 +41,8 @@ export default class Setup extends SfdxCommand {
     ];
 
     public async run(): Promise<any> {
-        await this.config.runHook('installserverplugin', { id: 'setup' });
+        await this.runInstallServerPluginHook();
+
         if (!CommandLineUtils.platformFlagIsValid(this.flags.platform)) {
             return Promise.reject(
                 new SfdxError(
@@ -90,5 +92,28 @@ export default class Setup extends SfdxCommand {
             setup = new IOSEnvironmentSetup(this.logger);
         }
         return setup;
+    }
+
+    private async runInstallServerPluginHook() {
+        const hookOutputFile = path.join(
+            this.config.cacheDir,
+            'installserverplugin.out'
+        );
+
+        await this.config.runHook('installserverplugin', {
+            id: 'setup',
+            outputFile: hookOutputFile
+        });
+
+        try {
+            let data = fs.readFileSync(hookOutputFile, 'utf8').toString();
+            if (data.startsWith('lwc-dev-server-installed=')) {
+                data = data.replace('lwc-dev-server-installed=', '');
+                BaseSetup.lwcDevServerInstalled =
+                    data.trim().toLowerCase() === 'true';
+            }
+        } catch {
+            // ignore and continue
+        }
     }
 }

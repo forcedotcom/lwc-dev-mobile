@@ -55,6 +55,8 @@ export function WrappedPromise(promise: Promise<any>) {
 }
 
 export abstract class BaseSetup implements RequirementList {
+    public static lwcDevServerInstalled: boolean | undefined;
+
     public requirements: Requirement[];
     protected logger: Logger;
     protected setupMessages = Messages.loadMessages(
@@ -138,13 +140,22 @@ export abstract class BaseSetup implements RequirementList {
 
     public async isLWCServerPluginInstalled(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            CommonUtils.isLwcServerPluginInstalled()
-                .then((result) => {
+            // if we have cached result then use it
+            if (BaseSetup.lwcDevServerInstalled !== undefined) {
+                if (BaseSetup.lwcDevServerInstalled === true) {
                     resolve(this.fulfilledMessage);
-                })
-                .catch((error) => {
+                } else {
                     reject(new Error(this.unfulfilledMessage));
-                });
+                }
+            } else {
+                CommonUtils.isLwcServerPluginInstalled()
+                    .then((result) => {
+                        resolve(this.fulfilledMessage);
+                    })
+                    .catch((error) => {
+                        reject(new Error(this.unfulfilledMessage));
+                    });
+            }
         });
     }
 

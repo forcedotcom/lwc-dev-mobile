@@ -91,7 +91,7 @@ export class AndroidSDKUtils {
         command: string,
         stdioOptions: StdioOptions = ['ignore', 'pipe', 'ignore']
     ): string {
-        return CommonUtils.executeCommand(command, stdioOptions).toString();
+        return CommonUtils.executeCommand(command, stdioOptions);
     }
 
     public static isAndroidHomeSet(): boolean {
