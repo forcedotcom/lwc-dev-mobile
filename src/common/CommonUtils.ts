@@ -40,7 +40,7 @@ export class CommonUtils {
         return new Promise<void>((resolve, reject) => {
             const command = 'sfdx force:lightning:lwc:start --help';
             try {
-                CommonUtils.executeCommand(command).toString();
+                CommonUtils.executeCommand(command);
                 resolve();
             } catch {
                 // Error: command force:lightning:lwc:start not found

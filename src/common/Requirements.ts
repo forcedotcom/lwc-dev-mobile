@@ -107,7 +107,7 @@ export abstract class BaseSetup implements RequirementList {
         this.logger = logger;
         this.requirements = [
             {
-                checkFunction: this.isLWCServerPluginInstalled,
+                checkFunction: this.ensureLWCServerPluginInstalled,
                 fulfilledMessage: `${messages.getMessage(
                     'common:reqs:serverplugin:fulfilledMessage'
                 )}`,
@@ -179,15 +179,34 @@ export abstract class BaseSetup implements RequirementList {
         });
     }
 
-    public async isLWCServerPluginInstalled(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            CommonUtils.isLwcServerPluginInstalled()
-                .then((result) => {
+    public async ensureLWCServerPluginInstalled(): Promise<string> {
+        return new Promise<string>(async (resolve, reject) => {
+            try {
+                await CommonUtils.isLwcServerPluginInstalled();
+                this.logger.info('sfdx server plugin detected.');
+                resolve(this.fulfilledMessage);
+            } catch {
+                this.logger.info('sfdx server plugin was not detected.');
+                try {
+                    const command =
+                        'sfdx plugins:install @salesforce/lwc-dev-server';
+                    this.logger.info(
+                        `Installing sfdx server plugin.... ${command}`
+                    );
+                    CommonUtils.executeCommand(command, [
+                        'inherit',
+                        'pipe',
+                        'inherit'
+                    ]);
+                    this.logger.info('sfdx server plugin installed.');
                     resolve(this.fulfilledMessage);
-                })
-                .catch((error) => {
+                } catch (error) {
+                    this.logger.error(
+                        `sfdx server plugin installion failed. ${error}`
+                    );
                     reject(new Error(this.unfulfilledMessage));
-                });
+                }
+            }
         });
     }
 

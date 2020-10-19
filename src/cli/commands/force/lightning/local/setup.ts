@@ -40,7 +40,6 @@ export default class Setup extends SfdxCommand {
     ];
 
     public async run(): Promise<any> {
-        await this.config.runHook('installserverplugin', { id: 'setup' });
         if (!CommandLineUtils.platformFlagIsValid(this.flags.platform)) {
             return Promise.reject(
                 new SfdxError(

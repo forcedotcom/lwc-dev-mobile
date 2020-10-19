@@ -98,7 +98,7 @@ describe('Requirements Processing', () => {
         expect.assertions(1);
         jest.spyOn(
             BaseSetup.prototype,
-            'isLWCServerPluginInstalled'
+            'ensureLWCServerPluginInstalled'
         ).mockImplementation(passedBaseRequirementsMock);
         const setupResult = await new TruthyExtension().executeSetup();
         expect(setupResult.hasMetAllRequirements).toBeTruthy();
@@ -108,7 +108,7 @@ describe('Requirements Processing', () => {
         expect.assertions(1);
         jest.spyOn(
             BaseSetup.prototype,
-            'isLWCServerPluginInstalled'
+            'ensureLWCServerPluginInstalled'
         ).mockImplementation(passedBaseRequirementsMock);
         const extension = new TruthyExtension();
         const setupResult = await extension.executeSetup();
@@ -121,7 +121,7 @@ describe('Requirements Processing', () => {
         expect.assertions(1);
         jest.spyOn(
             BaseSetup.prototype,
-            'isLWCServerPluginInstalled'
+            'ensureLWCServerPluginInstalled'
         ).mockImplementation(passedBaseRequirementsMock);
         const setupResult = await new FalsyExtension().executeSetup();
         expect(setupResult.hasMetAllRequirements).toBeFalsy();
@@ -131,7 +131,7 @@ describe('Requirements Processing', () => {
         expect.assertions(1);
         jest.spyOn(
             BaseSetup.prototype,
-            'isLWCServerPluginInstalled'
+            'ensureLWCServerPluginInstalled'
         ).mockImplementation(failedBaseRequirementsMock);
         const setupResult = await new TruthyExtension().executeSetup();
         expect(setupResult.hasMetAllRequirements).toBeFalsy();
@@ -141,7 +141,7 @@ describe('Requirements Processing', () => {
         expect.assertions(1);
         jest.spyOn(
             BaseSetup.prototype,
-            'isLWCServerPluginInstalled'
+            'ensureLWCServerPluginInstalled'
         ).mockImplementation(passedBaseRequirementsMock);
         const extension = new TruthyExtension();
         const setupResult = await extension.executeSetup();
