@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import { Logger, LoggerLevel, Messages } from '@salesforce/core';
+import { Logger, Messages } from '@salesforce/core';
 import chalk from 'chalk';
 import cli from 'cli-ux';
+import { performance, PerformanceObserver } from 'perf_hooks';
 import { CommonUtils } from './CommonUtils';
+import { PerformanceMarkers } from './PerformanceMarkers';
 export type CheckRequirementsFunc = () => Promise<string>;
 
 // Initialize Messages with the current plugin directory
@@ -25,6 +27,7 @@ export interface SetupTestCase {
     testResult: string;
     message: string;
     hasPassed: boolean;
+    duration: number;
 }
 
 export interface SetupTestResult {
@@ -46,12 +49,41 @@ export interface Launcher {
 // rejection. We are looking for the equivalent of Promise.allSettled() which is scheduled for ES2020.
 // Once the functionality is  available  in the near future this function can be removed.
 // See https://github.com/tc39/proposal-promise-allSettled
+export function WrappedPromise(
+    name: string,
+    promise: Promise<any>
+): Promise<any> {
+    const perfMarker = PerformanceMarkers.getByName(
+        PerformanceMarkers.REQUIREMENTS_MARKER_KEY
+    )!;
 
-export function WrappedPromise(promise: Promise<any>) {
-    return promise.then(
-        (v) => ({ v, status: 'fulfilled' }),
-        (e) => ({ e, status: 'rejected' })
-    );
+    let stepDuration: number = 0;
+    const obs = new PerformanceObserver((items) => {
+        stepDuration = items.getEntries()[0].duration / 1000;
+    });
+    obs.observe({ entryTypes: ['measure'] });
+
+    const start = `${perfMarker.startMarkName}_${name}`;
+    const end = `${perfMarker.endMarkName}_${name}`;
+    const step = `${perfMarker.name}_${name}`;
+
+    performance.mark(start);
+    return promise
+        .then(
+            (v) => {
+                performance.mark(end);
+                performance.measure(step, start, end);
+                return { v, status: 'fulfilled', duration: stepDuration };
+            },
+            (e) => {
+                performance.mark(end);
+                performance.measure(step, start, end);
+                return { e, status: 'rejected', duration: stepDuration };
+            }
+        )
+        .finally(() => {
+            obs.disconnect();
+        });
 }
 
 export abstract class BaseSetup implements RequirementList {
@@ -65,6 +97,10 @@ export abstract class BaseSetup implements RequirementList {
     protected title: string = '';
     protected fulfilledMessage: string = '';
     protected unfulfilledMessage: string = '';
+
+    private perfMarker = PerformanceMarkers.getByName(
+        PerformanceMarkers.REQUIREMENTS_MARKER_KEY
+    )!;
 
     constructor(logger: Logger) {
         const messages = this.setupMessages;
@@ -85,22 +121,28 @@ export abstract class BaseSetup implements RequirementList {
             }
         ];
     }
+
     public async executeSetup(): Promise<SetupTestResult> {
         const allPromises: Array<Promise<any>> = [];
         this.requirements.forEach((requirement) =>
-            allPromises.push(WrappedPromise(requirement.checkFunction()))
+            allPromises.push(
+                WrappedPromise(requirement.title, requirement.checkFunction())
+            )
         );
-        const logger = this.logger;
-        const reqs = this.requirements;
+
         return Promise.all(allPromises).then((results) => {
             const testResult: SetupTestResult = {
                 hasMetAllRequirements: true,
                 tests: []
             };
-            let count = 0;
+
+            let totalDuration: number = 0;
             results.forEach((result) => {
+                totalDuration += result.duration;
+
                 if (result.status === 'fulfilled') {
                     testResult.tests.push({
+                        duration: result.duration,
                         hasPassed: true,
                         message: result.v,
                         testResult: 'Passed'
@@ -108,26 +150,27 @@ export abstract class BaseSetup implements RequirementList {
                 } else if (result.status === 'rejected') {
                     testResult.hasMetAllRequirements = false;
                     testResult.tests.push({
+                        duration: result.duration,
                         hasPassed: false,
                         message: result.e,
                         testResult: 'Failed'
                     });
                 }
-                count++;
             });
 
+            const setupMessage = `Setup (${totalDuration.toFixed(3)} sec)`;
             const tree = cli.tree();
-            tree.insert('Setup');
+            tree.insert(setupMessage);
+            const rootNode = tree.nodes[setupMessage];
             testResult.tests.forEach((test) => {
-                tree.nodes.Setup.insert(
+                const message = `${test.testResult} (${test.duration.toFixed(
+                    3
+                )} sec): ${test.message}`;
+                rootNode.insert(
                     `${
                         test.hasPassed
-                            ? chalk.bold.green(test.testResult)
-                            : chalk.bold.red(test.testResult)
-                    }: ${
-                        test.hasPassed
-                            ? chalk.green(test.message)
-                            : chalk.red(test.message)
+                            ? chalk.bold.green(message)
+                            : chalk.bold.red(message)
                     }`
                 );
             });

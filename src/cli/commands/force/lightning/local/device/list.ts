@@ -8,12 +8,14 @@ import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
 import chalk from 'chalk';
 import cli from 'cli-ux';
+import { performance, PerformanceObserver } from 'perf_hooks';
 import { AndroidVirtualDevice } from '../../../../../../common/AndroidTypes';
 import { AndroidSDKUtils } from '../../../../../../common/AndroidUtils';
 import { CommandLineUtils } from '../../../../../../common/Common';
 import { IOSSimulatorDevice } from '../../../../../../common/IOSTypes';
 import { IOSUtils } from '../../../../../../common/IOSUtils';
 import { LoggerSetup } from '../../../../../../common/LoggerSetup';
+import { PerformanceMarkers } from '../../../../../../common/PerformanceMarkers';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -39,6 +41,10 @@ export default class List extends SfdxCommand {
         `sfdx force:lightning:local:device:list -p Android`
     ];
 
+    private perfMarker = PerformanceMarkers.getByName(
+        PerformanceMarkers.FETCH_DEVICES_MARKER_KEY
+    )!;
+
     public async run(): Promise<any> {
         const platform = this.flags.platform;
         this.logger.info(`Device List command invoked for ${platform}`);
@@ -63,13 +69,17 @@ export default class List extends SfdxCommand {
     }
 
     public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
+        performance.mark(this.perfMarker.startMarkName);
         const result = await IOSUtils.getSupportedSimulators();
+        performance.mark(this.perfMarker.endMarkName);
         this.showDeviceList(result);
         return result;
     }
 
     public async androidDeviceList(): Promise<AndroidVirtualDevice[]> {
+        performance.mark(this.perfMarker.startMarkName);
         const result = await AndroidSDKUtils.fetchEmulators();
+        performance.mark(this.perfMarker.endMarkName);
         this.showDeviceList(result);
         return result;
     }
@@ -82,10 +92,27 @@ export default class List extends SfdxCommand {
     }
 
     private showDeviceList(list: any[]) {
+        let duration: number = 0;
+
+        const obs = new PerformanceObserver((items, observer) => {
+            duration = items.getEntries()[0].duration / 1000;
+            performance.clearMarks();
+            observer.disconnect();
+        });
+        obs.observe({ entryTypes: ['measure'] });
+
+        performance.measure(
+            this.perfMarker.name,
+            this.perfMarker.startMarkName,
+            this.perfMarker.endMarkName
+        );
+
+        const message = `DeviceList (${duration.toFixed(3)} sec)`;
         const tree = cli.tree();
-        tree.insert('DeviceList');
+        tree.insert(message);
+        const rootNode = tree.nodes[message];
         list.forEach((item) => {
-            tree.nodes.DeviceList.insert(chalk.bold.green(item));
+            rootNode.insert(chalk.bold.green(item));
         });
         tree.display();
     }
