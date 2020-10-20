@@ -57,7 +57,7 @@ export function WrappedPromise(
         PerformanceMarkers.REQUIREMENTS_MARKER_KEY
     )!;
 
-    let stepDuration: number = -1;
+    let stepDuration: number = 0;
     const obs = new PerformanceObserver((items) => {
         stepDuration = items.getEntries()[0].duration / 1000;
     });
