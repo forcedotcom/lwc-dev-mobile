@@ -81,9 +81,6 @@
   "oclif": {
     "commands": "./lib/cli/commands",
     "bin": "lwc-dev-mobile",
-    "hooks": {
-      "installserverplugin": "./lib/cli/hooks/InstallLwcServerPlugin"
-    },
     "topics": {
       "hello": {
         "description": "Sfdx Lightning local development for mobile platforms."
