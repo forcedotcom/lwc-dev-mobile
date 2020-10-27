@@ -706,6 +706,11 @@ export class AndroidSDKUtils {
     }
 
     private static isEmulatorAlreadyStarted(emulatorName: string): boolean {
+        const findProcessCommand =
+            process.platform === AndroidSDKUtils.WINDOWS_OS
+                ? `tasklist /V /FI "IMAGENAME eq qemu-system-x86_64.exe" | findstr "${emulatorName}"`
+                : `ps -ax | grep 'qemu-system-x86_64 -avd ${emulatorName}' | grep -v 'grep'`;
+
         // ram.img.dirty is a one byte file created when avd is started and removed when avd is stopped.
         const launchFileName = path.join(
             `${AndroidSDKUtils.USER_HOME}`,
@@ -716,7 +721,15 @@ export class AndroidSDKUtils {
             'default_boot',
             'ram.img.dirty'
         );
-        return fs.existsSync(launchFileName);
+
+        // first ensure that ram.img.dirty exists
+        if (!fs.existsSync(launchFileName)) {
+            return false;
+        }
+
+        // then ensure that the process is also running for the selected emulator
+        const findResult = CommonUtils.executeCommand(findProcessCommand);
+        return findResult != null && findResult.trim().length > 0;
     }
 
     // NOTE: detaching a process in windows seems to detach the streams. Prevent spawn from detaching when
