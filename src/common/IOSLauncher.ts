@@ -22,6 +22,7 @@ export class IOSLauncher {
     public async launchPreview(
         compName: string,
         projectDir: string,
+        appBundlePath: string | undefined,
         targetApp: string,
         appConfig: IOSAppPreviewConfig | undefined
     ): Promise<boolean> {
@@ -89,6 +90,7 @@ export class IOSLauncher {
                         deviceUDID,
                         compName,
                         projectDir,
+                        appBundlePath,
                         targetApp,
                         targetAppArguments
                     );
