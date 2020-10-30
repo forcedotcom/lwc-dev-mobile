@@ -142,7 +142,10 @@ export class IOSEnvironmentSetup extends BaseSetup {
             } else {
                 return new Promise<string>((resolve, reject) =>
                     reject(
-                        util.format(this.unfulfilledMessage, supportedRuntimes)
+                        util.format(
+                            this.unfulfilledMessage,
+                            `${iOSConfig.supportedRuntimes}`
+                        )
                     )
                 );
             }

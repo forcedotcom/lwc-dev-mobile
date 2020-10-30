@@ -11,8 +11,8 @@
     "ios:reqs:xcode:fulfilledMessage" : "Xcode installed. XCode library path: %s",
     "ios:reqs:xcode:unfulfilledMessage" : "Xcode is not installed or configured. %s",
     "ios:reqs:simulator:title" : "Checking Supported Simulator Runtime",
-    "ios:reqs:simulator:fulfilledMessage" : "One or more supported simulator runtimes are configured for %s",
-    "ios:reqs:simulator:unfulfilledMessage" : "No supported simulator runtimes found. Supported runtimes include %s",
+    "ios:reqs:simulator:fulfilledMessage" : "One or more supported simulator runtimes are configured for iOS: %s",
+    "ios:reqs:simulator:unfulfilledMessage" : "No supported simulator runtimes found. Supported runtimes include: %s",
     
     "android:reqs:androidsdkprerequisitescheck:title" : "Checking Android SDK Prerequisites",
     "android:reqs:androidsdkprerequisitescheck:fulfilledMessage" : "Android SDK prerequisites are met.",

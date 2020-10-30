@@ -283,57 +283,6 @@ export class AndroidSDKUtils {
         });
     }
 
-    public static async findRequiredBuildToolsPackage(): Promise<
-        AndroidPackage
-    > {
-        return new Promise<AndroidPackage>(async (resolve, reject) => {
-            try {
-                const packages = await AndroidSDKUtils.fetchInstalledPackages();
-                const matchingKeys: string[] = [];
-
-                const range = `${androidConfig.supportedBuildTools[0]}.x.y-${
-                    androidConfig.supportedBuildTools[
-                        androidConfig.supportedBuildTools.length - 1
-                    ]
-                }.x.y`;
-                const versionRegex = androidConfig.supportedBuildTools.reduce(
-                    (previous, current) => `${previous}|${current}`
-                );
-                packages.forEach((value, key) => {
-                    // look for 29.x.y or 28.x.y and so on
-                    if (
-                        key.match(
-                            `(build-tools;(${versionRegex}))[.][0-5][.][0-5]`
-                        ) !== null
-                    ) {
-                        matchingKeys.push(key);
-                    }
-                });
-
-                if (matchingKeys.length < 1) {
-                    return reject(
-                        new Error(
-                            `Could not locate a matching build tools package. Requires any one of these [${range}]`
-                        )
-                    );
-                }
-
-                matchingKeys.sort();
-                matchingKeys.reverse();
-
-                // use the first one.
-                const androidPackage = packages.get(matchingKeys[0]);
-                resolve(androidPackage);
-            } catch (error) {
-                reject(
-                    new Error(
-                        `Could not find build tools packages. ${error.errorMessage}`
-                    )
-                );
-            }
-        });
-    }
-
     public static async findRequiredEmulatorImages(): Promise<AndroidPackage> {
         return new Promise<AndroidPackage>(async (resolve, reject) => {
             try {
