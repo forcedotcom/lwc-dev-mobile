@@ -170,13 +170,9 @@ export class IOSUtils {
             }
         );
 
-        if (rtIntersection.length > 0) {
-            return new Promise<string[]>((resolve, reject) =>
-                resolve(rtIntersection)
-            );
-        } else {
-            return new Promise<string[]>((resolve, reject) => reject());
-        }
+        return new Promise<string[]>((resolve, reject) =>
+            resolve(rtIntersection)
+        );
     }
 
     public static async getSimulatorRuntimes(): Promise<string[]> {
