@@ -208,23 +208,6 @@ describe('Android utils', () => {
         });
     });
 
-    test('Should Find a preferred Android build tools package', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
-            myCommandBlockMock
-        );
-        const apiPackage = await AndroidSDKUtils.findRequiredBuildToolsPackage();
-        expect(apiPackage !== null && apiPackage.description !== null);
-    });
-
-    test('Should not find a preferred Android build tools package', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
-            badBlockMock
-        );
-        AndroidSDKUtils.findRequiredBuildToolsPackage().catch((error) => {
-            expect(error).toBeTruthy();
-        });
-    });
-
     test('Should Find a preferred Android emulator package', async () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
             myCommandBlockMock
