@@ -20,6 +20,7 @@ export class AndroidLauncher {
     public async launchPreview(
         compName: string,
         projectDir: string,
+        appBundlePath: string | undefined,
         targetApp: string,
         appConfig: AndroidAppPreviewConfig | undefined
     ): Promise<boolean> {
@@ -86,6 +87,7 @@ export class AndroidLauncher {
                     return AndroidSDKUtils.launchNativeApp(
                         compName,
                         projectDir,
+                        appBundlePath,
                         targetApp,
                         targetAppArguments,
                         launchActivity,

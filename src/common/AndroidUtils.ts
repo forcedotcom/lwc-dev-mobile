@@ -499,12 +499,23 @@ export class AndroidSDKUtils {
     public static launchNativeApp(
         compName: string,
         projectDir: string,
+        appBundlePath: string | undefined,
         targetApp: string,
         targetAppArguments: LaunchArgument[],
         launchActivity: string,
         emulatorPort: number
     ): Promise<boolean> {
         try {
+            if (appBundlePath && appBundlePath.trim().length > 0) {
+                AndroidSDKUtils.logger.info(
+                    `Installing app ${appBundlePath.trim()} to emulator`
+                );
+                const installCommand = `${
+                    AndroidSDKUtils.ADB_SHELL_COMMAND
+                } -s emulator-${emulatorPort} install -r -t '${appBundlePath.trim()}'`;
+                AndroidSDKUtils.executeCommand(installCommand);
+            }
+
             let launchArgs =
                 `--es "${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}" "${compName}"` +
                 ` --es "${PreviewUtils.PROJECT_DIR_ARG_PREFIX}" "${projectDir}"`;
@@ -520,6 +531,9 @@ export class AndroidSDKUtils {
                 ' -c android.intent.category.LAUNCHER' +
                 ` ${launchArgs}`;
 
+            AndroidSDKUtils.logger.info(
+                `Relaunching app ${targetApp} in emulator`
+            );
             AndroidSDKUtils.executeCommand(launchCommand);
 
             return Promise.resolve(true);
@@ -658,7 +672,7 @@ export class AndroidSDKUtils {
         const findProcessCommand =
             process.platform === AndroidSDKUtils.WINDOWS_OS
                 ? `tasklist /V /FI "IMAGENAME eq qemu-system-x86_64.exe" | findstr "${emulatorName}"`
-                : `ps -ax | grep 'qemu-system-x86_64 -avd ${emulatorName}' | grep -v 'grep'`;
+                : `ps -ax | grep qemu-system-x86_64 | grep ${emulatorName} | grep -v grep`;
 
         // ram.img.dirty is a one byte file created when avd is started and removed when avd is stopped.
         const launchFileName = path.join(
@@ -677,8 +691,16 @@ export class AndroidSDKUtils {
         }
 
         // then ensure that the process is also running for the selected emulator
-        const findResult = CommonUtils.executeCommand(findProcessCommand);
-        return findResult != null && findResult.trim().length > 0;
+        let foundProcess = false;
+        try {
+            const findResult = CommonUtils.executeCommand(findProcessCommand);
+            foundProcess = findResult != null && findResult.trim().length > 0;
+        } catch (error) {
+            AndroidSDKUtils.logger.debug(
+                `Unable to find the emulator process: ${error}`
+            );
+        }
+        return foundProcess;
     }
 
     // NOTE: detaching a process in windows seems to detach the streams. Prevent spawn from detaching when

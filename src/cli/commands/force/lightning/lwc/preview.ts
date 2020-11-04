@@ -13,8 +13,7 @@ import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
 import {
     AndroidAppPreviewConfig,
-    IOSAppPreviewConfig,
-    LaunchArgument
+    IOSAppPreviewConfig
 } from '../../../../../common/PreviewConfigFile';
 import { PreviewUtils } from '../../../../../common/PreviewUtils';
 import { SetupTestResult } from '../../../../../common/Requirements';
@@ -246,6 +245,8 @@ export default class Preview extends Setup {
             | AndroidAppPreviewConfig
             | undefined;
 
+        let appBundlePath: string | undefined;
+
         if (
             PreviewUtils.isTargetingBrowser(targetApp) === false &&
             configFileName.trim().length > 0
@@ -253,6 +254,16 @@ export default class Preview extends Setup {
             const configFilePath = path.resolve(configFileName);
             const configFile = PreviewUtils.loadConfigFile(configFilePath);
             appConfig = configFile.getAppConfig(platform, targetApp);
+            if (appConfig) {
+                try {
+                    appBundlePath = PreviewUtils.getAppBundlePath(
+                        path.dirname(configFilePath),
+                        appConfig
+                    );
+                } catch (error) {
+                    return Promise.reject(error);
+                }
+            }
         }
 
         if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
@@ -261,6 +272,7 @@ export default class Preview extends Setup {
                 device,
                 component,
                 projectDir,
+                appBundlePath,
                 targetApp,
                 config
             );
@@ -270,6 +282,7 @@ export default class Preview extends Setup {
                 device,
                 component,
                 projectDir,
+                appBundlePath,
                 targetApp,
                 config
             );
@@ -303,6 +316,7 @@ export default class Preview extends Setup {
         deviceName: string,
         componentName: string,
         projectDir: string,
+        appBundlePath: string | undefined,
         targetApp: string,
         appConfig: IOSAppPreviewConfig | undefined
     ): Promise<boolean> {
@@ -311,6 +325,7 @@ export default class Preview extends Setup {
         return launcher.launchPreview(
             componentName,
             projectDir,
+            appBundlePath,
             targetApp,
             appConfig
         );
@@ -320,6 +335,7 @@ export default class Preview extends Setup {
         deviceName: string,
         componentName: string,
         projectDir: string,
+        appBundlePath: string | undefined,
         targetApp: string,
         appConfig: AndroidAppPreviewConfig | undefined
     ): Promise<boolean> {
@@ -328,6 +344,7 @@ export default class Preview extends Setup {
         return launcher.launchPreview(
             componentName,
             projectDir,
+            appBundlePath,
             targetApp,
             appConfig
         );

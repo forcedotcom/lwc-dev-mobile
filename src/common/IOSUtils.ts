@@ -6,7 +6,6 @@
  */
 import { Logger } from '@salesforce/core';
 import childProcess from 'child_process';
-import util from 'util';
 import iOSConfig from '../config/iosconfig.json';
 import { IOSSimulatorDevice } from './IOSTypes';
 import { LaunchArgument } from './PreviewConfigFile';
@@ -260,9 +259,25 @@ export class IOSUtils {
         udid: string,
         compName: string,
         projectDir: string,
+        appBundlePath: string | undefined,
         targetApp: string,
         targetAppArguments: LaunchArgument[]
     ): Promise<boolean> {
+        if (appBundlePath && appBundlePath.trim().length > 0) {
+            const installCommand = `${XCRUN_CMD} simctl install ${udid} '${appBundlePath.trim()}'`;
+
+            try {
+                IOSUtils.logger.info(
+                    `Installing app ${appBundlePath.trim()} to simulator`
+                );
+                await IOSUtils.executeCommand(installCommand);
+            } catch (error) {
+                return Promise.reject(
+                    `The command '${installCommand}' failed to execute: ${error}`
+                );
+            }
+        }
+
         let launchArgs =
             `${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}=${compName}` +
             ` ${PreviewUtils.PROJECT_DIR_ARG_PREFIX}=${projectDir}`;
@@ -277,22 +292,20 @@ export class IOSUtils {
         // attempt at terminating the app first (in case it is already running) and then try to launch it again with new arguments.
         // if we hit issues with terminating, just ignore and continue.
         try {
+            IOSUtils.logger.info(`Terminating app ${targetApp} in simulator`);
             await IOSUtils.executeCommand(terminateCommand);
         } catch {
             // ignore and continue
         }
 
         try {
-            const { stdout } = await IOSUtils.executeCommand(launchCommand);
-            return new Promise<boolean>((resolve, reject) => {
-                resolve(true);
-            });
+            IOSUtils.logger.info(`Launching app ${targetApp} in simulator`);
+            await IOSUtils.executeCommand(launchCommand);
+            return Promise.resolve(true);
         } catch (error) {
-            return new Promise<boolean>((resolve, reject) => {
-                reject(
-                    `The command '${launchCommand}' failed to execute: ${error}`
-                );
-            });
+            return Promise.reject(
+                `The command '${launchCommand}' failed to execute: ${error}`
+            );
         }
     }
 

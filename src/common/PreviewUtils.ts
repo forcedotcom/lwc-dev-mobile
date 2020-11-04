@@ -6,7 +6,12 @@
  */
 import Ajv from 'ajv';
 import fs from 'fs';
-import { PreviewConfigFile } from './PreviewConfigFile';
+import path from 'path';
+import {
+    AndroidAppPreviewConfig,
+    IOSAppPreviewConfig,
+    PreviewConfigFile
+} from './PreviewConfigFile';
 
 const NAMESPACE = 'com.salesforce.mobile-tooling';
 
@@ -67,5 +72,20 @@ export class PreviewUtils {
         const json = PreviewUtils.getConfigFileAsJson(file);
         const configFile = Object.assign(new PreviewConfigFile(), json);
         return configFile;
+    }
+
+    public static getAppBundlePath(
+        basePath: string,
+        appConfig: IOSAppPreviewConfig | AndroidAppPreviewConfig
+    ): string | undefined {
+        if (appConfig.get_app_bundle) {
+            const module = require(path.resolve(
+                basePath,
+                appConfig.get_app_bundle
+            ));
+            return module.run();
+        } else {
+            return undefined;
+        }
     }
 }

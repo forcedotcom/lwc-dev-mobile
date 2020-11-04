@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-const ORIG_ANDROID_HOME = process.env.ANDROID_HOME;
 const MOCK_ANDROID_HOME = '/mock-android-home';
 process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 import fs from 'fs';
@@ -366,6 +365,7 @@ describe('Android utils', () => {
         await AndroidSDKUtils.launchNativeApp(
             compName,
             projectDir,
+            undefined,
             targetApp,
             targetAppArgs,
             targetActivity,
@@ -399,6 +399,7 @@ describe('Android utils', () => {
         return AndroidSDKUtils.launchNativeApp(
             compName,
             projectDir,
+            undefined,
             targetApp,
             targetAppArgs,
             targetActivity,
@@ -406,5 +407,56 @@ describe('Android utils', () => {
         ).catch((error) => {
             expect(error).toBeTruthy();
         });
+    });
+
+    test('Should attempt to install native app then launch it.', async () => {
+        const compName = 'mock.compName';
+        const projectDir = '/mock/path';
+        const appBundlePath = '/mock/path/MyTestApp.apk';
+        const targetApp = 'com.mock.app';
+        const targetActivity = '.MainActivity';
+        const targetAppArgs = [
+            { name: 'arg1', value: 'val1' },
+            { name: 'arg2', value: 'val2' }
+        ];
+        const port = 1234;
+        const launchArgs =
+            `--es "${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}" "${compName}"` +
+            ` --es "${PreviewUtils.PROJECT_DIR_ARG_PREFIX}" "${projectDir}"` +
+            ` --es "arg1" "val1" --es "arg2" "val2"`;
+
+        const mockCmd = jest.fn((): string => {
+            return `${targetApp}/.MainActivity`;
+        });
+
+        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+            mockCmd
+        );
+
+        await AndroidSDKUtils.launchNativeApp(
+            compName,
+            projectDir,
+            appBundlePath,
+            targetApp,
+            targetAppArgs,
+            targetActivity,
+            port
+        );
+
+        expect(mockCmd).toBeCalledTimes(2);
+        expect(mockCmd).nthCalledWith(
+            1,
+            `${
+                AndroidSDKUtils.ADB_SHELL_COMMAND
+            } -s emulator-${port} install -r -t '${appBundlePath.trim()}'`
+        );
+        expect(mockCmd).nthCalledWith(
+            2,
+            `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${port}` +
+                ` shell am start -S -n "${targetApp}/${targetActivity}"` +
+                ' -a android.intent.action.MAIN' +
+                ' -c android.intent.category.LAUNCHER' +
+                ` ${launchArgs}`
+        );
     });
 });
