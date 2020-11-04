@@ -746,8 +746,10 @@ export class AndroidSDKUtils {
         try {
             const findResult = CommonUtils.executeCommand(findProcessCommand);
             foundProcess = findResult != null && findResult.trim().length > 0;
-        } catch {
-            // ignore and continue
+        } catch (error) {
+            AndroidSDKUtils.logger.debug(
+                `Unable to find the emulator process: ${error}`
+            );
         }
         return foundProcess;
     }
