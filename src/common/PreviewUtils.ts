@@ -79,8 +79,11 @@ export class PreviewUtils {
         appConfig: IOSAppPreviewConfig | AndroidAppPreviewConfig
     ): string | undefined {
         if (appConfig.get_app_bundle) {
-            const module = require(appConfig.get_app_bundle);
-            return path.resolve(basePath, module.run());
+            const module = require(path.resolve(
+                basePath,
+                appConfig.get_app_bundle
+            ));
+            return module.run();
         } else {
             return undefined;
         }
