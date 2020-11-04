@@ -271,6 +271,9 @@ export class IOSUtils {
             const installCommand = `${XCRUN_CMD} simctl install ${udid} '${appBundlePath.trim()}'`;
 
             try {
+                IOSUtils.logger.info(
+                    `Installing app ${appBundlePath.trim()} to simulator`
+                );
                 await IOSUtils.executeCommand(installCommand);
             } catch (error) {
                 return Promise.reject(
@@ -293,12 +296,14 @@ export class IOSUtils {
         // attempt at terminating the app first (in case it is already running) and then try to launch it again with new arguments.
         // if we hit issues with terminating, just ignore and continue.
         try {
+            IOSUtils.logger.info(`Terminating app ${targetApp} in simulator`);
             await IOSUtils.executeCommand(terminateCommand);
         } catch {
             // ignore and continue
         }
 
         try {
+            IOSUtils.logger.info(`Launching app ${targetApp} in simulator`);
             await IOSUtils.executeCommand(launchCommand);
             return Promise.resolve(true);
         } catch (error) {

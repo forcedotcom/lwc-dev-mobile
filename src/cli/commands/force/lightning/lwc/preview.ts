@@ -256,7 +256,10 @@ export default class Preview extends Setup {
             appConfig = configFile.getAppConfig(platform, targetApp);
             if (appConfig) {
                 try {
-                    appBundlePath = PreviewUtils.getAppBundlePath(appConfig);
+                    appBundlePath = PreviewUtils.getAppBundlePath(
+                        path.dirname(configFilePath),
+                        appConfig
+                    );
                 } catch (error) {
                     return Promise.reject(error);
                 }

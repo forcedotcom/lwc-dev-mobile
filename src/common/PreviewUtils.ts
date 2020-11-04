@@ -6,6 +6,7 @@
  */
 import Ajv from 'ajv';
 import fs from 'fs';
+import path from 'path';
 import {
     AndroidAppPreviewConfig,
     IOSAppPreviewConfig,
@@ -74,11 +75,12 @@ export class PreviewUtils {
     }
 
     public static getAppBundlePath(
+        basePath: string,
         appConfig: IOSAppPreviewConfig | AndroidAppPreviewConfig
     ): string | undefined {
         if (appConfig.get_app_bundle) {
             const module = require(appConfig.get_app_bundle);
-            return module.run();
+            return path.resolve(basePath, module.run());
         } else {
             return undefined;
         }

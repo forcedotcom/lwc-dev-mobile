@@ -558,6 +558,9 @@ export class AndroidSDKUtils {
     ): Promise<boolean> {
         try {
             if (appBundlePath && appBundlePath.trim().length > 0) {
+                AndroidSDKUtils.logger.info(
+                    `Installing app ${appBundlePath.trim()} to emulator`
+                );
                 const installCommand = `${
                     AndroidSDKUtils.ADB_SHELL_COMMAND
                 } -s emulator-${emulatorPort} install -r -t '${appBundlePath.trim()}'`;
@@ -579,6 +582,9 @@ export class AndroidSDKUtils {
                 ' -c android.intent.category.LAUNCHER' +
                 ` ${launchArgs}`;
 
+            AndroidSDKUtils.logger.info(
+                `Relaunching app ${targetApp} in emulator`
+            );
             AndroidSDKUtils.executeCommand(launchCommand);
 
             return Promise.resolve(true);
