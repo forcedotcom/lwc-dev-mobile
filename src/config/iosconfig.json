@@ -1,5 +1,5 @@
 {
-    "minSupportedIOSRuntime" : 13,
+    "minSupportedIOSRuntime" : "13",
     "defaultSimulatorName" : "SFDXSimulator"
  }
 

@@ -160,7 +160,7 @@ export class IOSUtils {
     public static async getSupportedRuntimes(): Promise<string[]> {
         const configuredRuntimes = await IOSUtils.getSimulatorRuntimes();
         const minSupportedIOSRuntime: Version = new Version(
-            iOSConfig.minSupportedIOSRuntime.toString()
+            iOSConfig.minSupportedIOSRuntime
         );
         const rtIntersection = configuredRuntimes.filter(
             (configuredRuntime) => {

@@ -237,7 +237,7 @@ export class AndroidSDKUtils {
         return new Promise<AndroidPackage>(async (resolve, reject) => {
             try {
                 const minSupportedAndroidRuntime: Version = new Version(
-                    androidConfig.minSupportedAndroidRuntime.toString()
+                    androidConfig.minSupportedAndroidRuntime
                 );
                 const packages = await AndroidSDKUtils.fetchInstalledPackages();
                 if (packages.size < 1) {

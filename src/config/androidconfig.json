@@ -1,5 +1,5 @@
 {
-    "minSupportedAndroidRuntime" : 23,
+    "minSupportedAndroidRuntime" : "23",
     "supportedImages" : ["google_apis", "default", "google_apis_playstore"],
     "architectures" : ["x86_64","x86"],
     "supportedDevices" : ["pixel", "pixel_xl" , "pixel_c"],

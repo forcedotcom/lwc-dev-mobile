@@ -83,7 +83,8 @@ export class Version {
     public readonly patch: number;
 
     constructor(from: string) {
-        const input = from.toLowerCase().split('-');
+        // support version strings using - or . as separators (e.g 13-0-4 and 13.0.4)
+        const input = from.toLowerCase().replace(/-/gi, '.').split('.');
         this.major = input.length >= 1 ? Number.parseInt(input[0], 10) : 0;
         this.minor = input.length >= 2 ? Number.parseInt(input[1], 10) : 0;
         this.patch = input.length >= 3 ? Number.parseInt(input[2], 10) : 0;
