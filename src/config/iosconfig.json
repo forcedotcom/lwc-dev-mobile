@@ -1,5 +1,5 @@
 {
-    "supportedRuntimes" : ["iOS-14", "iOS-13"],
+    "minSupportedIOSRuntime" : 13,
     "defaultSimulatorName" : "SFDXSimulator"
  }
 

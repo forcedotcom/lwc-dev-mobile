@@ -6,6 +6,7 @@
  */
 import { Logger } from '@salesforce/core';
 import childProcess from 'child_process';
+import { Version } from '../common/Common';
 import iOSConfig from '../config/iosconfig.json';
 import { IOSSimulatorDevice } from './IOSTypes';
 import { LaunchArgument } from './PreviewConfigFile';
@@ -158,20 +159,26 @@ export class IOSUtils {
 
     public static async getSupportedRuntimes(): Promise<string[]> {
         const configuredRuntimes = await IOSUtils.getSimulatorRuntimes();
-        const supportedRuntimes: string[] = iOSConfig.supportedRuntimes;
+        const minSupportedIOSRuntime: Version = new Version(
+            iOSConfig.minSupportedIOSRuntime.toString()
+        );
         const rtIntersection = configuredRuntimes.filter(
             (configuredRuntime) => {
-                const responsiveRuntime = supportedRuntimes.find(
-                    (supportedRuntime) =>
-                        configuredRuntime.startsWith(supportedRuntime)
+                const configuredRuntimeVersion = new Version(
+                    configuredRuntime.toLowerCase().replace('ios-', '')
                 );
-                return responsiveRuntime !== undefined;
+
+                return configuredRuntimeVersion.sameOrNewer(
+                    minSupportedIOSRuntime
+                );
             }
         );
 
-        return new Promise<string[]>((resolve, reject) =>
-            resolve(rtIntersection)
-        );
+        if (rtIntersection.length > 0) {
+            return Promise.resolve(rtIntersection);
+        } else {
+            return Promise.reject();
+        }
     }
 
     public static async getSimulatorRuntimes(): Promise<string[]> {

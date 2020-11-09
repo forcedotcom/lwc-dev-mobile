@@ -75,3 +75,42 @@ export class CommandLineUtils {
         }
     }
 }
+
+// tslint:disable-next-line: max-classes-per-file
+export class Version {
+    public readonly major: number;
+    public readonly minor: number;
+    public readonly patch: number;
+
+    constructor(from: string) {
+        const input = from.toLowerCase().split('-');
+        this.major = input.length >= 1 ? Number.parseInt(input[0], 10) : 0;
+        this.minor = input.length >= 2 ? Number.parseInt(input[1], 10) : 0;
+        this.patch = input.length >= 3 ? Number.parseInt(input[2], 10) : 0;
+    }
+
+    public sameOrNewer(inputVersion: Version): boolean {
+        // sanity check
+        if (
+            Number.isNaN(this.major) ||
+            Number.isNaN(this.minor) ||
+            Number.isNaN(this.patch) ||
+            Number.isNaN(inputVersion.major) ||
+            Number.isNaN(inputVersion.minor) ||
+            Number.isNaN(inputVersion.patch)
+        ) {
+            return false;
+        }
+
+        // version check
+        if (
+            this.major < inputVersion.major ||
+            this.minor < inputVersion.minor ||
+            this.patch < inputVersion.patch
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+}

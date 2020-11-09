@@ -130,10 +130,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                     reject(
                         util.format(
                             this.unfulfilledMessage,
-                            androidConfig.supportedRuntimes[0],
-                            androidConfig.supportedRuntimes[
-                                androidConfig.supportedRuntimes.length - 1
-                            ]
+                            androidConfig.minSupportedAndroidRuntime.toString()
                         )
                     )
                 );
@@ -163,10 +160,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                     reject(
                         util.format(
                             this.unfulfilledMessage,
-                            androidConfig.supportedRuntimes[0],
-                            androidConfig.supportedRuntimes[
-                                androidConfig.supportedRuntimes.length - 1
-                            ]
+                            androidConfig.minSupportedAndroidRuntime.toString()
                         )
                     );
                 });
@@ -185,10 +179,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                     reject(
                         util.format(
                             this.unfulfilledMessage,
-                            androidConfig.supportedRuntimes[0],
-                            androidConfig.supportedRuntimes[
-                                androidConfig.supportedRuntimes.length - 1
-                            ]
+                            androidConfig.minSupportedAndroidRuntime.toString()
                         )
                     )
                 );

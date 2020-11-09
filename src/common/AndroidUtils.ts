@@ -11,7 +11,7 @@ import os from 'os';
 import path from 'path';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidPackage, AndroidVirtualDevice } from './AndroidTypes';
-import { MapUtils } from './Common';
+import { MapUtils, Version } from './Common';
 import { CommonUtils } from './CommonUtils';
 import { LaunchArgument } from './PreviewConfigFile';
 import { PreviewUtils } from './PreviewUtils';
@@ -236,42 +236,47 @@ export class AndroidSDKUtils {
     > {
         return new Promise<AndroidPackage>(async (resolve, reject) => {
             try {
+                const minSupportedAndroidRuntime: Version = new Version(
+                    androidConfig.minSupportedAndroidRuntime.toString()
+                );
                 const packages = await AndroidSDKUtils.fetchInstalledPackages();
                 if (packages.size < 1) {
                     return reject(
                         new Error(
-                            `Could not find android api packages. Requires any one of these [${
-                                androidConfig.supportedRuntimes[0]
-                            } - ${
-                                androidConfig.supportedRuntimes[
-                                    androidConfig.supportedRuntimes.length - 1
-                                ]
-                            }]`
+                            `Could not find any supported Android API packages. Minimum supported Android API package version is ${androidConfig.minSupportedAndroidRuntime}`
                         )
                     );
                 }
 
-                const filteredList: string[] = androidConfig.supportedRuntimes.filter(
-                    (runtimeString) =>
-                        packages.get('platforms;' + runtimeString) !== null
-                );
-                if (filteredList.length < 1) {
+                const matchingKeys: string[] = [];
+                packages.forEach((value, key) => {
+                    if (key.toLowerCase().startsWith('platforms;android-')) {
+                        const platformVersion = new Version(
+                            key.toLowerCase().replace('platforms;android-', '')
+                        );
+                        if (
+                            platformVersion.sameOrNewer(
+                                minSupportedAndroidRuntime
+                            )
+                        ) {
+                            matchingKeys.push(key);
+                        }
+                    }
+                });
+
+                if (matchingKeys.length < 1) {
                     return reject(
                         new Error(
-                            `Could not locate a matching android api package. Requires any one of these [${
-                                androidConfig.supportedRuntimes[0]
-                            } - ${
-                                androidConfig.supportedRuntimes[
-                                    androidConfig.supportedRuntimes.length - 1
-                                ]
-                            }]`
+                            `Could not locate a matching Android API package. Minimum supported Android API package version is ${androidConfig.minSupportedAndroidRuntime}`
                         )
                     );
                 }
+
+                matchingKeys.sort();
+                matchingKeys.reverse();
+
                 // use the first one.
-                const androidPackage = packages.get(
-                    'platforms;' + filteredList[0]
-                );
+                const androidPackage = packages.get(matchingKeys[0]);
                 resolve(androidPackage);
             } catch (error) {
                 reject(

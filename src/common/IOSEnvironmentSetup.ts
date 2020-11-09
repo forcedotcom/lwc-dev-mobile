@@ -134,28 +134,22 @@ export class IOSEnvironmentSetup extends BaseSetup {
             this.logger.info('Executing a check for iOS runtimes');
             const supportedRuntimes = await IOSUtils.getSupportedRuntimes();
             if (supportedRuntimes.length > 0) {
-                return new Promise<string>((resolve, reject) =>
-                    resolve(
-                        util.format(this.fulfilledMessage, supportedRuntimes)
-                    )
+                return Promise.resolve(
+                    util.format(this.fulfilledMessage, supportedRuntimes)
                 );
             } else {
-                return new Promise<string>((resolve, reject) =>
-                    reject(
-                        util.format(
-                            this.unfulfilledMessage,
-                            `${iOSConfig.supportedRuntimes}`
-                        )
+                return Promise.reject(
+                    util.format(
+                        this.unfulfilledMessage,
+                        `iOS-${iOSConfig.minSupportedIOSRuntime}`
                     )
                 );
             }
         } catch (supportedRuntimesError) {
-            return new Promise<string>((resolve, reject) =>
-                reject(
-                    util.format(
-                        this.unfulfilledMessage,
-                        `${iOSConfig.supportedRuntimes} error:${supportedRuntimesError}`
-                    )
+            return Promise.reject(
+                util.format(
+                    this.unfulfilledMessage,
+                    `iOS-${iOSConfig.minSupportedIOSRuntime} error:${supportedRuntimesError}`
                 )
             );
         }
