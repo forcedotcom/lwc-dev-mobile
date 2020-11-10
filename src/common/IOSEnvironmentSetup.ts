@@ -141,7 +141,7 @@ export class IOSEnvironmentSetup extends BaseSetup {
                 return Promise.reject(
                     util.format(
                         this.unfulfilledMessage,
-                        `iOS-${iOSConfig.minSupportedIOSRuntime}`
+                        `iOS-${iOSConfig.minSupportedRuntimeIOS}`
                     )
                 );
             }
@@ -149,7 +149,7 @@ export class IOSEnvironmentSetup extends BaseSetup {
             return Promise.reject(
                 util.format(
                     this.unfulfilledMessage,
-                    `iOS-${iOSConfig.minSupportedIOSRuntime} error:${supportedRuntimesError}`
+                    `iOS-${iOSConfig.minSupportedRuntimeIOS} error:${supportedRuntimesError}`
                 )
             );
         }

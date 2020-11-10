@@ -159,17 +159,18 @@ export class IOSUtils {
 
     public static async getSupportedRuntimes(): Promise<string[]> {
         const configuredRuntimes = await IOSUtils.getSimulatorRuntimes();
-        const minSupportedIOSRuntime: Version = new Version(
-            iOSConfig.minSupportedIOSRuntime
+        const minSupportedRuntimeIOS = Version.from(
+            iOSConfig.minSupportedRuntimeIOS
         );
+
         const rtIntersection = configuredRuntimes.filter(
             (configuredRuntime) => {
-                const configuredRuntimeVersion = new Version(
+                const configuredRuntimeVersion = Version.from(
                     configuredRuntime.toLowerCase().replace('ios-', '')
                 );
 
                 return configuredRuntimeVersion.sameOrNewer(
-                    minSupportedIOSRuntime
+                    minSupportedRuntimeIOS
                 );
             }
         );

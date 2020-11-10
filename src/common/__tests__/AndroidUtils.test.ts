@@ -21,11 +21,11 @@ const myGenericVersionsCommandBlockMockThrows = jest.fn((): string => {
 });
 
 const myCommandBlockMock = jest.fn((): string => {
-    return AndroidMockData.mockRawPacakgesString;
+    return AndroidMockData.mockRawPackagesString;
 });
 
 const badBlockMock = jest.fn((): string => {
-    return AndroidMockData.badMockRawPacakagesString;
+    return AndroidMockData.badMockRawPackagesString;
 });
 
 const throwMock = jest.fn((): void => {
@@ -135,7 +135,10 @@ describe('Android utils', () => {
             myCommandBlockMock
         );
         const packages = await AndroidSDKUtils.fetchInstalledPackages();
-        expect(packages.size === AndroidMockData.mockRawStringPackageLength);
+        expect(
+            packages.platforms.length + packages.systemImages.length ===
+                AndroidMockData.mockRawStringPackageLength
+        ).toBeTrue();
     });
 
     test('Should attempt to invoke the sdkmanager and retrieve an empty list for a bad sdkmanager list', async () => {
@@ -143,7 +146,7 @@ describe('Android utils', () => {
             badBlockMock
         );
         const packages = await AndroidSDKUtils.fetchInstalledPackages();
-        expect(packages.size !== 0);
+        expect(packages.isEmpty()).toBeTrue();
     });
 
     test('Should have no cache before first list packages call', async () => {
@@ -195,7 +198,9 @@ describe('Android utils', () => {
             myCommandBlockMock
         );
         const apiPackage = await AndroidSDKUtils.findRequiredAndroidAPIPackage();
-        expect(apiPackage !== null && apiPackage.description !== null);
+        expect(
+            apiPackage !== null && apiPackage.description !== null
+        ).toBeTrue();
     });
 
     test('Should not find a preferred Android package', async () => {
@@ -212,7 +217,9 @@ describe('Android utils', () => {
             myCommandBlockMock
         );
         const apiPackage = await AndroidSDKUtils.findRequiredEmulatorImages();
-        expect(apiPackage !== null && apiPackage.description !== null);
+        expect(
+            apiPackage !== null && apiPackage.description !== null
+        ).toBeTrue();
     });
 
     test('Should not find a preferred Android build tools package', async () => {

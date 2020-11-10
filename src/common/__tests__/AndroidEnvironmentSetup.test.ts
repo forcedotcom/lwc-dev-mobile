@@ -15,11 +15,11 @@ import { AndroidSDKUtils } from '../AndroidUtils';
 import { AndroidMockData } from './AndroidMockData';
 
 const myCommandBlockMock = jest.fn((): string => {
-    return AndroidMockData.mockRawPacakgesString;
+    return AndroidMockData.mockRawPackagesString;
 });
 
 const badBlockMock = jest.fn((): string => {
-    return AndroidMockData.badMockRawPacakagesString;
+    return AndroidMockData.badMockRawPackagesString;
 });
 
 Messages.importMessagesDirectory(__dirname);

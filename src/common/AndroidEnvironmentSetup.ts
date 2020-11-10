@@ -130,7 +130,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                     reject(
                         util.format(
                             this.unfulfilledMessage,
-                            androidConfig.minSupportedAndroidRuntime
+                            androidConfig.minSupportedRuntimeAndroid
                         )
                     )
                 );
@@ -160,7 +160,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                     reject(
                         util.format(
                             this.unfulfilledMessage,
-                            androidConfig.minSupportedAndroidRuntime
+                            androidConfig.minSupportedRuntimeAndroid
                         )
                     );
                 });
@@ -179,7 +179,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                     reject(
                         util.format(
                             this.unfulfilledMessage,
-                            androidConfig.minSupportedAndroidRuntime
+                            androidConfig.minSupportedRuntimeAndroid
                         )
                     )
                 );

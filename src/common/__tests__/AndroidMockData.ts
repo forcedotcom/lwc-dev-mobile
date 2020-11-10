@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 export class AndroidMockData {
-    public static mockRawPacakgesString = `Warning: File test string.........       
+    public static mockRawPackagesString = `Warning: File test string.........       
     Installed packages:=====================] 100% Computing updates...             
       Path                                                | Version      | Description                                     | Location                                            
       -------                                             | -------      | -------                                         | -------                                             
@@ -30,7 +30,7 @@ export class AndroidMockData {
       Path                                                                                     | Version      | Description                                                         
     `;
 
-    public static badMockRawPacakagesString =
+    public static badMockRawPackagesString =
         'Installed packages:=====================]';
 
     public static mockRawStringPackageLength = 13;

@@ -4,44 +4,12 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-export class AndroidPackage {
-    get platformAPI(): string {
-        const platformApi = '';
-        if (
-            this.path.startsWith('platforms') ||
-            this.path.startsWith('system-images')
-        ) {
-            const tokens: string[] = this.path.split(';');
-            if (tokens.length > 1) {
-                return tokens[1];
-            }
-        }
-        return platformApi;
-    }
+import { Version } from './Common';
 
-    get platformEmulatorImage(): string {
-        if (this.path.startsWith('system-images')) {
-            const tokens: string[] = this.path.split(';');
-            if (tokens.length > 2) {
-                return tokens[2];
-            }
-        }
-        return '';
-    }
-
-    get abi(): string {
-        if (this.path.startsWith('system-images')) {
-            const tokens: string[] = this.path.split(';');
-            if (tokens.length > 3) {
-                return tokens[3];
-            }
-        }
-        return '';
-    }
-
+export class AndroidPackages {
     public static parseRawPackagesString(
         rawStringInput: string
-    ): Map<string, AndroidPackage> {
+    ): AndroidPackages {
         const startIndx = rawStringInput
             .toLowerCase()
             .indexOf('installed packages:', 0);
@@ -49,7 +17,7 @@ export class AndroidPackage {
             .toLowerCase()
             .indexOf('available packages:', startIndx);
         const rawString = rawStringInput.substring(startIndx, endIndx);
-        const packages: Map<string, AndroidPackage> = new Map();
+        const packages: AndroidPackages = new AndroidPackages();
 
         // Installed packages:
         const lines = rawString.split('\n');
@@ -66,22 +34,32 @@ export class AndroidPackage {
                 const rawStringSplits: string[] = lines[i].split('|');
                 if (rawStringSplits.length > 1) {
                     const path = rawStringSplits[0].trim();
-                    const version = rawStringSplits[1].trim();
-                    const description = rawStringSplits[2].trim();
-                    let locationOfPack = '';
-
-                    if (rawStringSplits.length > 2) {
-                        locationOfPack = rawStringSplits[3].trim();
-                    }
-                    packages.set(
-                        path,
-                        new AndroidPackage(
-                            path,
+                    if (
+                        path.startsWith('platforms;android-') ||
+                        path.startsWith('system-images;android-')
+                    ) {
+                        const pathName = path
+                            .replace('platforms;', '')
+                            .replace('system-images;', '');
+                        const versionString = pathName.replace('android-', '');
+                        const version = Version.from(versionString);
+                        const description = rawStringSplits[2].trim();
+                        const locationOfPack =
+                            rawStringSplits.length > 2
+                                ? rawStringSplits[3].trim()
+                                : '';
+                        const pkg = new AndroidPackage(
+                            pathName,
                             version,
                             description,
                             locationOfPack
-                        )
-                    );
+                        );
+                        if (path.startsWith('platforms;android-')) {
+                            packages.platforms.push(pkg);
+                        } else {
+                            packages.systemImages.push(pkg);
+                        }
+                    }
                 }
 
                 if (lines[i].indexOf('Available Packages:') > -1) {
@@ -91,14 +69,40 @@ export class AndroidPackage {
         }
         return packages;
     }
+
+    public platforms: AndroidPackage[] = [];
+    public systemImages: AndroidPackage[] = [];
+
+    public isEmpty(): boolean {
+        return this.platforms.length < 1 && this.systemImages.length < 1;
+    }
+}
+
+// tslint:disable-next-line: max-classes-per-file
+export class AndroidPackage {
+    get platformAPI(): string {
+        const tokens: string[] = this.path.split(';');
+        return tokens.length > 0 ? tokens[0] : '';
+    }
+
+    get platformEmulatorImage(): string {
+        const tokens: string[] = this.path.split(';');
+        return tokens.length > 1 ? tokens[1] : '';
+    }
+
+    get abi(): string {
+        const tokens: string[] = this.path.split(';');
+        return tokens.length > 2 ? tokens[2] : '';
+    }
+
     public path: string;
-    public version: string;
+    public version: Version;
     public description: string;
     public location: string;
 
     constructor(
         path: string,
-        version: string,
+        version: Version,
         description: string,
         location: string
     ) {

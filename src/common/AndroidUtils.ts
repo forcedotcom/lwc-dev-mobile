@@ -10,7 +10,11 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import androidConfig from '../config/androidconfig.json';
-import { AndroidPackage, AndroidVirtualDevice } from './AndroidTypes';
+import {
+    AndroidPackage,
+    AndroidPackages,
+    AndroidVirtualDevice
+} from './AndroidTypes';
 import { MapUtils, Version } from './Common';
 import { CommonUtils } from './CommonUtils';
 import { LaunchArgument } from './PreviewConfigFile';
@@ -84,7 +88,7 @@ export class AndroidSDKUtils {
     }
 
     public static isCached(): boolean {
-        return AndroidSDKUtils.packageCache.size > 0;
+        return !AndroidSDKUtils.packageCache.isEmpty();
     }
 
     public static executeCommand(
@@ -107,7 +111,7 @@ export class AndroidSDKUtils {
     }
 
     public static clearCaches() {
-        AndroidSDKUtils.packageCache.clear();
+        AndroidSDKUtils.packageCache = new AndroidPackages();
     }
 
     public static async androidSDKPrerequisitesCheck(): Promise<string> {
@@ -185,31 +189,28 @@ export class AndroidSDKUtils {
         });
     }
 
-    public static async fetchInstalledPackages(): Promise<
-        Map<string, AndroidPackage>
-    > {
-        return new Promise<Map<string, AndroidPackage>>((resolve, reject) => {
-            if (!AndroidSDKUtils.isAndroidHomeSet()) {
-                return reject(new Error('ANDROID_HOME is not set.'));
-            }
+    public static async fetchInstalledPackages(): Promise<AndroidPackages> {
+        if (!AndroidSDKUtils.isAndroidHomeSet()) {
+            return Promise.reject(new Error('ANDROID_HOME is not set.'));
+        }
 
-            if (!AndroidSDKUtils.isCached()) {
-                try {
-                    const stdout = AndroidSDKUtils.executeCommand(
-                        `${AndroidSDKUtils.ANDROID_SDK_MANAGER_CMD} --list`
+        if (!AndroidSDKUtils.isCached()) {
+            try {
+                const stdout = AndroidSDKUtils.executeCommand(
+                    `${AndroidSDKUtils.ANDROID_SDK_MANAGER_CMD} --list`
+                );
+                if (stdout) {
+                    const packages = AndroidPackages.parseRawPackagesString(
+                        stdout
                     );
-                    if (stdout) {
-                        const packages = AndroidPackage.parseRawPackagesString(
-                            stdout
-                        );
-                        AndroidSDKUtils.packageCache = packages;
-                    }
-                } catch (err) {
-                    return reject(err);
+                    AndroidSDKUtils.packageCache = packages;
                 }
+            } catch (err) {
+                return Promise.reject(err);
             }
-            resolve(AndroidSDKUtils.packageCache);
-        });
+        }
+
+        return Promise.resolve(AndroidSDKUtils.packageCache);
     }
 
     public static fetchEmulators(): Promise<AndroidVirtualDevice[]> {
@@ -234,58 +235,41 @@ export class AndroidSDKUtils {
     public static async findRequiredAndroidAPIPackage(): Promise<
         AndroidPackage
     > {
-        return new Promise<AndroidPackage>(async (resolve, reject) => {
-            try {
-                const minSupportedAndroidRuntime: Version = new Version(
-                    androidConfig.minSupportedAndroidRuntime
-                );
-                const packages = await AndroidSDKUtils.fetchInstalledPackages();
-                if (packages.size < 1) {
-                    return reject(
-                        new Error(
-                            `Could not find any supported Android API packages. Minimum supported Android API package version is ${androidConfig.minSupportedAndroidRuntime}`
-                        )
-                    );
-                }
+        try {
+            const minSupportedRuntimeAndroid = Version.from(
+                androidConfig.minSupportedRuntimeAndroid
+            );
 
-                const matchingKeys: string[] = [];
-                packages.forEach((value, key) => {
-                    if (key.toLowerCase().startsWith('platforms;android-')) {
-                        const platformVersion = new Version(
-                            key.toLowerCase().replace('platforms;android-', '')
-                        );
-                        if (
-                            platformVersion.sameOrNewer(
-                                minSupportedAndroidRuntime
-                            )
-                        ) {
-                            matchingKeys.push(key);
-                        }
-                    }
-                });
-
-                if (matchingKeys.length < 1) {
-                    return reject(
-                        new Error(
-                            `Could not locate a matching Android API package. Minimum supported Android API package version is ${androidConfig.minSupportedAndroidRuntime}`
-                        )
-                    );
-                }
-
-                matchingKeys.sort();
-                matchingKeys.reverse();
-
-                // use the first one.
-                const androidPackage = packages.get(matchingKeys[0]);
-                resolve(androidPackage);
-            } catch (error) {
-                reject(
+            const packages = await AndroidSDKUtils.fetchInstalledPackages();
+            if (packages.isEmpty()) {
+                return Promise.reject(
                     new Error(
-                        `Could not find android api packages. ${error.errorMessage}`
+                        `No Android API packages are installed. Minimum supported Android API package version is ${androidConfig.minSupportedRuntimeAndroid}`
                     )
                 );
             }
-        });
+
+            const matchingPlatforms = packages.platforms.filter((pkg) =>
+                pkg.version.sameOrNewer(minSupportedRuntimeAndroid)
+            );
+            if (matchingPlatforms.length < 1) {
+                return Promise.reject(
+                    new Error(
+                        `Could not locate a supported Android API package. Minimum supported Android API package version is ${androidConfig.minSupportedRuntimeAndroid}`
+                    )
+                );
+            }
+
+            // return the package with the latest version by negating the comparison result
+            matchingPlatforms.sort((a, b) => a.version.compare(b.version) * -1);
+            return matchingPlatforms[0];
+        } catch (error) {
+            return Promise.reject(
+                new Error(
+                    `Could not find android api packages. ${error.errorMessage}`
+                )
+            );
+        }
     }
 
     public static async findRequiredEmulatorImages(): Promise<AndroidPackage> {
@@ -295,17 +279,17 @@ export class AndroidSDKUtils {
                 const packages = await AndroidSDKUtils.fetchInstalledSystemImages(
                     installedAndroidPackage.platformAPI
                 );
-                let supportedPackage: string | null = null;
+                let supportedPackage: AndroidPackage | null = null;
                 const platformAPI = installedAndroidPackage.platformAPI;
                 for (const architecture of androidConfig.architectures) {
                     for (const image of androidConfig.supportedImages) {
-                        for (const key of Array.from(packages.keys())) {
+                        for (const pkg of packages) {
                             if (
-                                key.match(
-                                    `(system-images;${platformAPI};${image};${architecture})`
+                                pkg.path.match(
+                                    `(${platformAPI};${image};${architecture})`
                                 ) !== null
                             ) {
-                                supportedPackage = key;
+                                supportedPackage = pkg;
                                 break;
                             }
                         }
@@ -329,7 +313,7 @@ export class AndroidSDKUtils {
                     return;
                 }
 
-                resolve(packages.get(supportedPackage));
+                resolve(supportedPackage);
             } catch (error) {
                 reject(new Error(`Could not find android emulator packages.`));
             }
@@ -631,7 +615,7 @@ export class AndroidSDKUtils {
 
     private static logger: Logger = new Logger(LOGGER_NAME);
     private static DEFAULT_ADB_CONSOLE_PORT = 5554;
-    private static packageCache: Map<string, AndroidPackage> = new Map();
+    private static packageCache: AndroidPackages = new AndroidPackages();
     private static toolsBinLocation: string;
 
     private static getToolsBin(): string {
@@ -662,15 +646,10 @@ export class AndroidSDKUtils {
 
     private static async fetchInstalledSystemImages(
         androidApi: string
-    ): Promise<Map<string, AndroidPackage>> {
-        const allPacks = await AndroidSDKUtils.fetchInstalledPackages();
-        return new Promise<Map<string, AndroidPackage>>((resolve, reject) => {
-            const systemImages = MapUtils.filter(
-                allPacks,
-                (key, value) => key.indexOf(`system-images;${androidApi}`) > -1
-            );
-            resolve(systemImages);
-        });
+    ): Promise<AndroidPackage[]> {
+        return AndroidSDKUtils.fetchInstalledPackages().then(
+            (packages) => packages.systemImages
+        );
     }
 
     private static isEmulatorAlreadyStarted(emulatorName: string): boolean {

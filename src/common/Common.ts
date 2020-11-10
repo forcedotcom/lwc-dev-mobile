@@ -78,40 +78,49 @@ export class CommandLineUtils {
 
 // tslint:disable-next-line: max-classes-per-file
 export class Version {
+    public static from(input: string): Version {
+        // support version strings using - or . as separators (e.g 13-0-4 and 13.0.4)
+        const parts = input.trim().toLowerCase().replace(/-/gi, '.').split('.');
+        const major = parts.length >= 1 ? Number.parseInt(parts[0], 10) : 0;
+        const minor = parts.length >= 2 ? Number.parseInt(parts[1], 10) : 0;
+        const patch = parts.length >= 3 ? Number.parseInt(parts[2], 10) : 0;
+
+        if (Number.isNaN(major) || Number.isNaN(minor) || Number.isNaN(patch)) {
+            throw new Error(`Invalid version string: ${input}`);
+        }
+
+        return new Version(major, minor, patch);
+    }
+
     public readonly major: number;
     public readonly minor: number;
     public readonly patch: number;
 
-    constructor(from: string) {
-        // support version strings using - or . as separators (e.g 13-0-4 and 13.0.4)
-        const input = from.toLowerCase().replace(/-/gi, '.').split('.');
-        this.major = input.length >= 1 ? Number.parseInt(input[0], 10) : 0;
-        this.minor = input.length >= 2 ? Number.parseInt(input[1], 10) : 0;
-        this.patch = input.length >= 3 ? Number.parseInt(input[2], 10) : 0;
+    constructor(major: number, minor: number, patch: number) {
+        this.major = major;
+        this.minor = minor;
+        this.patch = patch;
     }
 
     public sameOrNewer(inputVersion: Version): boolean {
-        // sanity check
-        if (
-            Number.isNaN(this.major) ||
-            Number.isNaN(this.minor) ||
-            Number.isNaN(this.patch) ||
-            Number.isNaN(inputVersion.major) ||
-            Number.isNaN(inputVersion.minor) ||
-            Number.isNaN(inputVersion.patch)
-        ) {
-            return false;
-        }
+        return this.compare(inputVersion) > -1;
+    }
 
-        // version check
+    public compare(another: Version): number {
         if (
-            this.major < inputVersion.major ||
-            this.minor < inputVersion.minor ||
-            this.patch < inputVersion.patch
+            this.major === another.major &&
+            this.minor === another.minor &&
+            this.patch === another.patch
         ) {
-            return false;
+            return 0;
+        } else if (
+            this.major < another.major ||
+            this.minor < another.minor ||
+            this.patch < another.patch
+        ) {
+            return -1;
+        } else {
+            return 1;
         }
-
-        return true;
     }
 }
