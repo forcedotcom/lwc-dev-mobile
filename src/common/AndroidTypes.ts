@@ -41,7 +41,13 @@ export class AndroidPackages {
                         const pathName = path
                             .replace('platforms;', '')
                             .replace('system-images;', '');
-                        const versionString = pathName.replace('android-', '');
+                        let versionString = pathName.replace('android-', '');
+                        if (versionString.indexOf(';') >= 0) {
+                            versionString = versionString.substring(
+                                0,
+                                versionString.indexOf(';')
+                            );
+                        }
                         const version = Version.from(versionString);
                         const description = rawStringSplits[2].trim();
                         const locationOfPack =

@@ -184,7 +184,7 @@ export class IOSUtils {
 
     public static async getSimulatorRuntimes(): Promise<string[]> {
         const runtimesCmd = `${XCRUN_CMD} simctl list --json runtimes available`;
-        const runtimeMatchRegex = /.*SimRuntime\.((iOS|watchOS|tvOS)-[\d\-]+)$/;
+        const runtimeMatchRegex = /.*SimRuntime\.((iOS)-[\d\-]+)$/;
         const RUNTIMES_KEY = 'runtimes';
         const ID_KEY = 'identifier';
 
