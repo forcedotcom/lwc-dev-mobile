@@ -1,5 +1,5 @@
 {
-    "supportedRuntimes" : ["android-30", "android-29", "android-28", "android-27", "android-26", "android-25", "android-24", "android-23"],
+    "minSupportedRuntimeAndroid" : "23",
     "supportedImages" : ["google_apis", "default", "google_apis_playstore"],
     "architectures" : ["x86_64","x86"],
     "supportedDevices" : ["pixel", "pixel_xl" , "pixel_c"],

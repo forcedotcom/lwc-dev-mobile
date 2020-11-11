@@ -8,15 +8,15 @@ const ORIG_ANDROID_HOME = process.env.ANDROID_HOME;
 const MOCK_ANDROID_HOME = '/mock-android-home';
 process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 
-import { AndroidPackage } from '../AndroidTypes';
+import { AndroidPackages } from '../AndroidTypes';
 import { AndroidMockData } from './AndroidMockData';
 
 const myCommandBlockMock = jest.fn((): string => {
-    return AndroidMockData.mockRawPacakgesString;
+    return AndroidMockData.mockRawPackagesString;
 });
 
 const badBlockMock = jest.fn((): string => {
-    return AndroidMockData.badMockRawPacakagesString;
+    return AndroidMockData.badMockRawPackagesString;
 });
 
 describe('Android types tests', () => {
@@ -31,37 +31,40 @@ describe('Android types tests', () => {
     });
 
     test('Android Package class should correctly parse a raw string', async () => {
-        const packages = AndroidPackage.parseRawPackagesString(
-            AndroidMockData.mockRawPacakgesString
+        const packages = AndroidPackages.parseRawPackagesString(
+            AndroidMockData.mockRawPackagesString
         );
         expect(
-            packages !== null &&
-                packages.size === AndroidMockData.mockRawStringPackageLength
-        );
+            packages.platforms.length + packages.systemImages.length ===
+                AndroidMockData.mockRawStringPackageLength
+        ).toBeTrue();
     });
 
     test('Android Package class should correctly parse a raw string initialize members', async () => {
-        const packages: Map<
-            string,
-            AndroidPackage
-        > = AndroidPackage.parseRawPackagesString(
-            AndroidMockData.mockRawPacakgesString
+        const packages = AndroidPackages.parseRawPackagesString(
+            AndroidMockData.mockRawPackagesString
         );
-        const pack: AndroidPackage | undefined = packages.get(
-            'build-tools;28.0.3'
+        const platformPkg = packages.platforms.find((pkg) =>
+            pkg.path.match('android-30')
         );
+        const sysImagePkg = packages.systemImages.find((pkg) =>
+            pkg.path.match('android-29')
+        );
+
         expect(
-            packages.size === AndroidMockData.mockRawStringPackageLength &&
-                pack &&
-                pack.path !== null &&
-                pack.description !== null
-        );
+            platformPkg &&
+                platformPkg.path !== null &&
+                platformPkg.description != null &&
+                sysImagePkg &&
+                sysImagePkg.path !== null &&
+                sysImagePkg.description != null
+        ).toBeTrue();
     });
 
-    test('Android Package class should return and empty list for  a bad string', async () => {
-        const packages = AndroidPackage.parseRawPackagesString(
-            AndroidMockData.badMockRawPacakagesString
+    test('Android Package class should return and empty list for a bad string', async () => {
+        const packages = AndroidPackages.parseRawPackagesString(
+            AndroidMockData.badMockRawPackagesString
         );
-        expect(packages !== null && packages.size === 0);
+        expect(packages.isEmpty()).toBeTrue();
     });
 });

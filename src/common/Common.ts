@@ -75,3 +75,55 @@ export class CommandLineUtils {
         }
     }
 }
+
+// tslint:disable-next-line: max-classes-per-file
+export class Version {
+    public static from(input: string): Version {
+        const acceptedRange = /[0-9\-\.]+/g;
+        const original = input.trim().toLowerCase();
+        const invalidChars = original.replace(acceptedRange, '');
+        if (invalidChars.length > 0) {
+            throw new Error(`Invalid version string: ${input}`);
+        }
+
+        // support version strings using - or . as separators (e.g 13-0-4 and 13.0.4)
+        const parts = original.replace(/-/gi, '.').split('.');
+        const major = parts.length >= 1 ? Number.parseInt(parts[0], 10) : 0;
+        const minor = parts.length >= 2 ? Number.parseInt(parts[1], 10) : 0;
+        const patch = parts.length >= 3 ? Number.parseInt(parts[2], 10) : 0;
+
+        // this shouldn't really happen now, but just in case
+        if (Number.isNaN(major) || Number.isNaN(minor) || Number.isNaN(patch)) {
+            throw new Error(`Invalid version string: ${input}`);
+        }
+
+        return new Version(major, minor, patch);
+    }
+
+    public readonly major: number;
+    public readonly minor: number;
+    public readonly patch: number;
+
+    constructor(major: number, minor: number, patch: number) {
+        this.major = major;
+        this.minor = minor;
+        this.patch = patch;
+    }
+
+    public sameOrNewer(inputVersion: Version): boolean {
+        return this.compare(inputVersion) > -1;
+    }
+
+    public compare(another: Version): number {
+        const v1 = this.major * 100 + this.minor * 10 + this.patch;
+        const v2 = another.major * 100 + another.minor * 10 + another.patch;
+
+        if (v1 === v2) {
+            return 0;
+        } else if (v1 < v2) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+}
