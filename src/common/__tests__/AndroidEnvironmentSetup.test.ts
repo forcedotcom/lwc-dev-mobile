@@ -38,21 +38,21 @@ describe('Android enviroment setup tests', () => {
     });
 
     test('Should resolve when ANDROID_HOME is set', async () => {
-        jest.spyOn(AndroidSDKUtils, 'isAndroidHomeSet').mockImplementation(
+        jest.spyOn(AndroidSDKUtils, 'isAndroidSdkRootSet').mockImplementation(
             () => true
         );
         const aPromise = andrEnvironment
-            .isAndroidHomeSet()
+            .isAndroidSdkRootSet()
             .catch(() => undefined);
         expect(aPromise).resolves;
     });
 
     test('Should reject when ANDROID_HOME is not set', async () => {
-        jest.spyOn(AndroidSDKUtils, 'isAndroidHomeSet').mockImplementation(
+        jest.spyOn(AndroidSDKUtils, 'isAndroidSdkRootSet').mockImplementation(
             () => false
         );
         const aPromise = andrEnvironment
-            .isAndroidHomeSet()
+            .isAndroidSdkRootSet()
             .catch(() => undefined);
         expect(aPromise).rejects;
     });

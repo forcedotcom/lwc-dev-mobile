@@ -16,7 +16,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
         const messages = this.setupMessages;
         const requirements = [
             {
-                checkFunction: this.isAndroidHomeSet,
+                checkFunction: this.isAndroidSdkRootSet,
                 fulfilledMessage: messages.getMessage(
                     'android:reqs:androidhome:fulfilledMessage'
                 ),
@@ -99,14 +99,14 @@ export class AndroidEnvironmentSetup extends BaseSetup {
         });
     }
 
-    public async isAndroidHomeSet(): Promise<string> {
+    public async isAndroidSdkRootSet(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            if (AndroidSDKUtils.isAndroidHomeSet()) {
+            if (AndroidSDKUtils.isAndroidSdkRootSet()) {
                 resolve(
                     AndroidSDKUtils.convertToUnixPath(
                         util.format(
                             this.fulfilledMessage,
-                            AndroidSDKUtils.androidHome
+                            AndroidSDKUtils.getAndroidSdkRoot()
                         )
                     )
                 );
@@ -152,7 +152,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                         reject(
                             new Error(
                                 'Platform tools not found. Expected at ' +
-                                    AndroidSDKUtils.ANDROID_PLATFORM_TOOLS +
+                                    AndroidSDKUtils.getAndroidPlatformTools() +
                                     '.'
                             )
                         );
