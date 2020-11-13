@@ -18,7 +18,7 @@
     "android:reqs:androidsdkprerequisitescheck:fulfilledMessage" : "Android SDK prerequisites are met.",
     "android:reqs:androidsdkprerequisitescheck:unfulfilledMessage" : "Android SDK is missing prerequisites: %s",
     "android:reqs:androidhome:title" : "Checking SDK root location",
-    "android:reqs:androidhome:fulfilledMessage" : "SDK root location is set to %s.",
+    "android:reqs:androidhome:fulfilledMessage" : "SDK root location is set to %s: %s",
     "android:reqs:androidhome:unfulfilledMessage" : "SDK root location not found. Please set up ANDROID_SDK_ROOT or ANDROID_HOME in your environment.",
     "android:reqs:sdktools:title" : "Checking SDK Tools",
     "android:reqs:sdktools:fulfilledMessage" : "Android SDK tools were detected at %s.",

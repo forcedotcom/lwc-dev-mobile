@@ -13,7 +13,11 @@
                 "-n",
                 "HelloWorld",
                 "-t",
-                "sfdxdebug"
+                "sfdxdebug",
+                "-a",
+                "com.salesforce.AppArgTest",
+                "-f",
+                "myConfigFile.json"
             ]
         },
         {
@@ -28,7 +32,11 @@
                 "-n",
                 "HelloWorld",
                 "-t",
-                "emu2"
+                "emu2",
+                "-a",
+                "com.example.appargtest",
+                "-f",
+                "myConfigFile.json"
             ]
         },
         {

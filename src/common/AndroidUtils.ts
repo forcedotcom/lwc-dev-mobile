@@ -15,7 +15,7 @@ import {
     AndroidPackages,
     AndroidVirtualDevice
 } from './AndroidTypes';
-import { MapUtils, Version } from './Common';
+import { Version } from './Common';
 import { CommonUtils } from './CommonUtils';
 import { LaunchArgument } from './PreviewConfigFile';
 import { PreviewUtils } from './PreviewUtils';
@@ -31,6 +31,16 @@ const ANDROID_SDK_MANAGER_NAME = 'sdkmanager';
 const ANDROID_AVD_MANAGER_NAME = 'avdmanager';
 const ANDROID_ADB_NAME = 'adb';
 const DEFAULT_ADB_CONSOLE_PORT = 5554;
+
+export enum AndroidSDKRootSource {
+    androidHome = 'ANDROID_HOME',
+    androidSDKRoot = 'ANDROID_SDK_ROOT'
+}
+
+export interface AndroidSDKRoot {
+    rootLocation: string;
+    rootSource: AndroidSDKRootSource;
+}
 
 export class AndroidSDKUtils {
     public static async initializeLogger(): Promise<void> {
@@ -54,7 +64,8 @@ export class AndroidSDKUtils {
     }
 
     public static isAndroidSdkRootSet(): boolean {
-        return AndroidSDKUtils.getAndroidSdkRoot().length > 0;
+        const root = AndroidSDKUtils.getAndroidSdkRoot();
+        return root !== undefined && root.rootLocation.length > 0;
     }
 
     public static isJavaHomeSet(): boolean {
@@ -556,10 +567,13 @@ export class AndroidSDKUtils {
                 } else if (skinName === 'pixel_xl') {
                     skinName = 'pixel_xl_silver';
                 }
+                const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
                 config.set('skin.name', skinName);
                 config.set(
                     'skin.path',
-                    `${AndroidSDKUtils.getAndroidSdkRoot()}/skins/${skinName}`
+                    `${
+                        (sdkRoot && sdkRoot.rootLocation) || ''
+                    }/skins/${skinName}`
                 );
                 config.set('skin.dynamic', 'yes');
                 config.set('showDeviceFrame', 'yes');
@@ -572,8 +586,9 @@ export class AndroidSDKUtils {
 
     public static getAndroidPlatformTools(): string {
         if (!AndroidSDKUtils.androidPlatformTools) {
+            const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
             AndroidSDKUtils.androidPlatformTools = path.join(
-                AndroidSDKUtils.getAndroidSdkRoot(),
+                (sdkRoot && sdkRoot.rootLocation) || '',
                 'platform-tools'
             );
         }
@@ -581,7 +596,7 @@ export class AndroidSDKUtils {
         return AndroidSDKUtils.androidPlatformTools;
     }
 
-    public static getAndroidSdkRoot(): string {
+    public static getAndroidSdkRoot(): AndroidSDKRoot | undefined {
         if (!AndroidSDKUtils.sdkRoot) {
             const home =
                 process.env.ANDROID_HOME && process.env.ANDROID_HOME.trim();
@@ -591,20 +606,15 @@ export class AndroidSDKUtils {
                 process.env.ANDROID_SDK_ROOT.trim();
 
             if (home && fs.existsSync(home)) {
-                AndroidSDKUtils.logger.info(
-                    `Using ANDROID_HOME as SDK root location: ${home}`
-                );
-                AndroidSDKUtils.sdkRoot = home;
+                AndroidSDKUtils.sdkRoot = {
+                    rootLocation: home,
+                    rootSource: AndroidSDKRootSource.androidHome
+                };
             } else if (root && fs.existsSync(root)) {
-                AndroidSDKUtils.logger.info(
-                    `Using ANDROID_SDK_ROOT as SDK root location: ${root}`
-                );
-                AndroidSDKUtils.sdkRoot = root;
-            } else {
-                AndroidSDKUtils.logger.warn(
-                    'Unable to determine SDK root location. ANDROID_HOME or ANDROID_SDK_ROOT not found.'
-                );
-                AndroidSDKUtils.sdkRoot = '';
+                AndroidSDKUtils.sdkRoot = {
+                    rootLocation: root,
+                    rootSource: AndroidSDKRootSource.androidSDKRoot
+                };
             }
         }
 
@@ -620,12 +630,13 @@ export class AndroidSDKUtils {
     private static avdManagerCommand: string | undefined;
     private static adbShellCommand: string | undefined;
     private static sdkManagerCommand: string | undefined;
-    private static sdkRoot: string | undefined;
+    private static sdkRoot: AndroidSDKRoot | undefined;
 
     private static getEmulatorCommand(): string {
         if (!AndroidSDKUtils.emulatorCommand) {
+            const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
             AndroidSDKUtils.emulatorCommand = path.join(
-                AndroidSDKUtils.getAndroidSdkRoot(),
+                (sdkRoot && sdkRoot.rootLocation) || '',
                 'emulator',
                 'emulator'
             );
@@ -636,8 +647,9 @@ export class AndroidSDKUtils {
 
     private static getAndroidToolsBin(): string {
         if (!AndroidSDKUtils.androidToolsBin) {
+            const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
             AndroidSDKUtils.androidToolsBin = path.join(
-                AndroidSDKUtils.getAndroidSdkRoot(),
+                (sdkRoot && sdkRoot.rootLocation) || '',
                 'tools',
                 'bin'
             );
@@ -655,8 +667,9 @@ export class AndroidSDKUtils {
 
     private static getAndroidCmdLineToolsBin(): string {
         if (!AndroidSDKUtils.androidCmdLineToolsBin) {
+            const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
             AndroidSDKUtils.androidCmdLineToolsBin = path.join(
-                AndroidSDKUtils.getAndroidSdkRoot(),
+                (sdkRoot && sdkRoot.rootLocation) || '',
                 'cmdline-tools',
                 'latest',
                 'bin'

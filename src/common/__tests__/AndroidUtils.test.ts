@@ -6,7 +6,7 @@
  */
 import fs from 'fs';
 import path from 'path';
-import { AndroidSDKUtils } from '../AndroidUtils';
+import { AndroidSDKRootSource, AndroidSDKUtils } from '../AndroidUtils';
 import { PreviewUtils } from '../PreviewUtils';
 import { AndroidMockData } from './AndroidMockData';
 
@@ -54,7 +54,12 @@ let writeFileSpy: jest.SpyInstance<any>;
 describe('Android utils', () => {
     beforeEach(() => {
         jest.spyOn(AndroidSDKUtils, 'getAndroidSdkRoot').mockImplementation(
-            () => mockAndroidHome
+            () => {
+                return {
+                    rootLocation: mockAndroidHome,
+                    rootSource: AndroidSDKRootSource.androidHome
+                };
+            }
         );
         myCommandBlockMock.mockClear();
         badBlockMock.mockClear();
@@ -475,7 +480,8 @@ describe('Android utils', () => {
         delete process.env.ANDROID_SDK_ROOT; // set it to undefined
         jest.restoreAllMocks();
         jest.spyOn(fs, 'existsSync').mockImplementation(() => true);
-        const rootPath = AndroidSDKUtils.getAndroidSdkRoot();
+        const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
+        const rootPath = (sdkRoot && sdkRoot.rootLocation) || '';
         expect(rootPath).toBe(mockAndroidHome);
     });
 
@@ -484,7 +490,8 @@ describe('Android utils', () => {
         process.env.ANDROID_SDK_ROOT = mockAndroidSdkRoot;
         jest.restoreAllMocks();
         jest.spyOn(fs, 'existsSync').mockImplementation(() => true);
-        const rootPath = AndroidSDKUtils.getAndroidSdkRoot();
+        const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
+        const rootPath = (sdkRoot && sdkRoot.rootLocation) || '';
         expect(rootPath).toBe(mockAndroidSdkRoot);
     });
 
@@ -493,7 +500,8 @@ describe('Android utils', () => {
         process.env.ANDROID_SDK_ROOT = mockAndroidSdkRoot;
         jest.restoreAllMocks();
         jest.spyOn(fs, 'existsSync').mockImplementation(() => true);
-        const rootPath = AndroidSDKUtils.getAndroidSdkRoot();
+        const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
+        const rootPath = (sdkRoot && sdkRoot.rootLocation) || '';
         expect(rootPath).toBe(mockAndroidHome);
     });
 });

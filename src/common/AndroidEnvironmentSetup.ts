@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import { Logger, Messages } from '@salesforce/core';
+import { Logger } from '@salesforce/core';
 import util from 'util';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
@@ -101,12 +101,14 @@ export class AndroidEnvironmentSetup extends BaseSetup {
 
     public async isAndroidSdkRootSet(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            if (AndroidSDKUtils.isAndroidSdkRootSet()) {
+            const root = AndroidSDKUtils.getAndroidSdkRoot();
+            if (AndroidSDKUtils.isAndroidSdkRootSet() && root !== undefined) {
                 resolve(
                     AndroidSDKUtils.convertToUnixPath(
                         util.format(
                             this.fulfilledMessage,
-                            AndroidSDKUtils.getAndroidSdkRoot()
+                            root.rootSource,
+                            root.rootLocation
                         )
                     )
                 );
