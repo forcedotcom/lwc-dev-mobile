@@ -102,7 +102,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
     public async isAndroidSdkRootSet(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             const root = AndroidSDKUtils.getAndroidSdkRoot();
-            if (AndroidSDKUtils.isAndroidSdkRootSet() && root !== undefined) {
+            if (root) {
                 resolve(
                     AndroidSDKUtils.convertToUnixPath(
                         util.format(

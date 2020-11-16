@@ -63,11 +63,6 @@ export class AndroidSDKUtils {
         return CommonUtils.executeCommand(command, stdioOptions);
     }
 
-    public static isAndroidSdkRootSet(): boolean {
-        const root = AndroidSDKUtils.getAndroidSdkRoot();
-        return root !== undefined && root.rootLocation.length > 0;
-    }
-
     public static isJavaHomeSet(): boolean {
         return process.env.JAVA_HOME
             ? process.env.JAVA_HOME.trim().length > 0
@@ -126,7 +121,7 @@ export class AndroidSDKUtils {
         stdioOptions: StdioOptions = ['ignore', 'pipe', 'ignore']
     ): Promise<string> {
         return new Promise(async (resolve, reject) => {
-            if (!AndroidSDKUtils.isAndroidSdkRootSet()) {
+            if (!AndroidSDKUtils.getAndroidSdkRoot()) {
                 reject(new Error('Android SDK root is not set.'));
                 return;
             }
@@ -147,7 +142,7 @@ export class AndroidSDKUtils {
         string
     > {
         return new Promise(async (resolve, reject) => {
-            if (!AndroidSDKUtils.isAndroidSdkRootSet()) {
+            if (!AndroidSDKUtils.getAndroidSdkRoot()) {
                 return reject(new Error('Android SDK root is not set.'));
             }
             try {
@@ -162,7 +157,7 @@ export class AndroidSDKUtils {
     }
 
     public static async fetchInstalledPackages(): Promise<AndroidPackages> {
-        if (!AndroidSDKUtils.isAndroidSdkRootSet()) {
+        if (!AndroidSDKUtils.getAndroidSdkRoot()) {
             return Promise.reject(new Error('Android SDK root is not set.'));
         }
 
