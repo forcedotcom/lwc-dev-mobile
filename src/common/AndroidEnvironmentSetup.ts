@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import { Logger, Messages } from '@salesforce/core';
+import { Logger } from '@salesforce/core';
 import util from 'util';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
@@ -16,7 +16,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
         const messages = this.setupMessages;
         const requirements = [
             {
-                checkFunction: this.isAndroidHomeSet,
+                checkFunction: this.isAndroidSdkRootSet,
                 fulfilledMessage: messages.getMessage(
                     'android:reqs:androidhome:fulfilledMessage'
                 ),
@@ -99,14 +99,16 @@ export class AndroidEnvironmentSetup extends BaseSetup {
         });
     }
 
-    public async isAndroidHomeSet(): Promise<string> {
+    public async isAndroidSdkRootSet(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            if (AndroidSDKUtils.isAndroidHomeSet()) {
+            const root = AndroidSDKUtils.getAndroidSdkRoot();
+            if (root) {
                 resolve(
                     AndroidSDKUtils.convertToUnixPath(
                         util.format(
                             this.fulfilledMessage,
-                            AndroidSDKUtils.androidHome
+                            root.rootSource,
+                            root.rootLocation
                         )
                     )
                 );
@@ -152,7 +154,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                         reject(
                             new Error(
                                 'Platform tools not found. Expected at ' +
-                                    AndroidSDKUtils.ANDROID_PLATFORM_TOOLS +
+                                    AndroidSDKUtils.getAndroidPlatformTools() +
                                     '.'
                             )
                         );
