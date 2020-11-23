@@ -20,6 +20,8 @@ public class MainActivity extends AppCompatActivity {
     final String NAMESPACE = "com.salesforce.mobile-tooling";
     final String COMPONENT_NAME_ARG_PREFIX = NAMESPACE + ".componentname";
     final String PROJECT_DIR_ARG_PREFIX = NAMESPACE + ".projectdir";
+    final String DEBUG_ARG = "ShowDebugInfoToggleButton";
+    final String USERNAME_ARG = "username";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +31,11 @@ public class MainActivity extends AppCompatActivity {
         Bundle launchArguments = getIntent().getExtras();
         String componentUrl = getComponentUrl(launchArguments);
         Boolean isDebugEnabled = getIsDebugEnabled(launchArguments);
-        String debugInfo = getDebugInfo(launchArguments) + "\n\n" + componentUrl;
+        String username = getUsername(launchArguments);
+        String requestUrl = componentUrl + "?username=" + username;
+        String debugInfo = "RAW LAUNCH PARAMETERS:\n\n" +
+                getDebugInfo(launchArguments) +
+                "\n\n\n\nRESOLVED URL:\n\n" + requestUrl;
 
         Button toggleDebugInfoButton = findViewById(R.id.toggleDebugInfoButton);
         progressBar = findViewById(R.id.progressBar);
@@ -59,9 +65,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if (!componentUrl.isEmpty()) {
+        if (!requestUrl.isEmpty()) {
             progressBar.setVisibility(View.VISIBLE);
-            webView.loadUrl(componentUrl);
+            webView.loadUrl(requestUrl);
         }
     }
 
@@ -93,9 +99,17 @@ public class MainActivity extends AppCompatActivity {
         return "";
     }
 
+    private String getUsername(Bundle launchArguments) {
+        if (launchArguments != null && launchArguments.containsKey(USERNAME_ARG)) {
+            return launchArguments.getString(USERNAME_ARG);
+        }
+
+        return "";
+    }
+
     private Boolean getIsDebugEnabled(Bundle launchArguments) {
-        if (launchArguments != null && launchArguments.containsKey("ShowDebugInfo")) {
-            return Boolean.parseBoolean(launchArguments.getString("ShowDebugInfo"));
+        if (launchArguments != null && launchArguments.containsKey(DEBUG_ARG)) {
+            return Boolean.parseBoolean(launchArguments.getString(DEBUG_ARG));
         }
         return false;
     }

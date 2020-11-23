@@ -12,6 +12,8 @@ import WebKit
 fileprivate let NAMESPACE = "com.salesforce.mobile-tooling"
 fileprivate let COMPONENT_NAME_ARG_PREFIX = "\(NAMESPACE).componentname"
 fileprivate let PROJECT_DIR_ARG_PREFIX = "\(NAMESPACE).projectdir"
+fileprivate let DEBUG_ARG = "ShowDebugInfoToggleButton"
+fileprivate let USERNAME_ARG = "username"
 
 class ViewController: UIViewController, WKNavigationDelegate {
     @IBOutlet weak var webView: WKWebView!
@@ -29,7 +31,8 @@ class ViewController: UIViewController, WKNavigationDelegate {
         
         let componentUrl = getComponentUrl(self.launchArguments)
         let isDebugEnabled = getIsDebugEnabled(self.launchArguments)
-        let requestUrl = URL(string: "\(componentUrl)")
+        let username = getUsername(self.launchArguments)
+        let requestUrl = URL(string: "\(componentUrl)?username=\(username)")
         
         if (isDebugEnabled) {
             self.toggleDebugInfoButton.addTarget(self, action: #selector(ViewController.toggleDebugInfo(_:)), for: .touchUpInside)
@@ -40,7 +43,11 @@ class ViewController: UIViewController, WKNavigationDelegate {
             
             self.debugTextView.textContainerInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
             self.debugTextView.isHidden = true
-            self.debugTextView.text = self.launchArguments.joined(separator: "\n\n") + "\n\n\(requestUrl?.absoluteString ?? "")"
+            self.debugTextView.text =
+                "RAW LAUNCH PARAMETERS:\n\n" +
+                self.launchArguments.joined(separator: "\n\n") +
+                "\n\n\n\nRESOLVED URL:" +
+                "\n\n\(requestUrl?.absoluteString ?? "")"
         } else {
             self.toggleDebugInfoButton.isHidden = true;
             self.debugTextView.isHidden = true;
@@ -77,10 +84,17 @@ class ViewController: UIViewController, WKNavigationDelegate {
         return "http://localhost:3333/lwc/preview/\(component)"
     }
     
+    fileprivate func getUsername(_ launchArguments: [String]) -> String {
+        let match = launchArguments.first{$0.hasPrefix(USERNAME_ARG)}
+        guard var username = match else {return ""}
+        username = username.replacingOccurrences(of: "\(USERNAME_ARG)=", with: "")
+        return username
+    }
+    
     fileprivate func getIsDebugEnabled(_ launchArguments: [String]) -> Bool {
-        let match = launchArguments.first{$0.hasPrefix("ShowDebugInfo")}
+        let match = launchArguments.first{$0.hasPrefix(DEBUG_ARG)}
         guard var value = match else {return false}
-        value = value.replacingOccurrences(of: "ShowDebugInfo=", with: "")
+        value = value.replacingOccurrences(of: "\(DEBUG_ARG)=", with: "")
         return Bool(value) ?? false;
     }
     
