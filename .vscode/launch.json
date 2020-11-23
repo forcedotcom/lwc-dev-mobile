@@ -11,13 +11,15 @@
                 "-p",
                 "iOS",
                 "-n",
-                "HelloWorld",
+                "c/helloWorld",
                 "-t",
                 "sfdxdebug",
+                "-d",
+                "./samples/HelloWorld",
                 "-a",
-                "com.salesforce.AppArgTest",
+                "com.salesforce.mobiletooling.lwctestapp",
                 "-f",
-                "myConfigFile.json"
+                "mobile-apps.json"
             ]
         },
         {
@@ -30,13 +32,15 @@
                 "-p",
                 "android",
                 "-n",
-                "HelloWorld",
+                "c/helloWorld",
                 "-t",
                 "emu2",
+                "-d",
+                "./samples/HelloWorld",
                 "-a",
-                "com.example.appargtest",
+                "com.salesforce.mobiletooling.lwctestapp",
                 "-f",
-                "myConfigFile.json"
+                "mobile-apps.json"
             ]
         },
         {
