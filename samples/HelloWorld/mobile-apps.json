@@ -1,0 +1,25 @@
+{
+  "apps": {
+    "ios": [
+      {
+        "id": "com.salesforce.mobiletooling.lwctestapp",
+        "name": "LWC Test App",
+        "get_app_bundle": "configure_ios_test_app.js",
+        "launch_arguments": [
+          { "name": "ShowDebugInfo", "value": "true" }
+        ]
+      }
+    ],
+    "android": [
+      {
+        "id": "com.salesforce.mobiletooling.lwctestapp",
+        "name": "LWC Test App",
+        "get_app_bundle": "configure_android_test_app.js",
+        "activity": ".MainActivity",
+        "launch_arguments": [
+          { "name": "ShowDebugInfo", "value": "true" }
+        ]
+      }
+    ]
+  }
+}
