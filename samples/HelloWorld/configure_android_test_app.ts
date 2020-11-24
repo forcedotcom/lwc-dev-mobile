@@ -12,8 +12,11 @@ exports.run = function () {
     "../apps/android/LwcTestApp/app/build/outputs/apk/debug/app-debug.apk"
   );
 
+  const compileCommand =
+    process.platform === "win32" ? "gradlew.bat build" : "./gradlew build";
+
   const result = childProcess
-    .execSync(`pushd ${expectedProjectPath} && ./gradlew build && popd`, {
+    .execSync(`pushd ${expectedProjectPath} && ${compileCommand} && popd`, {
       stdio: ["ignore", "pipe", "ignore"]
     })
     .toString();

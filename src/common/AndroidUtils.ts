@@ -464,7 +464,7 @@ export class AndroidSDKUtils {
                 AndroidSDKUtils.logger.info(
                     `Installing app ${appBundlePath.trim()} to emulator`
                 );
-                const installCommand = `${AndroidSDKUtils.getAdbShellCommand()} -s emulator-${emulatorPort} install -r -t '${appBundlePath.trim()}'`;
+                const installCommand = `${AndroidSDKUtils.getAdbShellCommand()} -s emulator-${emulatorPort} install -r -t "${appBundlePath.trim()}"`;
                 AndroidSDKUtils.executeCommand(installCommand);
             }
 
