@@ -12,6 +12,7 @@ import WebKit
 fileprivate let NAMESPACE = "com.salesforce.mobile-tooling"
 fileprivate let COMPONENT_NAME_ARG_PREFIX = "\(NAMESPACE).componentname"
 fileprivate let PROJECT_DIR_ARG_PREFIX = "\(NAMESPACE).projectdir"
+fileprivate let PREVIEW_URL_PREFIX = "http://localhost:3333/lwc/preview/"
 fileprivate let DEBUG_ARG = "ShowDebugInfoToggleButton"
 fileprivate let USERNAME_ARG = "username"
 
@@ -27,7 +28,7 @@ class ViewController: UIViewController, WKNavigationDelegate {
         super.viewDidLoad()
         
         self.launchArguments = CommandLine.arguments
-        self.launchArguments.remove(at: 0)
+        self.launchArguments.remove(at: 0) // first argument is the app name, which we don't need
         
         let componentUrl = getComponentUrl(self.launchArguments)
         let isDebugEnabled = getIsDebugEnabled(self.launchArguments)
@@ -35,6 +36,8 @@ class ViewController: UIViewController, WKNavigationDelegate {
         let requestUrl = URL(string: "\(componentUrl)?username=\(username)")
         
         if (isDebugEnabled) {
+            // If ShowDebugInfoToggleButton is enabled then configure the button
+            // and populate the debug info content to be displayed.
             self.toggleDebugInfoButton.addTarget(self, action: #selector(ViewController.toggleDebugInfo(_:)), for: .touchUpInside)
             self.toggleDebugInfoButton.layer.borderColor = self.toggleDebugInfoButton.titleColor(for: .normal)?.cgColor
             self.toggleDebugInfoButton.layer.borderWidth = 1.0
@@ -76,14 +79,23 @@ class ViewController: UIViewController, WKNavigationDelegate {
         endNavigation(withError: error);
     }
 
-    
+    /// Attempts at fetching the component URL from the provided custom launch arguments.
+    ///
+    /// - Parameter launchArguments: An array of provided launch arguments
+    /// - Returns: A string corresponding to the value provided for the component URL in the launch arguments.
+    ///   If the component URL is not provided in the launch arguments this method returns an empty string.
     fileprivate func getComponentUrl(_ launchArguments: [String]) -> String {
         let match = launchArguments.first{$0.hasPrefix(COMPONENT_NAME_ARG_PREFIX)}
         guard var component = match else {return ""}
         component = component.replacingOccurrences(of: "\(COMPONENT_NAME_ARG_PREFIX)=", with: "")
-        return "http://localhost:3333/lwc/preview/\(component)"
+        return "\(PREVIEW_URL_PREFIX)\(component)"
     }
     
+    /// Attempts at fetching the username from the provided custom launch arguments.
+    ///
+    /// - Parameter launchArguments: An array of provided launch arguments
+    /// - Returns: A string corresponding to the value provided for the username in the launch arguments.
+    ///   If the username is not provided in the launch arguments this method returns an empty string.
     fileprivate func getUsername(_ launchArguments: [String]) -> String {
         let match = launchArguments.first{$0.hasPrefix(USERNAME_ARG)}
         guard var username = match else {return ""}
@@ -91,13 +103,23 @@ class ViewController: UIViewController, WKNavigationDelegate {
         return username
     }
     
+    /// Attempts at fetching ShowDebugInfoToggleButton from the provided custom launch arguments.
+    ///
+    /// - Parameter launchArguments: An array of provided launch arguments
+    /// - Returns: A boolean corresponding to the value provided for ShowDebugInfoToggleButton in the launch arguments.
+    ///   If ShowDebugInfoToggleButton is not provided in the launch arguments this method returns TRUE.
     fileprivate func getIsDebugEnabled(_ launchArguments: [String]) -> Bool {
         let match = launchArguments.first{$0.hasPrefix(DEBUG_ARG)}
-        guard var value = match else {return false}
+        guard var value = match else {return true}
         value = value.replacingOccurrences(of: "\(DEBUG_ARG)=", with: "")
-        return Bool(value) ?? false;
+        return Bool(value) ?? true;
     }
     
+    /// Stops the animating activity indicator. This method is called the WebView completes
+    /// its navigation either with or without an error. If an error has occured, this method will
+    /// also present an alert view to the user.
+    ///
+    /// - Parameter withError: The error object (if any) or `nil`.
     fileprivate func endNavigation(withError error: Error?) {
         self.activity.stopAnimating()
         if let err = error {
