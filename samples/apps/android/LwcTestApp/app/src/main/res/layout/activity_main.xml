@@ -48,22 +48,24 @@
 
     <Button
         android:id="@+id/toggleDebugInfoButton"
+        style="?attr/materialButtonOutlinedStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="5dp"
-        android:background="@drawable/rounded_button_border"
-        android:drawableStart="@drawable/ic_info"
-        android:drawablePadding="4dp"
         android:onClick="onToggleDebugInfoButtonClicked"
-        android:paddingLeft="5dp"
-        android:paddingRight="5dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
         android:text="@string/toggle_debug_info"
         android:textAllCaps="false"
-        android:textColor="@color/colorPrimary"
+        android:textColor="@color/purple_200"
         android:textSize="18sp"
+        app:cornerRadius="4dp"
+        app:icon="@drawable/ic_info"
+        app:iconSize="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:strokeColor="@color/purple_200" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

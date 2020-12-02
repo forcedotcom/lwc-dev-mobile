@@ -2,7 +2,7 @@
 Copyright (c) 2020, salesforce.com, inc. All rights reserved.
 SPDX-License-Identifier: MIT
 For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
-*/
+ */
 
 package com.salesforce.mobiletooling.lwctestapp
 
@@ -141,7 +141,7 @@ class MainActivity : AppCompatActivity() {
             val keys = launchArguments.keySet()
             for (key in keys) {
                 debugInfo.append(key).append("=").append(launchArguments.getString(key))
-                        .append("\n\n")
+                    .append("\n\n")
             }
         }
         return debugInfo.toString()

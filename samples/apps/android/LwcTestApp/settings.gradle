@@ -1,2 +1,2 @@
-rootProject.name='LWC Test App'
 include ':app'
+rootProject.name = "Lwc Test App"
