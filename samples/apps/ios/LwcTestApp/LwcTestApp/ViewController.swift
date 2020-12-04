@@ -34,7 +34,7 @@ class ViewController: UIViewController, WKNavigationDelegate {
         let componentUrl = getComponentUrl(self.launchArguments)
         let isDebugEnabled = getIsDebugEnabled(self.launchArguments)
         let username = getUsername(self.launchArguments)
-        let requestUrl = URL(string: "\(componentUrl)?username=\(username)")
+        let requestUrl = username.isEmpty ? URL(string: "\(componentUrl)") : URL(string: "\(componentUrl)?username=\(username)")
         
         if (isDebugEnabled) {
             // If ShowDebugInfoToggleButton is enabled then configure the button
