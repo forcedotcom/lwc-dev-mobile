@@ -210,7 +210,7 @@ export abstract class BaseSetup implements RequirementList {
         });
     }
 
-    protected addRequirements(reqs: Requirement[]) {
+    public addRequirements(reqs: Requirement[]) {
         if (reqs) {
             this.requirements = this.requirements.concat(reqs);
         }

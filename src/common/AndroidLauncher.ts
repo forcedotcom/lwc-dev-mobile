@@ -22,7 +22,8 @@ export class AndroidLauncher {
         projectDir: string,
         appBundlePath: string | undefined,
         targetApp: string,
-        appConfig: AndroidAppPreviewConfig | undefined
+        appConfig: AndroidAppPreviewConfig | undefined,
+        serverPort: string
     ): Promise<boolean> {
         const preferredPack = await AndroidSDKUtils.findRequiredEmulatorImages();
         const emuImage = preferredPack.platformEmulatorImage || 'default';
@@ -73,7 +74,7 @@ export class AndroidLauncher {
 
                 if (PreviewUtils.isTargetingBrowser(targetApp)) {
                     const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
-                    const url = `http://10.0.2.2:3333/lwc/preview/${compPath}`;
+                    const url = `http://10.0.2.2:${serverPort}/lwc/preview/${compPath}`;
                     spinner.stop(`Opening Browser with url ${url}`);
                     return AndroidSDKUtils.launchURLIntent(url, actualPort);
                 } else {
