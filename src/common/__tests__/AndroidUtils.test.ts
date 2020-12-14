@@ -460,10 +460,12 @@ describe('Android utils', () => {
             port
         );
 
+        const pathQuote = process.platform === 'win32' ? '"' : "'";
+
         expect(mockCmd).toBeCalledTimes(2);
         expect(mockCmd).nthCalledWith(
             1,
-            `${adbCommand} -s emulator-${port} install -r -t '${appBundlePath.trim()}'`
+            `${adbCommand} -s emulator-${port} install -r -t ${pathQuote}${appBundlePath.trim()}${pathQuote}`
         );
         expect(mockCmd).nthCalledWith(
             2,

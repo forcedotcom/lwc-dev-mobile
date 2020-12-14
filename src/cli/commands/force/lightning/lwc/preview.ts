@@ -121,12 +121,17 @@ export default class Preview extends Setup {
             PreviewUtils.BROWSER_TARGET_APP
         );
 
+        const projectDir = CommandLineUtils.resolveFlag(
+            this.flags.projectdir,
+            process.cwd()
+        );
+
         const configFileName = CommandLineUtils.resolveFlag(
             this.flags.configfile,
             ''
         ).trim();
 
-        const configFilePath = path.resolve(configFileName);
+        const configFilePath = path.resolve(projectDir, configFileName);
 
         const hasConfigFile =
             configFilePath.length > 0 && fs.existsSync(configFilePath);
@@ -251,7 +256,7 @@ export default class Preview extends Setup {
             PreviewUtils.isTargetingBrowser(targetApp) === false &&
             configFileName.trim().length > 0
         ) {
-            const configFilePath = path.resolve(configFileName);
+            const configFilePath = path.resolve(projectDir, configFileName);
             const configFile = PreviewUtils.loadConfigFile(configFilePath);
             appConfig = configFile.getAppConfig(platform, targetApp);
             if (appConfig) {
