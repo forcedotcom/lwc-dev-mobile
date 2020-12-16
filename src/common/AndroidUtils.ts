@@ -731,7 +731,7 @@ export class AndroidSDKUtils {
     private static isEmulatorAlreadyStarted(emulatorName: string): boolean {
         const findProcessCommand =
             process.platform === WINDOWS_OS
-                ? `tasklist /V /FI "IMAGENAME eq qemu-system-x86_64.exe" | findstr "${emulatorName}"`
+                ? `wmic process where "CommandLine Like \'%qemu-system-x86_64%\'" get CommandLine  | findstr "${emulatorName}"`
                 : `ps -ax | grep qemu-system-x86_64 | grep ${emulatorName} | grep -v grep`;
 
         // ram.img.dirty is a one byte file created when avd is started and removed when avd is stopped.
