@@ -13,7 +13,7 @@
     "error:invalidConfigFile:missingDescription": "Invalid or missing configuration file %s",
     "error:invalidConfigFile:genericDescription": "Configuration file has an invalid format: %s\n%s",
     "error:invalidConfigFile:missingAppConfigDescription": "No configuration found for %s for platform %s",
-    "reqs:server:title" : "Checking whether LWC local server is running",
-    "reqs:server:fulfilledMessage" : "LWC local server is running on port %s.",
-    "reqs:server:unfulfilledMessage" : "LWC local server is not running."
+    "reqs:server:title" : "Checking whether local development server is running",
+    "reqs:server:fulfilledMessage" : "Local development server is running on port %s.",
+    "reqs:server:unfulfilledMessage" : "Local development server is not running."
  }
