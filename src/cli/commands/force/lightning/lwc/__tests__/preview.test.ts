@@ -6,6 +6,7 @@
  */
 import * as Config from '@oclif/config';
 import { Logger, SfdxError } from '@salesforce/core';
+import { CommonUtils } from '../../../../../../common/CommonUtils';
 import Setup from '../../local/setup';
 import Preview from '../preview';
 
@@ -91,6 +92,44 @@ describe('Preview Tests', () => {
             expect(error && error instanceof SfdxError).toBeTruthy();
         });
         expect(failedSetupMock).toHaveBeenCalled();
+    });
+
+    test('Preview should throw an error if server is not running', async () => {
+        setupAndroidFlags();
+        const logger = new Logger('test-preview');
+        setupLogger(logger);
+        const cmdMock = jest.fn((): string => {
+            throw new Error('test error');
+        });
+        jest.spyOn(CommonUtils, 'executeCommand').mockImplementation(cmdMock);
+        preview.isLwcServerRunning().catch((error) => {
+            expect(error && error instanceof SfdxError).toBeTruthy();
+        });
+    });
+
+    test('Preview should default to use server port 3333', async () => {
+        setupAndroidFlags();
+        const logger = new Logger('test-preview');
+        setupLogger(logger);
+        const cmdMock = jest.fn((): string => {
+            return 'path/to/bin/node /path/to/bin/sfdx.js force:lightning:lwc:start';
+        });
+        jest.spyOn(CommonUtils, 'executeCommand').mockImplementation(cmdMock);
+        const port = (await preview.isLwcServerRunning()).trim();
+        expect(port).toBe('3333');
+    });
+
+    test('Preview should use specified server port', async () => {
+        setupAndroidFlags();
+        const logger = new Logger('test-preview');
+        setupLogger(logger);
+        const specifiedPort = '3456';
+        const cmdMock = jest.fn((): string => {
+            return `path/to/bin/node /path/to/bin/sfdx.js force:lightning:lwc:start -p ${specifiedPort}`;
+        });
+        jest.spyOn(CommonUtils, 'executeCommand').mockImplementation(cmdMock);
+        const port = (await preview.isLwcServerRunning()).trim();
+        expect(port).toBe(specifiedPort);
     });
 
     test('Logger must be initialized and invoked', async () => {
