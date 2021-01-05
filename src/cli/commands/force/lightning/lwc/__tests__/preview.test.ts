@@ -21,10 +21,7 @@ const passedSetupMock = jest.fn(() => {
 });
 
 const failedSetupMock = jest.fn(() => {
-    return Promise.resolve({
-        hasMetAllRequirements: false,
-        tests: ['Mock Failure in tests!']
-    });
+    return Promise.reject(new SfdxError('Mock Failure in tests!'));
 });
 
 describe('Preview Tests', () => {
@@ -88,9 +85,13 @@ describe('Preview Tests', () => {
         const logger = new Logger('test-preview');
         setupLogger(logger);
         jest.spyOn(Setup.prototype, 'run').mockImplementation(failedSetupMock);
-        preview.run().catch((error) => {
-            expect(error && error instanceof SfdxError).toBeTruthy();
-        });
+
+        try {
+            await preview.run();
+        } catch (error) {
+            expect(error instanceof SfdxError).toBeTruthy();
+        }
+
         expect(failedSetupMock).toHaveBeenCalled();
     });
 
@@ -103,7 +104,7 @@ describe('Preview Tests', () => {
         });
         jest.spyOn(CommonUtils, 'executeCommand').mockImplementation(cmdMock);
         preview.isLwcServerRunning().catch((error) => {
-            expect(error && error instanceof SfdxError).toBeTruthy();
+            expect(typeof error === 'string').toBeTruthy();
         });
     });
 

@@ -457,7 +457,11 @@ export class AndroidSDKUtils {
         targetApp: string,
         targetAppArguments: LaunchArgument[],
         launchActivity: string,
-        emulatorPort: number
+        emulatorPort: number,
+        // tslint:disable-next-line: no-unnecessary-initializer
+        serverAddress: string | undefined = undefined,
+        // tslint:disable-next-line: no-unnecessary-initializer
+        serverPort: string | undefined = undefined
     ): Promise<boolean> {
         try {
             if (appBundlePath && appBundlePath.trim().length > 0) {
@@ -472,6 +476,14 @@ export class AndroidSDKUtils {
             let launchArgs =
                 `--es "${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}" "${compName}"` +
                 ` --es "${PreviewUtils.PROJECT_DIR_ARG_PREFIX}" "${projectDir}"`;
+
+            if (serverAddress) {
+                launchArgs += ` --es "${PreviewUtils.SERVER_ADDRESS_PREFIX}" "${serverAddress}"`;
+            }
+
+            if (serverPort) {
+                launchArgs += ` --es "${PreviewUtils.SERVER_PORT_PREFIX}" "${serverPort}"`;
+            }
 
             targetAppArguments.forEach((arg) => {
                 launchArgs += ` --es "${arg.name}" "${arg.value}"`;

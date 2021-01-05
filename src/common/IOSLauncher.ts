@@ -93,7 +93,13 @@ export class IOSLauncher {
                         projectDir,
                         appBundlePath,
                         targetApp,
-                        targetAppArguments
+                        targetAppArguments,
+                        appConfig?.preview_server_enabled === true
+                            ? 'http://localhost' // TODO: dynamically determine server address
+                            : undefined,
+                        appConfig?.preview_server_enabled === true
+                            ? serverPort
+                            : undefined
                     );
                 }
             })

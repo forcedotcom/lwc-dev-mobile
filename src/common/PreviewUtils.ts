@@ -24,6 +24,8 @@ export class PreviewUtils {
     public static BROWSER_TARGET_APP = 'browser';
     public static COMPONENT_NAME_ARG_PREFIX = `${NAMESPACE}.componentname`;
     public static PROJECT_DIR_ARG_PREFIX = `${NAMESPACE}.projectdir`;
+    public static SERVER_PORT_PREFIX = `${NAMESPACE}.serverport`;
+    public static SERVER_ADDRESS_PREFIX = `${NAMESPACE}.serveraddress`;
 
     public static isTargetingBrowser(targetApp: string): boolean {
         return (

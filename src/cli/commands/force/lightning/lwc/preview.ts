@@ -18,10 +18,7 @@ import {
     IOSAppPreviewConfig
 } from '../../../../../common/PreviewConfigFile';
 import { PreviewUtils } from '../../../../../common/PreviewUtils';
-import {
-    Requirement,
-    SetupTestResult
-} from '../../../../../common/Requirements';
+import { Requirement } from '../../../../../common/Requirements';
 import androidConfig from '../../../../../config/androidconfig.json';
 import iOSConfig from '../../../../../config/iosconfig.json';
 import Setup from '../local/setup';
@@ -110,35 +107,39 @@ export default class Preview extends Setup {
 
     public async run(): Promise<any> {
         const logger = this.logger;
-        const extraReqs: Requirement[] = [
-            {
-                checkFunction: this.isLwcServerRunning,
-                fulfilledMessage: messages.getMessage(
-                    'reqs:server:fulfilledMessage'
-                ),
-                logger,
-                title: messages.getMessage('reqs:server:title'),
-                unfulfilledMessage: messages.getMessage(
-                    'reqs:server:unfulfilledMessage'
-                )
-            }
-        ];
-        super.addRequirements(extraReqs);
-
         logger.info(`Preview command invoked for ${this.flags.platform}`);
 
-        return Promise.all<void, SetupTestResult>([
-            this.validateAdditionalInputs(),
-            super.run()
-        ])
+        return this.validateAdditionalInputs() // first validate input parameters
             .then((result) => {
+                // then validate setup requirements
+                if (
+                    PreviewUtils.isTargetingBrowser(this.targetApp) ||
+                    this.appConfig?.preview_server_enabled === true
+                ) {
+                    const extraReqs: Requirement[] = [
+                        {
+                            checkFunction: this.isLwcServerRunning,
+                            fulfilledMessage: messages.getMessage(
+                                'reqs:server:fulfilledMessage'
+                            ),
+                            logger,
+                            title: messages.getMessage('reqs:server:title'),
+                            unfulfilledMessage: messages.getMessage(
+                                'reqs:server:unfulfilledMessage'
+                            )
+                        }
+                    ];
+                    super.addRequirements(extraReqs);
+                }
+                return super.run();
+            })
+            .then((result) => {
+                // then launch the preview if all validations have passed
                 logger.info('Setup requirements met, continuing with preview');
                 return this.launchPreview();
             })
             .catch((error) => {
-                logger.warn(
-                    `Preview failed for ${this.flags.platform}. Setup requirements have not been met.`
-                );
+                logger.warn(`Preview failed for ${this.flags.platform}.`);
                 return Promise.reject(error);
             });
     }
@@ -271,13 +272,24 @@ export default class Preview extends Setup {
         if (!port) {
             return Promise.reject(this.unfulfilledMessage);
         } else {
-            this.serverPort = port;
             return Promise.resolve(util.format(this.fulfilledMessage, port));
         }
     }
 
     public launchPreview(): Promise<boolean> {
         // At this point all of the inputs/parameters have been verified and parsed so we can just use them.
+
+        this.serverPort = '3333'; // default to port 3333
+
+        if (
+            PreviewUtils.isTargetingBrowser(this.targetApp) ||
+            this.appConfig?.preview_server_enabled === true
+        ) {
+            const port = CommonUtils.getLwcServerPort();
+            if (port) {
+                this.serverPort = port;
+            }
+        }
 
         let appBundlePath: string | undefined;
 

@@ -92,7 +92,13 @@ export class AndroidLauncher {
                         targetApp,
                         targetAppArguments,
                         launchActivity,
-                        actualPort
+                        actualPort,
+                        appConfig?.preview_server_enabled === true
+                            ? 'http://10.0.2.2' // TODO: dynamically determine server address
+                            : undefined,
+                        appConfig?.preview_server_enabled === true
+                            ? serverPort
+                            : undefined
                     );
                 }
             })
