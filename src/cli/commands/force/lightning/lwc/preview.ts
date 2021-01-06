@@ -114,7 +114,8 @@ export default class Preview extends Setup {
                 // then validate setup requirements
                 if (
                     PreviewUtils.isTargetingBrowser(this.targetApp) ||
-                    this.appConfig?.preview_server_enabled === true
+                    (this.appConfig &&
+                        this.appConfig.preview_server_enabled === true)
                 ) {
                     const extraReqs: Requirement[] = [
                         {
@@ -283,7 +284,7 @@ export default class Preview extends Setup {
 
         if (
             PreviewUtils.isTargetingBrowser(this.targetApp) ||
-            this.appConfig?.preview_server_enabled === true
+            (this.appConfig && this.appConfig.preview_server_enabled === true)
         ) {
             const port = CommonUtils.getLwcServerPort();
             if (port) {

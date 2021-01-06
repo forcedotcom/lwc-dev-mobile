@@ -72,9 +72,19 @@ export class AndroidLauncher {
                 });
                 await AndroidSDKUtils.pollDeviceStatus(actualPort);
 
+                const address =
+                    appConfig && appConfig.preview_server_enabled === true
+                        ? 'http://10.0.2.2' // TODO: dynamically determine server address
+                        : undefined;
+
+                const port =
+                    appConfig && appConfig.preview_server_enabled === true
+                        ? serverPort
+                        : undefined;
+
                 if (PreviewUtils.isTargetingBrowser(targetApp)) {
                     const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
-                    const url = `http://10.0.2.2:${serverPort}/lwc/preview/${compPath}`;
+                    const url = `${address}:${serverPort}/lwc/preview/${compPath}`;
                     spinner.stop(`Opening Browser with url ${url}`);
                     return AndroidSDKUtils.launchURLIntent(url, actualPort);
                 } else {
@@ -93,12 +103,8 @@ export class AndroidLauncher {
                         targetAppArguments,
                         launchActivity,
                         actualPort,
-                        appConfig?.preview_server_enabled === true
-                            ? 'http://10.0.2.2' // TODO: dynamically determine server address
-                            : undefined,
-                        appConfig?.preview_server_enabled === true
-                            ? serverPort
-                            : undefined
+                        address,
+                        port
                     );
                 }
             })

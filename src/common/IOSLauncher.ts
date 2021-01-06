@@ -80,9 +80,19 @@ export class IOSLauncher {
                 return IOSUtils.waitUntilDeviceIsReady(deviceUDID);
             })
             .then(() => {
+                const address =
+                    appConfig && appConfig.preview_server_enabled === true
+                        ? 'http://localhost' // TODO: dynamically determine server address
+                        : undefined;
+
+                const port =
+                    appConfig && appConfig.preview_server_enabled === true
+                        ? serverPort
+                        : undefined;
+
                 if (PreviewUtils.isTargetingBrowser(targetApp)) {
                     const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
-                    const url = `http://localhost:${serverPort}/lwc/preview/${compPath}`;
+                    const url = `${address}:${serverPort}/lwc/preview/${compPath}`;
                     return IOSUtils.launchURLInBootedSimulator(deviceUDID, url);
                 } else {
                     const targetAppArguments: LaunchArgument[] =
@@ -94,12 +104,8 @@ export class IOSLauncher {
                         appBundlePath,
                         targetApp,
                         targetAppArguments,
-                        appConfig?.preview_server_enabled === true
-                            ? 'http://localhost' // TODO: dynamically determine server address
-                            : undefined,
-                        appConfig?.preview_server_enabled === true
-                            ? serverPort
-                            : undefined
+                        address,
+                        port
                     );
                 }
             })
