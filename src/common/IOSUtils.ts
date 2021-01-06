@@ -67,7 +67,7 @@ export class IOSUtils {
             try {
                 const devices = await IOSUtils.getSupportedSimulators();
                 for (const device of devices) {
-                    if (simulatorName.match(device.name)) {
+                    if (simulatorName === device.name) {
                         return resolve(device);
                     }
                 }
