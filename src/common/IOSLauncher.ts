@@ -81,18 +81,20 @@ export class IOSLauncher {
             })
             .then(() => {
                 const address =
-                    appConfig && appConfig.preview_server_enabled === true
+                    PreviewUtils.isTargetingBrowser(targetApp) ||
+                    (appConfig && appConfig.preview_server_enabled === true)
                         ? 'http://localhost' // TODO: dynamically determine server address
                         : undefined;
 
                 const port =
-                    appConfig && appConfig.preview_server_enabled === true
+                    PreviewUtils.isTargetingBrowser(targetApp) ||
+                    (appConfig && appConfig.preview_server_enabled === true)
                         ? serverPort
                         : undefined;
 
                 if (PreviewUtils.isTargetingBrowser(targetApp)) {
                     const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
-                    const url = `${address}:${serverPort}/lwc/preview/${compPath}`;
+                    const url = `${address}:${port}/lwc/preview/${compPath}`;
                     return IOSUtils.launchURLInBootedSimulator(deviceUDID, url);
                 } else {
                     const targetAppArguments: LaunchArgument[] =

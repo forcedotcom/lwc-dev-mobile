@@ -73,18 +73,20 @@ export class AndroidLauncher {
                 await AndroidSDKUtils.pollDeviceStatus(actualPort);
 
                 const address =
-                    appConfig && appConfig.preview_server_enabled === true
+                    PreviewUtils.isTargetingBrowser(targetApp) ||
+                    (appConfig && appConfig.preview_server_enabled === true)
                         ? 'http://10.0.2.2' // TODO: dynamically determine server address
                         : undefined;
 
                 const port =
-                    appConfig && appConfig.preview_server_enabled === true
+                    PreviewUtils.isTargetingBrowser(targetApp) ||
+                    (appConfig && appConfig.preview_server_enabled === true)
                         ? serverPort
                         : undefined;
 
                 if (PreviewUtils.isTargetingBrowser(targetApp)) {
                     const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
-                    const url = `${address}:${serverPort}/lwc/preview/${compPath}`;
+                    const url = `${address}:${port}/lwc/preview/${compPath}`;
                     spinner.stop(`Opening Browser with url ${url}`);
                     return AndroidSDKUtils.launchURLIntent(url, actualPort);
                 } else {
