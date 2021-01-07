@@ -130,7 +130,7 @@ export default class Preview extends Setup {
                             )
                         }
                     ];
-                    super.addRequirements(extraReqs);
+                    this.addRequirements(extraReqs);
                 }
                 return super.run();
             })
