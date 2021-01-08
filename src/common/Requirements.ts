@@ -10,7 +10,7 @@ import cli from 'cli-ux';
 import { performance, PerformanceObserver } from 'perf_hooks';
 import { CommonUtils } from './CommonUtils';
 import { PerformanceMarkers } from './PerformanceMarkers';
-export type CheckRequirementsFunc = () => Promise<string>;
+export type CheckRequirementsFunc = () => Promise<TestResultMessage>;
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -20,6 +20,7 @@ export interface Requirement {
     checkFunction: CheckRequirementsFunc;
     fulfilledMessage: string;
     unfulfilledMessage: string;
+    remediationMessage?: string;
     logger: Logger;
 }
 
@@ -27,6 +28,7 @@ export interface SetupTestCase {
     testResult: string;
     message: string;
     hasPassed: boolean;
+    remediationMessage?: string;
     duration: number;
 }
 
@@ -42,6 +44,11 @@ export interface RequirementList {
 
 export interface Launcher {
     launchNativeBrowser(url: string): Promise<void>;
+}
+
+export interface TestResultMessage {
+    main: string;
+    supplemental?: string;
 }
 
 // This function wraps existing promises with the intention to allow the collection of promises
@@ -144,7 +151,7 @@ export abstract class BaseSetup implements RequirementList {
                     testResult.tests.push({
                         duration: result.duration,
                         hasPassed: true,
-                        message: result.v,
+                        message: (result.v as TestResultMessage).main,
                         testResult: 'Passed'
                     });
                 } else if (result.status === 'rejected') {
@@ -152,7 +159,9 @@ export abstract class BaseSetup implements RequirementList {
                     testResult.tests.push({
                         duration: result.duration,
                         hasPassed: false,
-                        message: result.e,
+                        message: (result.e as TestResultMessage).main,
+                        remediationMessage: (result.e as TestResultMessage)
+                            .supplemental,
                         testResult: 'Failed'
                     });
                 }
@@ -163,28 +172,37 @@ export abstract class BaseSetup implements RequirementList {
             tree.insert(setupMessage);
             const rootNode = tree.nodes[setupMessage];
             testResult.tests.forEach((test) => {
-                const message = `${test.testResult} (${test.duration.toFixed(
+                let message = `${test.testResult} (${test.duration.toFixed(
                     3
                 )} sec): ${test.message}`;
-                rootNode.insert(
-                    `${
-                        test.hasPassed
-                            ? chalk.bold.green(message)
-                            : chalk.bold.red(message)
-                    }`
-                );
+                message = `${
+                    test.hasPassed
+                        ? chalk.bold.green(message)
+                        : chalk.bold.red(message)
+                }`;
+                rootNode.insert(message);
+
+                if (
+                    !test.hasPassed &&
+                    test.remediationMessage &&
+                    test.remediationMessage.length > 0
+                ) {
+                    rootNode.nodes[message].insert(
+                        chalk.bold.blue(test.remediationMessage)
+                    );
+                }
             });
             tree.display();
             return Promise.resolve(testResult);
         });
     }
 
-    public async ensureLWCServerPluginInstalled(): Promise<string> {
-        return new Promise<string>(async (resolve, reject) => {
+    public async ensureLWCServerPluginInstalled(): Promise<TestResultMessage> {
+        return new Promise<TestResultMessage>(async (resolve, reject) => {
             try {
                 await CommonUtils.isLwcServerPluginInstalled();
                 this.logger.info('sfdx server plugin detected.');
-                resolve(this.fulfilledMessage);
+                resolve({ main: this.fulfilledMessage });
             } catch {
                 this.logger.info('sfdx server plugin was not detected.');
                 try {
@@ -199,12 +217,12 @@ export abstract class BaseSetup implements RequirementList {
                         'inherit'
                     ]);
                     this.logger.info('sfdx server plugin installed.');
-                    resolve(this.fulfilledMessage);
+                    resolve({ main: this.fulfilledMessage });
                 } catch (error) {
                     this.logger.error(
                         `sfdx server plugin installion failed. ${error}`
                     );
-                    reject(new Error(this.unfulfilledMessage));
+                    reject({ main: new Error(this.unfulfilledMessage) });
                 }
             }
         });

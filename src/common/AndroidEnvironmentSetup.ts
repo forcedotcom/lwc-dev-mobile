@@ -8,7 +8,7 @@ import { Logger } from '@salesforce/core';
 import util from 'util';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
-import { BaseSetup } from './Requirements';
+import { BaseSetup, TestResultMessage } from './Requirements';
 
 export class AndroidEnvironmentSetup extends BaseSetup {
     constructor(logger: Logger) {
@@ -87,120 +87,132 @@ export class AndroidEnvironmentSetup extends BaseSetup {
         super.addRequirements(requirements);
     }
 
-    public async isJava8Available(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+    public async isJava8Available(): Promise<TestResultMessage> {
+        return new Promise<TestResultMessage>((resolve, reject) => {
             AndroidSDKUtils.androidSDKPrerequisitesCheck()
                 .then((result) => {
-                    resolve(this.fulfilledMessage);
+                    resolve({ main: this.fulfilledMessage });
                 })
                 .catch((error) => {
-                    reject(util.format(this.unfulfilledMessage, error.message));
+                    reject({
+                        main: util.format(
+                            this.unfulfilledMessage,
+                            error.message
+                        )
+                    });
                 });
         });
     }
 
-    public async isAndroidSdkRootSet(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+    public async isAndroidSdkRootSet(): Promise<TestResultMessage> {
+        return new Promise<TestResultMessage>((resolve, reject) => {
             const root = AndroidSDKUtils.getAndroidSdkRoot();
             if (root) {
-                resolve(
-                    AndroidSDKUtils.convertToUnixPath(
+                resolve({
+                    main: AndroidSDKUtils.convertToUnixPath(
                         util.format(
                             this.fulfilledMessage,
                             root.rootSource,
                             root.rootLocation
                         )
                     )
-                );
+                });
             } else {
-                reject(this.unfulfilledMessage);
+                reject({ main: this.unfulfilledMessage });
             }
         });
     }
 
-    public async isAndroidSDKToolsInstalled(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+    public async isAndroidSDKToolsInstalled(): Promise<TestResultMessage> {
+        return new Promise<TestResultMessage>((resolve, reject) => {
             AndroidSDKUtils.fetchAndroidSDKToolsLocation()
                 .then((result) =>
-                    resolve(
-                        AndroidSDKUtils.convertToUnixPath(
+                    resolve({
+                        main: AndroidSDKUtils.convertToUnixPath(
                             util.format(this.fulfilledMessage, result)
                         )
-                    )
+                    })
                 )
                 .catch((error) =>
-                    reject(
-                        util.format(
+                    reject({
+                        main: util.format(
                             this.unfulfilledMessage,
                             androidConfig.minSupportedRuntimeAndroid
                         )
-                    )
+                    })
                 );
         });
     }
 
-    public async isAndroidSDKPlatformToolsInstalled(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+    public async isAndroidSDKPlatformToolsInstalled(): Promise<
+        TestResultMessage
+    > {
+        return new Promise<TestResultMessage>((resolve, reject) => {
             AndroidSDKUtils.fetchAndroidSDKPlatformToolsLocation()
                 .then((result) => {
-                    resolve(
-                        AndroidSDKUtils.convertToUnixPath(
+                    resolve({
+                        main: AndroidSDKUtils.convertToUnixPath(
                             util.format(this.fulfilledMessage, result)
                         )
-                    );
+                    });
                 })
                 .catch((error) => {
                     if (error.status === 127) {
-                        reject(
-                            new Error(
+                        reject({
+                            main: new Error(
                                 'Platform tools not found. Expected at ' +
                                     AndroidSDKUtils.getAndroidPlatformTools() +
                                     '.'
                             )
-                        );
+                        });
                     }
-                    reject(
-                        util.format(
+                    reject({
+                        main: util.format(
                             this.unfulfilledMessage,
                             androidConfig.minSupportedRuntimeAndroid
                         )
-                    );
+                    });
                 });
         });
     }
 
-    public async hasRequiredPlatformAPIPackage(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+    public async hasRequiredPlatformAPIPackage(): Promise<TestResultMessage> {
+        return new Promise<TestResultMessage>((resolve, reject) => {
             AndroidSDKUtils.findRequiredAndroidAPIPackage()
                 .then((result) =>
-                    resolve(
-                        util.format(this.fulfilledMessage, result.platformAPI)
-                    )
+                    resolve({
+                        main: util.format(
+                            this.fulfilledMessage,
+                            result.platformAPI
+                        )
+                    })
                 )
                 .catch((error) =>
-                    reject(
-                        util.format(
+                    reject({
+                        main: util.format(
                             this.unfulfilledMessage,
                             androidConfig.minSupportedRuntimeAndroid
                         )
-                    )
+                    })
                 );
         });
     }
 
-    public async hasRequiredEmulatorImages(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+    public async hasRequiredEmulatorImages(): Promise<TestResultMessage> {
+        return new Promise<TestResultMessage>((resolve, reject) => {
             AndroidSDKUtils.findRequiredEmulatorImages()
                 .then((result) =>
-                    resolve(util.format(this.fulfilledMessage, result.path))
+                    resolve({
+                        main: util.format(this.fulfilledMessage, result.path)
+                    })
                 )
                 .catch((error) =>
-                    reject(
-                        util.format(
+                    reject({
+                        main: util.format(
                             this.unfulfilledMessage,
                             androidConfig.supportedImages.join(',')
                         )
-                    )
+                    })
                 );
         });
     }
