@@ -14,6 +14,8 @@ type StdioOptions = childProcess.StdioOptions;
 const LOGGER_NAME = 'force:lightning:mobile:common';
 
 export class CommonUtils {
+    public static DEFAULT_LWC_SERVER_PORT = '3333';
+
     public static async initializeLogger(): Promise<void> {
         CommonUtils.logger = await Logger.child(LOGGER_NAME);
         return Promise.resolve();
@@ -60,7 +62,7 @@ export class CommonUtils {
             // when no port is specified, or in the form of [ "........./sfdx.js" "force:lightning:lwc:start" "-p" "1234" ]
             // when a port is specified.
 
-            let port = '3333'; // default to 3333
+            let port = CommonUtils.DEFAULT_LWC_SERVER_PORT;
             const pIndex = result.indexOf('-p');
             if (pIndex > 0) {
                 port = result
@@ -72,9 +74,8 @@ export class CommonUtils {
         } catch {
             // If we got here it's b/c the grep command fails on empty set,
             // which means that the server is not running
+            return undefined;
         }
-
-        return undefined;
     }
 
     private static logger: Logger = new Logger(LOGGER_NAME);

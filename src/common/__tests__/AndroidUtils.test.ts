@@ -386,7 +386,9 @@ describe('Android utils', () => {
             targetApp,
             targetAppArgs,
             targetActivity,
-            port
+            port,
+            undefined,
+            undefined
         );
 
         expect(mockCmd).toBeCalledTimes(1);
@@ -420,7 +422,9 @@ describe('Android utils', () => {
             targetApp,
             targetAppArgs,
             targetActivity,
-            port
+            port,
+            undefined,
+            undefined
         ).catch((error) => {
             expect(error).toBeTruthy();
         });
@@ -457,7 +461,9 @@ describe('Android utils', () => {
             targetApp,
             targetAppArgs,
             targetActivity,
-            port
+            port,
+            undefined,
+            undefined
         );
 
         const pathQuote = process.platform === 'win32' ? '"' : "'";

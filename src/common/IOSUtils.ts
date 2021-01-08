@@ -270,10 +270,8 @@ export class IOSUtils {
         appBundlePath: string | undefined,
         targetApp: string,
         targetAppArguments: LaunchArgument[],
-        // tslint:disable-next-line: no-unnecessary-initializer
-        serverAddress: string | undefined = undefined,
-        // tslint:disable-next-line: no-unnecessary-initializer
-        serverPort: string | undefined = undefined
+        serverAddress: string | undefined,
+        serverPort: string | undefined
     ): Promise<boolean> {
         if (appBundlePath && appBundlePath.trim().length > 0) {
             const installCommand = `${XCRUN_CMD} simctl install ${udid} '${appBundlePath.trim()}'`;

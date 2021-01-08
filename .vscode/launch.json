@@ -11,13 +11,9 @@
                 "-p",
                 "iOS",
                 "-n",
-                "HelloWorld",
+                "c/helloWorld",
                 "-t",
-                "sfdxdebug",
-                "-a",
-                "com.salesforce.AppArgTest",
-                "-f",
-                "myConfigFile.json"
+                "sfdxdebug"
             ]
         },
         {
@@ -30,13 +26,9 @@
                 "-p",
                 "android",
                 "-n",
-                "HelloWorld",
+                "c/helloWorld",
                 "-t",
-                "emu2",
-                "-a",
-                "com.example.appargtest",
-                "-f",
-                "myConfigFile.json"
+                "emu2"
             ]
         },
         {

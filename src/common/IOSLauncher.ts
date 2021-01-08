@@ -80,17 +80,12 @@ export class IOSLauncher {
                 return IOSUtils.waitUntilDeviceIsReady(deviceUDID);
             })
             .then(() => {
-                const address =
-                    PreviewUtils.isTargetingBrowser(targetApp) ||
-                    (appConfig && appConfig.preview_server_enabled === true)
-                        ? 'http://localhost' // TODO: dynamically determine server address
-                        : undefined;
-
-                const port =
-                    PreviewUtils.isTargetingBrowser(targetApp) ||
-                    (appConfig && appConfig.preview_server_enabled === true)
-                        ? serverPort
-                        : undefined;
+                const useServer = PreviewUtils.useLwcServerForPreviewing(
+                    targetApp,
+                    appConfig
+                );
+                const address = useServer ? 'http://localhost' : undefined; // TODO: dynamically determine server address
+                const port = useServer ? serverPort : undefined;
 
                 if (PreviewUtils.isTargetingBrowser(targetApp)) {
                     const compPath = PreviewUtils.prefixRouteIfNeeded(compName);

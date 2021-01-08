@@ -223,7 +223,9 @@ describe('IOS utils tests', () => {
             projectDir,
             undefined,
             targetApp,
-            targetAppArgs
+            targetAppArgs,
+            undefined,
+            undefined
         );
 
         expect(launchCommandMock).toBeCalledTimes(2);
@@ -257,7 +259,9 @@ describe('IOS utils tests', () => {
             projectDir,
             undefined,
             targetApp,
-            targetAppArgs
+            targetAppArgs,
+            undefined,
+            undefined
         ).catch((error) => {
             expect(error).toBeTruthy();
         });
@@ -288,7 +292,9 @@ describe('IOS utils tests', () => {
             projectDir,
             appBundlePath,
             targetApp,
-            targetAppArgs
+            targetAppArgs,
+            undefined,
+            undefined
         );
 
         expect(launchCommandMock).toBeCalledTimes(3);

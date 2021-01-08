@@ -72,17 +72,12 @@ export class AndroidLauncher {
                 });
                 await AndroidSDKUtils.pollDeviceStatus(actualPort);
 
-                const address =
-                    PreviewUtils.isTargetingBrowser(targetApp) ||
-                    (appConfig && appConfig.preview_server_enabled === true)
-                        ? 'http://10.0.2.2' // TODO: dynamically determine server address
-                        : undefined;
-
-                const port =
-                    PreviewUtils.isTargetingBrowser(targetApp) ||
-                    (appConfig && appConfig.preview_server_enabled === true)
-                        ? serverPort
-                        : undefined;
+                const useServer = PreviewUtils.useLwcServerForPreviewing(
+                    targetApp,
+                    appConfig
+                );
+                const address = useServer ? 'http://10.0.2.2' : undefined; // TODO: dynamically determine server address
+                const port = useServer ? serverPort : undefined;
 
                 if (PreviewUtils.isTargetingBrowser(targetApp)) {
                     const compPath = PreviewUtils.prefixRouteIfNeeded(compName);

@@ -458,10 +458,8 @@ export class AndroidSDKUtils {
         targetAppArguments: LaunchArgument[],
         launchActivity: string,
         emulatorPort: number,
-        // tslint:disable-next-line: no-unnecessary-initializer
-        serverAddress: string | undefined = undefined,
-        // tslint:disable-next-line: no-unnecessary-initializer
-        serverPort: string | undefined = undefined
+        serverAddress: string | undefined,
+        serverPort: string | undefined
     ): Promise<boolean> {
         try {
             if (appBundlePath && appBundlePath.trim().length > 0) {

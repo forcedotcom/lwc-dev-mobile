@@ -265,6 +265,16 @@ export default class Preview extends Setup {
             }
         }
 
+        if (
+            PreviewUtils.useLwcServerForPreviewing(
+                this.targetApp,
+                this.appConfig
+            )
+        ) {
+            const port = CommonUtils.getLwcServerPort();
+            this.serverPort = port ? port : CommonUtils.DEFAULT_LWC_SERVER_PORT;
+        }
+
         return Promise.resolve();
     }
 
@@ -279,18 +289,6 @@ export default class Preview extends Setup {
 
     public launchPreview(): Promise<boolean> {
         // At this point all of the inputs/parameters have been verified and parsed so we can just use them.
-
-        this.serverPort = '3333'; // default to port 3333
-
-        if (
-            PreviewUtils.isTargetingBrowser(this.targetApp) ||
-            (this.appConfig && this.appConfig.preview_server_enabled === true)
-        ) {
-            const port = CommonUtils.getLwcServerPort();
-            if (port) {
-                this.serverPort = port;
-            }
-        }
 
         let appBundlePath: string | undefined;
 

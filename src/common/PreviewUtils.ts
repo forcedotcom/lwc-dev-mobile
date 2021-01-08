@@ -33,6 +33,17 @@ export class PreviewUtils {
         );
     }
 
+    public static useLwcServerForPreviewing(
+        targetApp: string,
+        appConfig: IOSAppPreviewConfig | AndroidAppPreviewConfig | undefined
+    ): boolean {
+        return (
+            PreviewUtils.isTargetingBrowser(targetApp) ||
+            (appConfig !== undefined &&
+                appConfig.preview_server_enabled === true)
+        );
+    }
+
     public static prefixRouteIfNeeded(compName: string): string {
         if (compName.toLowerCase().startsWith('c/')) {
             return compName;
