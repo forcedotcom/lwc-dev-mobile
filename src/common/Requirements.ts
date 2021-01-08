@@ -10,7 +10,7 @@ import cli from 'cli-ux';
 import { performance, PerformanceObserver } from 'perf_hooks';
 import { CommonUtils } from './CommonUtils';
 import { PerformanceMarkers } from './PerformanceMarkers';
-export type CheckRequirementsFunc = () => Promise<TestResultMessage>;
+export type CheckRequirementsFunc = () => Promise<string>;
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -46,9 +46,11 @@ export interface Launcher {
     launchNativeBrowser(url: string): Promise<void>;
 }
 
-export interface TestResultMessage {
-    main: string;
-    supplemental?: string;
+export interface WrappedPromiseResult {
+    message: string;
+    remediationMessage?: string;
+    status: string;
+    duration: number;
 }
 
 // This function wraps existing promises with the intention to allow the collection of promises
@@ -57,9 +59,9 @@ export interface TestResultMessage {
 // Once the functionality is  available  in the near future this function can be removed.
 // See https://github.com/tc39/proposal-promise-allSettled
 export function WrappedPromise(
-    name: string,
-    promise: Promise<any>
-): Promise<any> {
+    requirement: Requirement
+): Promise<WrappedPromiseResult> {
+    const promise = requirement.checkFunction();
     const perfMarker = PerformanceMarkers.getByName(
         PerformanceMarkers.REQUIREMENTS_MARKER_KEY
     )!;
@@ -70,24 +72,31 @@ export function WrappedPromise(
     });
     obs.observe({ entryTypes: ['measure'] });
 
-    const start = `${perfMarker.startMarkName}_${name}`;
-    const end = `${perfMarker.endMarkName}_${name}`;
-    const step = `${perfMarker.name}_${name}`;
+    const start = `${perfMarker.startMarkName}_${requirement.title}`;
+    const end = `${perfMarker.endMarkName}_${requirement.title}`;
+    const step = `${perfMarker.name}_${requirement.title}`;
 
     performance.mark(start);
     return promise
-        .then(
-            (v) => {
-                performance.mark(end);
-                performance.measure(step, start, end);
-                return { v, status: 'fulfilled', duration: stepDuration };
-            },
-            (e) => {
-                performance.mark(end);
-                performance.measure(step, start, end);
-                return { e, status: 'rejected', duration: stepDuration };
-            }
-        )
+        .then((v) => {
+            performance.mark(end);
+            performance.measure(step, start, end);
+            return {
+                duration: stepDuration,
+                message: v,
+                status: 'fulfilled'
+            };
+        })
+        .catch((e) => {
+            performance.mark(end);
+            performance.measure(step, start, end);
+            return {
+                duration: stepDuration,
+                message: e,
+                remediationMessage: requirement.remediationMessage,
+                status: 'rejected'
+            };
+        })
         .finally(() => {
             obs.disconnect();
         });
@@ -132,9 +141,7 @@ export abstract class BaseSetup implements RequirementList {
     public async executeSetup(): Promise<SetupTestResult> {
         const allPromises: Array<Promise<any>> = [];
         this.requirements.forEach((requirement) =>
-            allPromises.push(
-                WrappedPromise(requirement.title, requirement.checkFunction())
-            )
+            allPromises.push(WrappedPromise(requirement))
         );
 
         return Promise.all(allPromises).then((results) => {
@@ -151,17 +158,16 @@ export abstract class BaseSetup implements RequirementList {
                     testResult.tests.push({
                         duration: result.duration,
                         hasPassed: true,
-                        message: (result.v as TestResultMessage).main,
+                        message: result.message,
                         testResult: 'Passed'
                     });
                 } else if (result.status === 'rejected') {
                     testResult.hasMetAllRequirements = false;
-                    const testResultMessage = result.e as TestResultMessage;
                     testResult.tests.push({
                         duration: result.duration,
                         hasPassed: false,
-                        message: testResultMessage.main,
-                        remediationMessage: testResultMessage.supplemental,
+                        message: result.message,
+                        remediationMessage: result.remediationMessage,
                         testResult: 'Failed'
                     });
                 }
@@ -197,12 +203,12 @@ export abstract class BaseSetup implements RequirementList {
         });
     }
 
-    public async ensureLWCServerPluginInstalled(): Promise<TestResultMessage> {
-        return new Promise<TestResultMessage>(async (resolve, reject) => {
+    public async ensureLWCServerPluginInstalled(): Promise<string> {
+        return new Promise<string>(async (resolve, reject) => {
             try {
                 await CommonUtils.isLwcServerPluginInstalled();
                 this.logger.info('sfdx server plugin detected.');
-                resolve({ main: this.fulfilledMessage });
+                resolve(this.fulfilledMessage);
             } catch {
                 this.logger.info('sfdx server plugin was not detected.');
                 try {
@@ -217,12 +223,12 @@ export abstract class BaseSetup implements RequirementList {
                         'inherit'
                     ]);
                     this.logger.info('sfdx server plugin installed.');
-                    resolve({ main: this.fulfilledMessage });
+                    resolve(this.fulfilledMessage);
                 } catch (error) {
                     this.logger.error(
                         `sfdx server plugin installion failed. ${error}`
                     );
-                    reject({ main: new Error(this.unfulfilledMessage) });
+                    reject(new Error(this.unfulfilledMessage));
                 }
             }
         });

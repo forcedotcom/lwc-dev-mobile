@@ -5,18 +5,16 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 import { Logger } from '@salesforce/core';
-import { BaseSetup, TestResultMessage } from '../Requirements';
+import { BaseSetup } from '../Requirements';
 
 const logger = new Logger('test');
 
 const passedBaseRequirementsMock = jest.fn(() => {
-    return Promise.resolve({ main: 'sfdx server plugin is installed' });
+    return Promise.resolve('sfdx server plugin is installed');
 });
 
 const failedBaseRequirementsMock = jest.fn(() => {
-    return Promise.reject({
-        main: new Error('sfdx server plugin is not installed')
-    });
+    return Promise.reject(new Error('sfdx server plugin is not installed'));
 });
 
 class TruthyExtension extends BaseSetup {
@@ -42,12 +40,12 @@ class TruthyExtension extends BaseSetup {
         super.addRequirements(requirements);
     }
 
-    public async testFunctionOne(): Promise<TestResultMessage> {
-        return new Promise((resolve, reject) => resolve({ main: 'Done' }));
+    public async testFunctionOne(): Promise<string> {
+        return new Promise((resolve, reject) => resolve('Done'));
     }
 
-    public async testFunctionTwo(): Promise<TestResultMessage> {
-        return new Promise((resolve, reject) => resolve({ main: 'Done' }));
+    public async testFunctionTwo(): Promise<string> {
+        return new Promise((resolve, reject) => resolve('Done'));
     }
 }
 
@@ -82,7 +80,7 @@ class FalsyExtension extends BaseSetup {
                 checkFunction: this.testFunctionFour,
                 fulfilledMessage: 'ANDROID_HOME has been detected.',
                 logger,
-                remediationMessage: 'Setup Android environment.',
+                remediationMessage: 'Get the latest Android SDK!',
                 title: 'ANDROID_HOME check',
                 unfulfilledMessage: 'You must setup ANDROID_HOME.'
             }
@@ -90,22 +88,20 @@ class FalsyExtension extends BaseSetup {
         super.addRequirements(requirements);
     }
 
-    public async testFunctionOne(): Promise<TestResultMessage> {
-        return new Promise((resolve, reject) => resolve({ main: 'Done' }));
+    public async testFunctionOne(): Promise<string> {
+        return new Promise((resolve, reject) => resolve('Done'));
     }
 
-    public async testFunctionTwo(): Promise<TestResultMessage> {
-        return new Promise((resolve, reject) => reject({ main: 'failed' }));
+    public async testFunctionTwo(): Promise<string> {
+        return new Promise((resolve, reject) => reject('failed'));
     }
 
-    public async testFunctionThree(): Promise<TestResultMessage> {
-        return new Promise((resolve, reject) => reject({ main: 'failed' }));
+    public async testFunctionThree(): Promise<string> {
+        return new Promise((resolve, reject) => reject('failed'));
     }
 
-    public async testFunctionFour(): Promise<TestResultMessage> {
-        return new Promise((resolve, reject) =>
-            reject({ main: 'failed', supplemental: 'fix it' })
-        );
+    public async testFunctionFour(): Promise<string> {
+        return new Promise((resolve, reject) => reject('failed'));
     }
 }
 
@@ -184,7 +180,8 @@ describe('Requirements Processing', () => {
         );
         expect(testsResultWithRemediationMessage.length).toBe(1);
         expect(
-            testsResultWithRemediationMessage[0].remediationMessage === 'fix it'
+            testsResultWithRemediationMessage[0].remediationMessage ===
+                'Get the latest Android SDK!'
         ).toBeTruthy();
     });
 });

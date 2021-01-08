@@ -9,7 +9,7 @@ import childProcess from 'child_process';
 import util from 'util';
 import iOSConfig from '../config/iosconfig.json';
 import { IOSUtils } from './IOSUtils';
-import { BaseSetup, TestResultMessage } from './Requirements';
+import { BaseSetup } from './Requirements';
 
 const exec = util.promisify(childProcess.exec);
 
@@ -61,7 +61,7 @@ export class IOSEnvironmentSetup extends BaseSetup {
         super.addRequirements(requirements);
     }
 
-    public async isSupportedEnvironment(): Promise<TestResultMessage> {
+    public async isSupportedEnvironment(): Promise<string> {
         const unameCommand: string = '/usr/bin/uname';
         try {
             this.logger.info('Executing a check for supported environment');
@@ -70,29 +70,27 @@ export class IOSEnvironmentSetup extends BaseSetup {
             );
             const unameOutput = stdout.trim();
             if (unameOutput === 'Darwin') {
-                return new Promise<TestResultMessage>((resolve, reject) =>
-                    resolve({ main: this.fulfilledMessage })
+                return new Promise<string>((resolve, reject) =>
+                    resolve(this.fulfilledMessage)
                 );
             } else {
-                return new Promise<TestResultMessage>((resolve, reject) =>
-                    reject({
-                        main: util.format(this.unfulfilledMessage, unameOutput)
-                    })
+                return new Promise<string>((resolve, reject) =>
+                    reject(util.format(this.unfulfilledMessage, unameOutput))
                 );
             }
         } catch (unameError) {
-            return new Promise<TestResultMessage>((resolve, reject) =>
-                reject({
-                    main: util.format(
+            return new Promise<string>((resolve, reject) =>
+                reject(
+                    util.format(
                         this.unfulfilledMessage,
                         `command '${unameCommand}' failed: ${unameError}, error code: ${unameError.code}`
                     )
-                })
+                )
             );
         }
     }
 
-    public async isXcodeInstalled(): Promise<TestResultMessage> {
+    public async isXcodeInstalled(): Promise<string> {
         const xcodeBuildCommand: string = 'xcodebuild -version';
         try {
             this.logger.info('Executing a check for Xcode environment');
@@ -101,56 +99,54 @@ export class IOSEnvironmentSetup extends BaseSetup {
             );
             if (stdout) {
                 const xcodeDetails = `${stdout}`.trim().replace(/\n/gi, ' ');
-                return new Promise<TestResultMessage>((resolve, reject) =>
-                    resolve({
-                        main: util.format(this.fulfilledMessage, xcodeDetails)
-                    })
+                return new Promise<string>((resolve, reject) =>
+                    resolve(util.format(this.fulfilledMessage, xcodeDetails))
                 );
             } else {
-                return new Promise<TestResultMessage>((resolve, reject) =>
-                    reject({
-                        main: util.format(
+                return new Promise<string>((resolve, reject) =>
+                    reject(
+                        util.format(
                             this.unfulfilledMessage,
                             `${stderr || 'None'}`
                         )
-                    })
+                    )
                 );
             }
         } catch (xcodeSelectError) {
-            return new Promise<TestResultMessage>((resolve, reject) =>
-                reject({
-                    main: util.format(
+            return new Promise<string>((resolve, reject) =>
+                reject(
+                    util.format(
                         this.unfulfilledMessage,
                         `${xcodeSelectError}, error code: ${xcodeSelectError.code}`
                     )
-                })
+                )
             );
         }
     }
 
-    public async hasSupportedSimulatorRuntime(): Promise<TestResultMessage> {
+    public async hasSupportedSimulatorRuntime(): Promise<string> {
         try {
             this.logger.info('Executing a check for iOS runtimes');
             const supportedRuntimes = await IOSUtils.getSupportedRuntimes();
             if (supportedRuntimes.length > 0) {
-                return Promise.resolve({
-                    main: util.format(this.fulfilledMessage, supportedRuntimes)
-                });
+                return Promise.resolve(
+                    util.format(this.fulfilledMessage, supportedRuntimes)
+                );
             } else {
-                return Promise.reject({
-                    main: util.format(
+                return Promise.reject(
+                    util.format(
                         this.unfulfilledMessage,
                         `iOS-${iOSConfig.minSupportedRuntimeIOS}`
                     )
-                });
+                );
             }
         } catch (supportedRuntimesError) {
-            return Promise.reject({
-                main: util.format(
+            return Promise.reject(
+                util.format(
                     this.unfulfilledMessage,
                     `iOS-${iOSConfig.minSupportedRuntimeIOS} error:${supportedRuntimesError}`
                 )
-            });
+            );
         }
     }
 }
