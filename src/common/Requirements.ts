@@ -156,12 +156,12 @@ export abstract class BaseSetup implements RequirementList {
                     });
                 } else if (result.status === 'rejected') {
                     testResult.hasMetAllRequirements = false;
+                    const testResultMessage = result.e as TestResultMessage;
                     testResult.tests.push({
                         duration: result.duration,
                         hasPassed: false,
-                        message: (result.e as TestResultMessage).main,
-                        remediationMessage: (result.e as TestResultMessage)
-                            .supplemental,
+                        message: testResultMessage.main,
+                        remediationMessage: testResultMessage.supplemental,
                         testResult: 'Failed'
                     });
                 }
