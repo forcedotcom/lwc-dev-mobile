@@ -41,6 +41,10 @@
           "items": {
             "$ref": "#/definitions/launch_argument"
           }
+        },
+        "preview_server_enabled": {
+          "type": "boolean",
+          "description": "A boolean indicating whether a local development server is required for previewing a component."
         }
       },
       "required": ["id", "name"]

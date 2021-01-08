@@ -67,7 +67,7 @@ export class IOSUtils {
             try {
                 const devices = await IOSUtils.getSupportedSimulators();
                 for (const device of devices) {
-                    if (simulatorName.match(device.name)) {
+                    if (simulatorName === device.name) {
                         return resolve(device);
                     }
                 }
@@ -269,7 +269,9 @@ export class IOSUtils {
         projectDir: string,
         appBundlePath: string | undefined,
         targetApp: string,
-        targetAppArguments: LaunchArgument[]
+        targetAppArguments: LaunchArgument[],
+        serverAddress: string | undefined,
+        serverPort: string | undefined
     ): Promise<boolean> {
         if (appBundlePath && appBundlePath.trim().length > 0) {
             const installCommand = `${XCRUN_CMD} simctl install ${udid} '${appBundlePath.trim()}'`;
@@ -289,6 +291,14 @@ export class IOSUtils {
         let launchArgs =
             `${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}=${compName}` +
             ` ${PreviewUtils.PROJECT_DIR_ARG_PREFIX}=${projectDir}`;
+
+        if (serverAddress) {
+            launchArgs += ` ${PreviewUtils.SERVER_ADDRESS_PREFIX}=${serverAddress}`;
+        }
+
+        if (serverPort) {
+            launchArgs += ` ${PreviewUtils.SERVER_PORT_PREFIX}=${serverPort}`;
+        }
 
         targetAppArguments.forEach((arg) => {
             launchArgs += ` ${arg.name}=${arg.value}`;

@@ -22,7 +22,8 @@ export class AndroidLauncher {
         projectDir: string,
         appBundlePath: string | undefined,
         targetApp: string,
-        appConfig: AndroidAppPreviewConfig | undefined
+        appConfig: AndroidAppPreviewConfig | undefined,
+        serverPort: string
     ): Promise<boolean> {
         const preferredPack = await AndroidSDKUtils.findRequiredEmulatorImages();
         const emuImage = preferredPack.platformEmulatorImage || 'default';
@@ -71,9 +72,16 @@ export class AndroidLauncher {
                 });
                 await AndroidSDKUtils.pollDeviceStatus(actualPort);
 
+                const useServer = PreviewUtils.useLwcServerForPreviewing(
+                    targetApp,
+                    appConfig
+                );
+                const address = useServer ? 'http://10.0.2.2' : undefined; // TODO: dynamically determine server address
+                const port = useServer ? serverPort : undefined;
+
                 if (PreviewUtils.isTargetingBrowser(targetApp)) {
                     const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
-                    const url = `http://10.0.2.2:3333/lwc/preview/${compPath}`;
+                    const url = `${address}:${port}/lwc/preview/${compPath}`;
                     spinner.stop(`Opening Browser with url ${url}`);
                     return AndroidSDKUtils.launchURLIntent(url, actualPort);
                 } else {
@@ -91,7 +99,9 @@ export class AndroidLauncher {
                         targetApp,
                         targetAppArguments,
                         launchActivity,
-                        actualPort
+                        actualPort,
+                        address,
+                        port
                     );
                 }
             })

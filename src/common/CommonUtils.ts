@@ -9,12 +9,13 @@ import * as childProcess from 'child_process';
 import { Logger } from '@salesforce/core';
 
 const execSync = childProcess.execSync;
-const spawn = childProcess.spawn;
 type StdioOptions = childProcess.StdioOptions;
 
 const LOGGER_NAME = 'force:lightning:mobile:common';
 
 export class CommonUtils {
+    public static DEFAULT_LWC_SERVER_PORT = '3333';
+
     public static async initializeLogger(): Promise<void> {
         CommonUtils.logger = await Logger.child(LOGGER_NAME);
         return Promise.resolve();
@@ -47,6 +48,34 @@ export class CommonUtils {
                 reject(new Error());
             }
         });
+    }
+
+    public static getLwcServerPort(): string | undefined {
+        const getProcessCommand =
+            process.platform === 'win32'
+                ? 'wmic process where "CommandLine Like \'%force:lightning:lwc:start%\'" get CommandLine  | findstr "sfdx.js"'
+                : "ps -ax | grep 'force:lightning:lwc:start' | grep 'sfdx.js' | grep -v grep";
+
+        try {
+            const result = CommonUtils.executeCommand(getProcessCommand).trim();
+            // The result of the above command would be in the form of [ "........./sfdx.js" "force:lightning:lwc:start" ]
+            // when no port is specified, or in the form of [ "........./sfdx.js" "force:lightning:lwc:start" "-p" "1234" ]
+            // when a port is specified.
+
+            let port = CommonUtils.DEFAULT_LWC_SERVER_PORT;
+            const pIndex = result.indexOf('-p');
+            if (pIndex > 0) {
+                port = result
+                    .substr(pIndex + 2)
+                    .replace(/"/gi, '')
+                    .trim();
+            }
+            return port;
+        } catch {
+            // If we got here it's b/c the grep command fails on empty set,
+            // which means that the server is not running
+            return undefined;
+        }
     }
 
     private static logger: Logger = new Logger(LOGGER_NAME);

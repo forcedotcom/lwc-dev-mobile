@@ -457,20 +457,31 @@ export class AndroidSDKUtils {
         targetApp: string,
         targetAppArguments: LaunchArgument[],
         launchActivity: string,
-        emulatorPort: number
+        emulatorPort: number,
+        serverAddress: string | undefined,
+        serverPort: string | undefined
     ): Promise<boolean> {
         try {
             if (appBundlePath && appBundlePath.trim().length > 0) {
                 AndroidSDKUtils.logger.info(
                     `Installing app ${appBundlePath.trim()} to emulator`
                 );
-                const installCommand = `${AndroidSDKUtils.getAdbShellCommand()} -s emulator-${emulatorPort} install -r -t '${appBundlePath.trim()}'`;
+                const pathQuote = process.platform === WINDOWS_OS ? '"' : "'";
+                const installCommand = `${AndroidSDKUtils.getAdbShellCommand()} -s emulator-${emulatorPort} install -r -t ${pathQuote}${appBundlePath.trim()}${pathQuote}`;
                 AndroidSDKUtils.executeCommand(installCommand);
             }
 
             let launchArgs =
                 `--es "${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}" "${compName}"` +
                 ` --es "${PreviewUtils.PROJECT_DIR_ARG_PREFIX}" "${projectDir}"`;
+
+            if (serverAddress) {
+                launchArgs += ` --es "${PreviewUtils.SERVER_ADDRESS_PREFIX}" "${serverAddress}"`;
+            }
+
+            if (serverPort) {
+                launchArgs += ` --es "${PreviewUtils.SERVER_PORT_PREFIX}" "${serverPort}"`;
+            }
 
             targetAppArguments.forEach((arg) => {
                 launchArgs += ` --es "${arg.name}" "${arg.value}"`;
@@ -730,7 +741,7 @@ export class AndroidSDKUtils {
     private static isEmulatorAlreadyStarted(emulatorName: string): boolean {
         const findProcessCommand =
             process.platform === WINDOWS_OS
-                ? `tasklist /V /FI "IMAGENAME eq qemu-system-x86_64.exe" | findstr "${emulatorName}"`
+                ? `wmic process where "CommandLine Like \'%qemu-system-x86_64%\'" get CommandLine  | findstr "${emulatorName}"`
                 : `ps -ax | grep qemu-system-x86_64 | grep ${emulatorName} | grep -v grep`;
 
         // ram.img.dirty is a one byte file created when avd is started and removed when avd is stopped.

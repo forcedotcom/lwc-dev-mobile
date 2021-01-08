@@ -13,7 +13,11 @@ import { AndroidEnvironmentSetup } from '../../../../../common/AndroidEnvironmen
 import { CommandLineUtils } from '../../../../../common/Common';
 import { IOSEnvironmentSetup } from '../../../../../common/IOSEnvironmentSetup';
 import { LoggerSetup } from '../../../../../common/LoggerSetup';
-import { BaseSetup, SetupTestResult } from '../../../../../common/Requirements';
+import {
+    BaseSetup,
+    Requirement,
+    SetupTestResult
+} from '../../../../../common/Requirements';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -38,6 +42,8 @@ export default class Setup extends SfdxCommand {
         `sfdx force:lightning:local:setup -p iOS`,
         `sfdx force:lightning:local:setup -p Android`
     ];
+
+    private setupSteps: BaseSetup | undefined;
 
     public async run(): Promise<any> {
         if (!CommandLineUtils.platformFlagIsValid(this.flags.platform)) {
@@ -81,13 +87,19 @@ export default class Setup extends SfdxCommand {
         await LoggerSetup.initializePluginLoggers();
     }
 
-    protected setup(): BaseSetup {
-        let setup: BaseSetup = ({} as any) as BaseSetup; // should not be the case due to prior validation.
-        if (CommandLineUtils.platformFlagIsAndroid(this.flags.platform)) {
-            setup = new AndroidEnvironmentSetup(this.logger);
-        } else if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
-            setup = new IOSEnvironmentSetup(this.logger);
+    protected addRequirements(reqs: Requirement[]) {
+        this.setup().addRequirements(reqs);
+    }
+
+    private setup(): BaseSetup {
+        if (!this.setupSteps) {
+            this.setupSteps = CommandLineUtils.platformFlagIsAndroid(
+                this.flags.platform
+            )
+                ? (this.setupSteps = new AndroidEnvironmentSetup(this.logger))
+                : (this.setupSteps = new IOSEnvironmentSetup(this.logger));
         }
-        return setup;
+
+        return this.setupSteps;
     }
 }

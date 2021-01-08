@@ -24,7 +24,8 @@ export class IOSLauncher {
         projectDir: string,
         appBundlePath: string | undefined,
         targetApp: string,
-        appConfig: IOSAppPreviewConfig | undefined
+        appConfig: IOSAppPreviewConfig | undefined,
+        serverPort: string
     ): Promise<boolean> {
         const availableDevices: string[] = await IOSUtils.getSupportedDevices();
         const supportedRuntimes: string[] = await IOSUtils.getSupportedRuntimes();
@@ -79,9 +80,16 @@ export class IOSLauncher {
                 return IOSUtils.waitUntilDeviceIsReady(deviceUDID);
             })
             .then(() => {
+                const useServer = PreviewUtils.useLwcServerForPreviewing(
+                    targetApp,
+                    appConfig
+                );
+                const address = useServer ? 'http://localhost' : undefined; // TODO: dynamically determine server address
+                const port = useServer ? serverPort : undefined;
+
                 if (PreviewUtils.isTargetingBrowser(targetApp)) {
                     const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
-                    const url = `http://localhost:3333/lwc/preview/${compPath}`;
+                    const url = `${address}:${port}/lwc/preview/${compPath}`;
                     return IOSUtils.launchURLInBootedSimulator(deviceUDID, url);
                 } else {
                     const targetAppArguments: LaunchArgument[] =
@@ -92,7 +100,9 @@ export class IOSLauncher {
                         projectDir,
                         appBundlePath,
                         targetApp,
-                        targetAppArguments
+                        targetAppArguments,
+                        address,
+                        port
                     );
                 }
             })
