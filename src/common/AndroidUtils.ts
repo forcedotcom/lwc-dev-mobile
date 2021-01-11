@@ -227,8 +227,24 @@ export class AndroidSDKUtils {
                 );
             }
 
-            // return the package with the latest version by negating the comparison result
+            // Sort the packages with latest version by negating the comparison result
             matchingPlatforms.sort((a, b) => a.version.compare(b.version) * -1);
+
+            // Return the latest package that also has matching emulator images
+            for (const platform of matchingPlatforms) {
+                const emulatorImage = await AndroidSDKUtils.packageWithRequiredEmulatorImages(
+                    platform
+                );
+
+                if (emulatorImage) {
+                    return platform;
+                }
+            }
+
+            // If we got here then it means that we don't have any Android API packages with emulator images.
+            // So we will go ahead and return the latest one anyway. This is b/c the setup command will error
+            // out stating that no packages with matching emulator images have been found so the user would
+            // then know that they should install emulator images for the latest API package.
             return matchingPlatforms[0];
         } catch (error) {
             return Promise.reject(
@@ -240,51 +256,28 @@ export class AndroidSDKUtils {
     }
 
     public static async findRequiredEmulatorImages(): Promise<AndroidPackage> {
-        return new Promise<AndroidPackage>(async (resolve, reject) => {
-            try {
-                const installedAndroidPackage = await AndroidSDKUtils.findRequiredAndroidAPIPackage();
-                const packages = await AndroidSDKUtils.fetchInstalledSystemImages(
-                    installedAndroidPackage.platformAPI
+        try {
+            const installedAndroidPackage = await AndroidSDKUtils.findRequiredAndroidAPIPackage();
+            const emulatorImage = await AndroidSDKUtils.packageWithRequiredEmulatorImages(
+                installedAndroidPackage
+            );
+
+            if (emulatorImage) {
+                return Promise.resolve(emulatorImage);
+            } else {
+                return Promise.reject(
+                    new Error(
+                        `Could not locate an emulator image. Requires any one of these [${androidConfig.supportedImages.join(
+                            ','
+                        )} for ${[installedAndroidPackage.platformAPI]}]`
+                    )
                 );
-                let supportedPackage: AndroidPackage | null = null;
-                const platformAPI = installedAndroidPackage.platformAPI;
-                for (const architecture of androidConfig.architectures) {
-                    for (const image of androidConfig.supportedImages) {
-                        for (const pkg of packages) {
-                            if (
-                                pkg.path.match(
-                                    `(${platformAPI};${image};${architecture})`
-                                ) !== null
-                            ) {
-                                supportedPackage = pkg;
-                                break;
-                            }
-                        }
-                        if (supportedPackage) {
-                            break;
-                        }
-                    }
-                    if (supportedPackage) {
-                        break;
-                    }
-                }
-
-                if (supportedPackage === null) {
-                    reject(
-                        new Error(
-                            `Could not locate an emulator image. Requires any one of these [${androidConfig.supportedImages.join(
-                                ','
-                            )} for ${[platformAPI]}]`
-                        )
-                    );
-                    return;
-                }
-
-                resolve(supportedPackage);
-            } catch (error) {
-                reject(new Error(`Could not find android emulator packages.`));
             }
-        });
+        } catch (error) {
+            return Promise.reject(
+                new Error(`Could not find android emulator packages.`)
+            );
+        }
     }
 
     public static getNextAndroidAdbPort(): Promise<number> {
@@ -716,6 +709,31 @@ export class AndroidSDKUtils {
         }
 
         return AndroidSDKUtils.sdkManagerCommand;
+    }
+
+    private static async packageWithRequiredEmulatorImages(
+        androidPackage: AndroidPackage
+    ): Promise<AndroidPackage | undefined> {
+        const installedSystemImages = await AndroidSDKUtils.fetchInstalledSystemImages(
+            androidPackage.platformAPI
+        );
+        const platformAPI = androidPackage.platformAPI;
+
+        for (const architecture of androidConfig.architectures) {
+            for (const image of androidConfig.supportedImages) {
+                for (const img of installedSystemImages) {
+                    if (
+                        img.path.match(
+                            `(${platformAPI};${image};${architecture})`
+                        ) !== null
+                    ) {
+                        return Promise.resolve(img);
+                    }
+                }
+            }
+        }
+
+        return Promise.resolve(undefined);
     }
 
     private static systemImagePath(
