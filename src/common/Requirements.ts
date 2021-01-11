@@ -10,7 +10,7 @@ import cli from 'cli-ux';
 import { performance, PerformanceObserver } from 'perf_hooks';
 import { CommonUtils } from './CommonUtils';
 import { PerformanceMarkers } from './PerformanceMarkers';
-export type CheckRequirementsFunc = () => Promise<string>;
+export type CheckRequirementsFunc = () => Promise<string | undefined>;
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -18,17 +18,18 @@ Messages.importMessagesDirectory(__dirname);
 export interface Requirement {
     title: string;
     checkFunction: CheckRequirementsFunc;
-    fulfilledMessage: string;
-    unfulfilledMessage: string;
-    remediationMessage?: string;
+    fulfilledMessage?: string;
+    unfulfilledMessage?: string;
+    supplementalMessage?: string;
     logger: Logger;
 }
 
 export interface SetupTestCase {
+    title: string;
     testResult: string;
     message: string;
     hasPassed: boolean;
-    remediationMessage?: string;
+    supplementalMessage?: string;
     duration: number;
 }
 
@@ -47,10 +48,10 @@ export interface Launcher {
 }
 
 export interface WrappedPromiseResult {
-    message: string;
-    remediationMessage?: string;
+    message: string | undefined;
     status: string;
     duration: number;
+    requirement: Requirement;
 }
 
 // This function wraps existing promises with the intention to allow the collection of promises
@@ -84,6 +85,7 @@ export function WrappedPromise(
             return {
                 duration: stepDuration,
                 message: v,
+                requirement,
                 status: 'fulfilled'
             };
         })
@@ -93,7 +95,7 @@ export function WrappedPromise(
             return {
                 duration: stepDuration,
                 message: e,
-                remediationMessage: requirement.remediationMessage,
+                requirement,
                 status: 'rejected'
             };
         })
@@ -159,7 +161,10 @@ export abstract class BaseSetup implements RequirementList {
                         duration: result.duration,
                         hasPassed: true,
                         message: result.message,
-                        testResult: 'Passed'
+                        supplementalMessage:
+                            result.requirement.supplementalMessage,
+                        testResult: 'PASSED',
+                        title: result.requirement.title
                     });
                 } else if (result.status === 'rejected') {
                     testResult.hasMetAllRequirements = false;
@@ -167,8 +172,10 @@ export abstract class BaseSetup implements RequirementList {
                         duration: result.duration,
                         hasPassed: false,
                         message: result.message,
-                        remediationMessage: result.remediationMessage,
-                        testResult: 'Failed'
+                        supplementalMessage:
+                            result.requirement.supplementalMessage,
+                        testResult: 'FAILED',
+                        title: result.requirement.title
                     });
                 }
             });
@@ -178,24 +185,27 @@ export abstract class BaseSetup implements RequirementList {
             tree.insert(setupMessage);
             const rootNode = tree.nodes[setupMessage];
             testResult.tests.forEach((test) => {
-                let message = `${test.testResult} (${test.duration.toFixed(
-                    3
-                )} sec): ${test.message}`;
-                message = `${
-                    test.hasPassed
-                        ? chalk.bold.green(message)
-                        : chalk.bold.red(message)
-                }`;
-                rootNode.insert(message);
+                let lineItem = `${test.testResult}: ${
+                    test.title
+                } (${test.duration.toFixed(3)} sec)`;
 
-                if (
-                    !test.hasPassed &&
-                    test.remediationMessage &&
-                    test.remediationMessage.length > 0
-                ) {
-                    rootNode.nodes[message].insert(
-                        chalk.bold.blue(test.remediationMessage)
-                    );
+                lineItem = test.hasPassed
+                    ? chalk.bold.green(lineItem)
+                    : chalk.bold.red(lineItem);
+
+                rootNode.insert(lineItem);
+
+                const message =
+                    test.message && test.message.length > 0 ? test.message : '';
+                const supplementalMessage =
+                    test.supplementalMessage &&
+                    test.supplementalMessage.length > 0
+                        ? test.supplementalMessage
+                        : '';
+                const detailedMessage = `${message} ${supplementalMessage}`;
+
+                if (detailedMessage.trim().length > 0) {
+                    rootNode.nodes[lineItem].insert(detailedMessage);
                 }
             });
             tree.display();
