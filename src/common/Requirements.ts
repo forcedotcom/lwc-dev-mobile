@@ -151,7 +151,6 @@ export abstract class BaseSetup implements RequirementList {
                 hasMetAllRequirements: true,
                 tests: []
             };
-
             let totalDuration: number = 0;
             results.forEach((result) => {
                 totalDuration += result.duration;
@@ -163,7 +162,7 @@ export abstract class BaseSetup implements RequirementList {
                         message: result.message,
                         supplementalMessage:
                             result.requirement.supplementalMessage,
-                        testResult: 'PASSED',
+                        testResult: this.setupMessages.getMessage('passed'),
                         title: result.requirement.title
                     });
                 } else if (result.status === 'rejected') {
@@ -174,7 +173,7 @@ export abstract class BaseSetup implements RequirementList {
                         message: result.message,
                         supplementalMessage:
                             result.requirement.supplementalMessage,
-                        testResult: 'FAILED',
+                        testResult: this.setupMessages.getMessage('failed'),
                         title: result.requirement.title
                     });
                 }
