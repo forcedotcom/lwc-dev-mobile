@@ -224,7 +224,7 @@ export class AndroidVirtualDevice {
         api: string
     ) {
         this.name = name;
-        this.displayName = name.replace(/_/gi, ' ').trim(); // eg. Pixel_XL --> Pixel XL
+        this.displayName = name.replace(/[_-]/gi, ' ').trim(); // eg. Pixel_XL --> Pixel XL, tv-emulator --> tv emulator
         this.deviceName = deviceName.replace(/\([^\(]*\)/, '').trim(); // eg. Nexus 5X (Google) --> Nexus 5X
         this.path = path.trim();
         this.target = target.replace(/\([^\(]*\)/, '').trim(); // eg. Google APIs (Google Inc.) --> Google APIs
