@@ -1,8 +1,11 @@
 {
     "commandDescription": "Set up mobile environment for Lightning Web Component development.",
     "platformFlagDescription": "Specify platform ('iOS' or 'Android').",
+    "passed": "PASSED",
+    "failed": "FAILED",
     "error:invalidInputFlagsDescription": "Invalid input value for platform.",
     "error:setupFailed": "Setup for platform %s failed.",
+    "error:setupFailed:recommendation": "Please see the error messages above for details on resolving your setup issues.",
     "remedy:invalidInputFlagsDescription": "Specify a platform using ' -p [iOS|Android]'",
     "ios:reqs:macos:title" : "Checking macOS Environment",
     "ios:reqs:macos:fulfilledMessage" : "Running macOS.",

@@ -59,9 +59,6 @@ export default class Setup extends SfdxCommand {
         const setup = this.setup();
         const result = await this.executeSetup(setup);
         if (!result.hasMetAllRequirements) {
-            const actions = result.tests
-                .filter((test) => !test.hasPassed)
-                .map((test) => test.message);
             return Promise.reject(
                 new SfdxError(
                     util.format(
@@ -69,7 +66,7 @@ export default class Setup extends SfdxCommand {
                         this.flags.platform
                     ),
                     'lwc-dev-mobile',
-                    actions
+                    [messages.getMessage('error:setupFailed:recommendation')]
                 )
             );
         }

@@ -10,7 +10,7 @@ import cli from 'cli-ux';
 import { performance, PerformanceObserver } from 'perf_hooks';
 import { CommonUtils } from './CommonUtils';
 import { PerformanceMarkers } from './PerformanceMarkers';
-export type CheckRequirementsFunc = () => Promise<string>;
+export type CheckRequirementsFunc = () => Promise<string | undefined>;
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -18,15 +18,18 @@ Messages.importMessagesDirectory(__dirname);
 export interface Requirement {
     title: string;
     checkFunction: CheckRequirementsFunc;
-    fulfilledMessage: string;
-    unfulfilledMessage: string;
+    fulfilledMessage?: string;
+    unfulfilledMessage?: string;
+    supplementalMessage?: string;
     logger: Logger;
 }
 
 export interface SetupTestCase {
+    title: string;
     testResult: string;
     message: string;
     hasPassed: boolean;
+    supplementalMessage?: string;
     duration: number;
 }
 
@@ -44,15 +47,22 @@ export interface Launcher {
     launchNativeBrowser(url: string): Promise<void>;
 }
 
+export interface WrappedPromiseResult {
+    message: string | undefined;
+    status: string;
+    duration: number;
+    requirement: Requirement;
+}
+
 // This function wraps existing promises with the intention to allow the collection of promises
 // to settle when used in conjunction with Promise.all(). Promise.all() by default executes until the first
 // rejection. We are looking for the equivalent of Promise.allSettled() which is scheduled for ES2020.
 // Once the functionality is  available  in the near future this function can be removed.
 // See https://github.com/tc39/proposal-promise-allSettled
 export function WrappedPromise(
-    name: string,
-    promise: Promise<any>
-): Promise<any> {
+    requirement: Requirement
+): Promise<WrappedPromiseResult> {
+    const promise = requirement.checkFunction();
     const perfMarker = PerformanceMarkers.getByName(
         PerformanceMarkers.REQUIREMENTS_MARKER_KEY
     )!;
@@ -63,24 +73,32 @@ export function WrappedPromise(
     });
     obs.observe({ entryTypes: ['measure'] });
 
-    const start = `${perfMarker.startMarkName}_${name}`;
-    const end = `${perfMarker.endMarkName}_${name}`;
-    const step = `${perfMarker.name}_${name}`;
+    const start = `${perfMarker.startMarkName}_${requirement.title}`;
+    const end = `${perfMarker.endMarkName}_${requirement.title}`;
+    const step = `${perfMarker.name}_${requirement.title}`;
 
     performance.mark(start);
     return promise
-        .then(
-            (v) => {
-                performance.mark(end);
-                performance.measure(step, start, end);
-                return { v, status: 'fulfilled', duration: stepDuration };
-            },
-            (e) => {
-                performance.mark(end);
-                performance.measure(step, start, end);
-                return { e, status: 'rejected', duration: stepDuration };
-            }
-        )
+        .then((v) => {
+            performance.mark(end);
+            performance.measure(step, start, end);
+            return {
+                duration: stepDuration,
+                message: v,
+                requirement,
+                status: 'fulfilled'
+            };
+        })
+        .catch((e) => {
+            performance.mark(end);
+            performance.measure(step, start, end);
+            return {
+                duration: stepDuration,
+                message: e,
+                requirement,
+                status: 'rejected'
+            };
+        })
         .finally(() => {
             obs.disconnect();
         });
@@ -125,9 +143,7 @@ export abstract class BaseSetup implements RequirementList {
     public async executeSetup(): Promise<SetupTestResult> {
         const allPromises: Array<Promise<any>> = [];
         this.requirements.forEach((requirement) =>
-            allPromises.push(
-                WrappedPromise(requirement.title, requirement.checkFunction())
-            )
+            allPromises.push(WrappedPromise(requirement))
         );
 
         return Promise.all(allPromises).then((results) => {
@@ -135,7 +151,6 @@ export abstract class BaseSetup implements RequirementList {
                 hasMetAllRequirements: true,
                 tests: []
             };
-
             let totalDuration: number = 0;
             results.forEach((result) => {
                 totalDuration += result.duration;
@@ -144,16 +159,22 @@ export abstract class BaseSetup implements RequirementList {
                     testResult.tests.push({
                         duration: result.duration,
                         hasPassed: true,
-                        message: result.v,
-                        testResult: 'Passed'
+                        message: result.message,
+                        supplementalMessage:
+                            result.requirement.supplementalMessage,
+                        testResult: this.setupMessages.getMessage('passed'),
+                        title: result.requirement.title
                     });
                 } else if (result.status === 'rejected') {
                     testResult.hasMetAllRequirements = false;
                     testResult.tests.push({
                         duration: result.duration,
                         hasPassed: false,
-                        message: result.e,
-                        testResult: 'Failed'
+                        message: result.message,
+                        supplementalMessage:
+                            result.requirement.supplementalMessage,
+                        testResult: this.setupMessages.getMessage('failed'),
+                        title: result.requirement.title
                     });
                 }
             });
@@ -163,16 +184,28 @@ export abstract class BaseSetup implements RequirementList {
             tree.insert(setupMessage);
             const rootNode = tree.nodes[setupMessage];
             testResult.tests.forEach((test) => {
-                const message = `${test.testResult} (${test.duration.toFixed(
-                    3
-                )} sec): ${test.message}`;
-                rootNode.insert(
-                    `${
-                        test.hasPassed
-                            ? chalk.bold.green(message)
-                            : chalk.bold.red(message)
-                    }`
-                );
+                let lineItem = `${test.testResult}: ${
+                    test.title
+                } (${test.duration.toFixed(3)} sec)`;
+
+                lineItem = test.hasPassed
+                    ? chalk.bold.green(lineItem)
+                    : chalk.bold.red(lineItem);
+
+                rootNode.insert(lineItem);
+
+                const message =
+                    test.message && test.message.length > 0 ? test.message : '';
+                const supplementalMessage =
+                    test.supplementalMessage &&
+                    test.supplementalMessage.length > 0
+                        ? test.supplementalMessage
+                        : '';
+                const detailedMessage = `${message} ${supplementalMessage}`;
+
+                if (detailedMessage.trim().length > 0) {
+                    rootNode.nodes[lineItem].insert(detailedMessage);
+                }
             });
             tree.display();
             return Promise.resolve(testResult);
