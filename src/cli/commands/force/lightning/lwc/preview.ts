@@ -89,11 +89,6 @@ export default class Preview extends Setup {
         `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -n HellowWordComponent`
     ];
 
-    // NOTE: The following properties are just place holders to help with typescript compile.
-    protected title: string = '';
-    protected fulfilledMessage: string = '';
-    protected unfulfilledMessage: string = '';
-
     private serverPort: string = '';
     private deviceName: string = '';
     private componentName: string = '';
@@ -279,11 +274,14 @@ export default class Preview extends Setup {
     }
 
     public async isLwcServerRunning(): Promise<string> {
+        const requirement = CommonUtils.castAsRequirement(this);
         const port = CommonUtils.getLwcServerPort();
         if (!port) {
-            return Promise.reject(this.unfulfilledMessage);
+            return Promise.reject(requirement.unfulfilledMessage);
         } else {
-            return Promise.resolve(util.format(this.fulfilledMessage, port));
+            return Promise.resolve(
+                util.format(requirement.fulfilledMessage, port)
+            );
         }
     }
 

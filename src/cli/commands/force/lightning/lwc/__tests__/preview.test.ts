@@ -105,9 +105,11 @@ describe('Preview Tests', () => {
         jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             cmdMock
         );
-        preview.isLwcServerRunning().catch((error) => {
-            expect(typeof error === 'string').toBeTruthy();
-        });
+        preview
+            .isLwcServerRunning()
+            .then(() => fail('should have thrown an error'))
+            // tslint:disable-next-line: no-empty
+            .catch(() => {});
     });
 
     test('Preview should default to use server port 3333', async () => {
@@ -121,7 +123,7 @@ describe('Preview Tests', () => {
             cmdMock
         );
         const port = (await preview.isLwcServerRunning()).trim();
-        expect(port).toBe('3333');
+        expect(port.endsWith('3333')).toBeTrue();
     });
 
     test('Preview should use specified server port', async () => {
@@ -136,7 +138,7 @@ describe('Preview Tests', () => {
             cmdMock
         );
         const port = (await preview.isLwcServerRunning()).trim();
-        expect(port).toBe(specifiedPort);
+        expect(port.endsWith(specifiedPort)).toBeTrue();
     });
 
     test('Logger must be initialized and invoked', async () => {

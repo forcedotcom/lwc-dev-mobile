@@ -9,7 +9,7 @@ import util from 'util';
 import iOSConfig from '../config/iosconfig.json';
 import { CommonUtils } from './CommonUtils';
 import { IOSUtils } from './IOSUtils';
-import { BaseSetup } from './Requirements';
+import { BaseSetup, Requirement } from './Requirements';
 
 export class IOSEnvironmentSetup extends BaseSetup {
     constructor(logger: Logger) {
@@ -54,6 +54,7 @@ export class IOSEnvironmentSetup extends BaseSetup {
     }
 
     public async isSupportedEnvironment(): Promise<string> {
+        const requirement = CommonUtils.castAsRequirement(this);
         const unameCommand: string = '/usr/bin/uname';
         try {
             this.logger.info('Executing a check for supported environment');
@@ -63,18 +64,20 @@ export class IOSEnvironmentSetup extends BaseSetup {
             const unameOutput = stdout.trim();
             if (unameOutput === 'Darwin') {
                 return new Promise<string>((resolve, reject) =>
-                    resolve(this.fulfilledMessage)
+                    resolve(requirement.fulfilledMessage)
                 );
             } else {
                 return new Promise<string>((resolve, reject) =>
-                    reject(util.format(this.unfulfilledMessage, unameOutput))
+                    reject(
+                        util.format(requirement.unfulfilledMessage, unameOutput)
+                    )
                 );
             }
         } catch (unameError) {
             return new Promise<string>((resolve, reject) =>
                 reject(
                     util.format(
-                        this.unfulfilledMessage,
+                        requirement.unfulfilledMessage,
                         `command '${unameCommand}' failed: ${unameError}, error code: ${unameError.code}`
                     )
                 )
@@ -83,6 +86,7 @@ export class IOSEnvironmentSetup extends BaseSetup {
     }
 
     public async isXcodeInstalled(): Promise<string> {
+        const requirement = CommonUtils.castAsRequirement(this);
         const xcodeBuildCommand: string = 'xcodebuild -version';
         try {
             this.logger.info('Executing a check for Xcode environment');
@@ -92,13 +96,15 @@ export class IOSEnvironmentSetup extends BaseSetup {
             if (stdout) {
                 const xcodeDetails = `${stdout}`.trim().replace(/\n/gi, ' ');
                 return new Promise<string>((resolve, reject) =>
-                    resolve(util.format(this.fulfilledMessage, xcodeDetails))
+                    resolve(
+                        util.format(requirement.fulfilledMessage, xcodeDetails)
+                    )
                 );
             } else {
                 return new Promise<string>((resolve, reject) =>
                     reject(
                         util.format(
-                            this.unfulfilledMessage,
+                            requirement.unfulfilledMessage,
                             `${stderr || 'None'}`
                         )
                     )
@@ -108,7 +114,7 @@ export class IOSEnvironmentSetup extends BaseSetup {
             return new Promise<string>((resolve, reject) =>
                 reject(
                     util.format(
-                        this.unfulfilledMessage,
+                        requirement.unfulfilledMessage,
                         `${xcodeSelectError}, error code: ${xcodeSelectError.code}`
                     )
                 )
@@ -117,17 +123,18 @@ export class IOSEnvironmentSetup extends BaseSetup {
     }
 
     public async hasSupportedSimulatorRuntime(): Promise<string> {
+        const requirement = CommonUtils.castAsRequirement(this);
         try {
             this.logger.info('Executing a check for iOS runtimes');
             const supportedRuntimes = await IOSUtils.getSupportedRuntimes();
             if (supportedRuntimes.length > 0) {
                 return Promise.resolve(
-                    util.format(this.fulfilledMessage, supportedRuntimes)
+                    util.format(requirement.fulfilledMessage, supportedRuntimes)
                 );
             } else {
                 return Promise.reject(
                     util.format(
-                        this.unfulfilledMessage,
+                        requirement.unfulfilledMessage,
                         `iOS-${iOSConfig.minSupportedRuntimeIOS}`
                     )
                 );
@@ -135,7 +142,7 @@ export class IOSEnvironmentSetup extends BaseSetup {
         } catch (supportedRuntimesError) {
             return Promise.reject(
                 util.format(
-                    this.unfulfilledMessage,
+                    requirement.unfulfilledMessage,
                     `iOS-${iOSConfig.minSupportedRuntimeIOS} error:${supportedRuntimesError}`
                 )
             );

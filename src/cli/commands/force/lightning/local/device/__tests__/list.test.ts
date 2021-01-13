@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 import * as Config from '@oclif/config';
-import { Logger, SfdxError } from '@salesforce/core';
+import { Logger } from '@salesforce/core';
 import { AndroidVirtualDevice } from '../../../../../../../common/AndroidTypes';
 import { IOSSimulatorDevice } from '../../../../../../../common/IOSTypes';
 import Setup from '../../setup';
@@ -28,34 +28,30 @@ const passedSetupMock = jest.fn(() => {
 });
 
 describe('List Tests', () => {
+    const logger = new Logger('test-list');
     let list: List;
 
     beforeEach(() => {
         list = new List([], new Config.Config(({} as any) as Config.Options));
         list.iOSDeviceList = iOSListCommandBlockMock;
         list.androidDeviceList = androidListCommandBlockMock;
+        setupLogger();
         jest.spyOn(Setup.prototype, 'run').mockImplementation(passedSetupMock);
     });
 
     test('Checks that launch for target platform for Android is invoked', async () => {
         setupPlatformFlag('android');
-        const logger = new Logger('test-list');
-        setupLogger(logger);
         await list.run();
         expect(androidListCommandBlockMock).toHaveBeenCalled();
     });
 
     test('Checks that launch for target platform for iOS is invoked', async () => {
         setupPlatformFlag('iOS');
-        const logger = new Logger('test-list');
-        setupLogger(logger);
         await list.run();
         expect(iOSListCommandBlockMock).toHaveBeenCalled();
     });
 
     test('Logger must be initialized and invoked', async () => {
-        const logger = new Logger('test-list');
-        setupLogger(logger);
         setupPlatformFlag('android');
         const loggerSpy = jest.spyOn(logger, 'info');
         await list.run();
@@ -77,7 +73,7 @@ describe('List Tests', () => {
         });
     }
 
-    function setupLogger(logger: Logger) {
+    function setupLogger() {
         Object.defineProperty(list, 'logger', {
             configurable: true,
             enumerable: false,

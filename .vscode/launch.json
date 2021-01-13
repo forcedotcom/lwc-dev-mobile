@@ -76,6 +76,36 @@
             ]
         },
         {
+            "type": "node",
+            "request": "launch",
+            "name": "iOS - Device Create",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:local:device:create",
+                "-p",
+                "iOS",
+                "-n",
+                "MyNewVirtualDevice",
+                "-d",
+                "iPhone-8"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Android - Device Create",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:local:device:create",
+                "-p",
+                "android",
+                "-n",
+                "MyNewVirtualDevice",
+                "-d",
+                "pixel_xl"
+            ]
+        },
+        {
             "name": "ts-node",
             "type": "node",
             "request": "launch",
