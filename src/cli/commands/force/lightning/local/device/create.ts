@@ -61,7 +61,7 @@ export class Create extends Setup {
         );
 
         const extraReqs: Requirement[] = [
-            new DeviceDoesNotExistRequirement(this, this.logger),
+            new DeviceNameAvailableRequirement(this, this.logger),
             new ValidDeviceTypeRequirement(this, this.logger)
         ];
         this.addRequirements(extraReqs);
@@ -154,12 +154,6 @@ export class Create extends Setup {
         const emuImage = preferredPack.platformEmulatorImage || 'default';
         const androidApi = preferredPack.platformAPI;
         const abi = preferredPack.abi;
-        let requestedPort = await AndroidSDKUtils.getNextAndroidAdbPort();
-        // need to incr by 2, one for console port and next for adb
-        requestedPort =
-            requestedPort < androidConfig.defaultAdbPort
-                ? androidConfig.defaultAdbPort
-                : requestedPort + 2;
 
         return AndroidSDKUtils.createNewVirtualDevice(
             this.deviceName,
@@ -182,7 +176,7 @@ export class Create extends Setup {
 }
 
 // tslint:disable-next-line: max-classes-per-file
-class DeviceDoesNotExistRequirement implements Requirement {
+class DeviceNameAvailableRequirement implements Requirement {
     public title: string = messages.getMessage('reqs:devicename:title');
     public fulfilledMessage: string = messages.getMessage(
         'reqs:devicename:fulfilledMessage'
