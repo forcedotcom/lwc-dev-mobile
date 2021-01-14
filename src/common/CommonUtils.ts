@@ -6,7 +6,6 @@
  */
 import { Logger } from '@salesforce/core';
 import * as childProcess from 'child_process';
-import { Requirement } from './Requirements';
 
 type StdioOptions = childProcess.StdioOptions;
 
@@ -100,10 +99,6 @@ export class CommonUtils {
             // which means that the server is not running
             return undefined;
         }
-    }
-
-    public static castAsRequirement(input: any): Requirement {
-        return input as Requirement;
     }
 
     private static logger: Logger = new Logger(LOGGER_NAME);

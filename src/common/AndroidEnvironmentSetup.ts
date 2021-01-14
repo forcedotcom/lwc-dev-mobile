@@ -8,8 +8,7 @@ import { Logger } from '@salesforce/core';
 import util from 'util';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
-import { CommonUtils } from './CommonUtils';
-import { BaseSetup, Requirement } from './Requirements';
+import { BaseSetup } from './Requirements';
 
 export class AndroidEnvironmentSetup extends BaseSetup {
     constructor(logger: Logger) {
@@ -89,66 +88,57 @@ export class AndroidEnvironmentSetup extends BaseSetup {
     }
 
     public async isJava8Available(): Promise<string> {
-        const requirement = CommonUtils.castAsRequirement(this);
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.androidSDKPrerequisitesCheck()
                 .then((result) => {
-                    resolve(requirement.fulfilledMessage);
+                    resolve(this.fulfilledMessage);
                 })
                 .catch((error) => {
-                    reject(
-                        util.format(
-                            requirement.unfulfilledMessage,
-                            error.message
-                        )
-                    );
+                    reject(util.format(this.unfulfilledMessage, error.message));
                 });
         });
     }
 
     public async isAndroidSdkRootSet(): Promise<string> {
-        const requirement = CommonUtils.castAsRequirement(this);
         return new Promise<string>((resolve, reject) => {
             const root = AndroidSDKUtils.getAndroidSdkRoot();
             if (root) {
                 resolve(
                     AndroidSDKUtils.convertToUnixPath(
                         util.format(
-                            requirement.fulfilledMessage,
+                            this.fulfilledMessage,
                             root.rootSource,
                             root.rootLocation
                         )
                     )
                 );
             } else {
-                reject(requirement.unfulfilledMessage);
+                reject(this.unfulfilledMessage);
             }
         });
     }
 
     public async isAndroidSDKToolsInstalled(): Promise<string> {
-        const requirement = CommonUtils.castAsRequirement(this);
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.fetchAndroidCmdLineToolsLocation()
                 .then((result) =>
                     resolve(
                         AndroidSDKUtils.convertToUnixPath(
-                            util.format(requirement.fulfilledMessage, result)
+                            util.format(this.fulfilledMessage, result)
                         )
                     )
                 )
-                .catch((error) => reject(requirement.unfulfilledMessage));
+                .catch((error) => reject(this.unfulfilledMessage));
         });
     }
 
     public async isAndroidSDKPlatformToolsInstalled(): Promise<string> {
-        const requirement = CommonUtils.castAsRequirement(this);
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.fetchAndroidSDKPlatformToolsLocation()
                 .then((result) => {
                     resolve(
                         AndroidSDKUtils.convertToUnixPath(
-                            util.format(requirement.fulfilledMessage, result)
+                            util.format(this.fulfilledMessage, result)
                         )
                     );
                 })
@@ -164,7 +154,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                     }
                     reject(
                         util.format(
-                            requirement.unfulfilledMessage,
+                            this.unfulfilledMessage,
                             androidConfig.minSupportedRuntimeAndroid
                         )
                     );
@@ -173,21 +163,17 @@ export class AndroidEnvironmentSetup extends BaseSetup {
     }
 
     public async hasRequiredPlatformAPIPackage(): Promise<string> {
-        const requirement = CommonUtils.castAsRequirement(this);
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.findRequiredAndroidAPIPackage()
                 .then((result) =>
                     resolve(
-                        util.format(
-                            requirement.fulfilledMessage,
-                            result.platformAPI
-                        )
+                        util.format(this.fulfilledMessage, result.platformAPI)
                     )
                 )
                 .catch((error) =>
                     reject(
                         util.format(
-                            requirement.unfulfilledMessage,
+                            this.unfulfilledMessage,
                             androidConfig.minSupportedRuntimeAndroid
                         )
                     )
@@ -196,18 +182,15 @@ export class AndroidEnvironmentSetup extends BaseSetup {
     }
 
     public async hasRequiredEmulatorImages(): Promise<string> {
-        const requirement = CommonUtils.castAsRequirement(this);
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.findRequiredEmulatorImages()
                 .then((result) =>
-                    resolve(
-                        util.format(requirement.fulfilledMessage, result.path)
-                    )
+                    resolve(util.format(this.fulfilledMessage, result.path))
                 )
                 .catch((error) =>
                     reject(
                         util.format(
-                            requirement.unfulfilledMessage,
+                            this.unfulfilledMessage,
                             androidConfig.supportedImages.join(',')
                         )
                     )

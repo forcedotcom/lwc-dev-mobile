@@ -11,7 +11,7 @@ import { AndroidSDKUtils } from '../../../../../../../common/AndroidUtils';
 import { Version } from '../../../../../../../common/Common';
 import { IOSUtils } from '../../../../../../../common/IOSUtils';
 import Setup from '../../setup';
-import Create from '../create';
+import { Create } from '../create';
 
 const passedSetupMock = jest.fn(() => {
     return Promise.resolve({ hasMetAllRequirements: true, tests: [] });

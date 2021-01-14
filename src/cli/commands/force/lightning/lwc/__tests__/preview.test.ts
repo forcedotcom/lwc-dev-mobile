@@ -8,7 +8,7 @@ import * as Config from '@oclif/config';
 import { Logger, SfdxError } from '@salesforce/core';
 import { CommonUtils } from '../../../../../../common/CommonUtils';
 import Setup from '../../local/setup';
-import Preview from '../preview';
+import { LwcServerIsRunningRequirement, Preview } from '../preview';
 
 const myPreviewCommandBlockMock = jest.fn(
     (): Promise<boolean> => {
@@ -102,11 +102,13 @@ describe('Preview Tests', () => {
         const cmdMock = jest.fn((): string => {
             throw new Error('test error');
         });
+
         jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             cmdMock
         );
-        preview
-            .isLwcServerRunning()
+        const requirement = new LwcServerIsRunningRequirement(logger);
+        requirement
+            .checkFunction()
             .then(() => fail('should have thrown an error'))
             // tslint:disable-next-line: no-empty
             .catch(() => {});
@@ -119,11 +121,14 @@ describe('Preview Tests', () => {
         const cmdMock = jest.fn((): string => {
             return 'path/to/bin/node /path/to/bin/sfdx.js force:lightning:lwc:start';
         });
+
         jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             cmdMock
         );
-        const port = (await preview.isLwcServerRunning()).trim();
-        expect(port.endsWith('3333')).toBeTrue();
+        const requirement = new LwcServerIsRunningRequirement(logger);
+        const portMessage = (await requirement.checkFunction()).trim();
+        const port = portMessage.match(/\d+/);
+        expect(port !== null && port[0] === '3333').toBeTrue();
     });
 
     test('Preview should use specified server port', async () => {
@@ -134,11 +139,14 @@ describe('Preview Tests', () => {
         const cmdMock = jest.fn((): string => {
             return `path/to/bin/node /path/to/bin/sfdx.js force:lightning:lwc:start -p ${specifiedPort}`;
         });
+
         jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             cmdMock
         );
-        const port = (await preview.isLwcServerRunning()).trim();
-        expect(port.endsWith(specifiedPort)).toBeTrue();
+        const requirement = new LwcServerIsRunningRequirement(logger);
+        const portMessage = (await requirement.checkFunction()).trim();
+        const port = portMessage.match(/\d+/);
+        expect(port !== null && port[0] === specifiedPort).toBeTrue();
     });
 
     test('Logger must be initialized and invoked', async () => {

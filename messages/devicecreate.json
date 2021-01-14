@@ -1,5 +1,5 @@
 {
-    "commandDescription": "Create a virtual mobile devices",
+    "commandDescription": "Create a virtual mobile device",
     "platformFlagDescription": "Specify platform ('iOS' or 'Android').",
     "deviceNameFlagDescription": "Virtual device name.",
     "deviceTypeFlagDescription": "Virtual device type.",
@@ -7,7 +7,7 @@
     "error:invalidDeviceNameFlagsDescription": "Invalid or missing virtual device name.",
     "error:invalidDeviceTypeFlagsDescription": "Invalid or missing device type.",
     "reqs:devicename:title" : "Checking whether a virtual device with the specified name already exists.",
-    "reqs:devicename:fulfilledMessage" : "Virtual device name '%s' is unique.",
+    "reqs:devicename:fulfilledMessage" : "A virtual device with the name '%s' does not exist.",
     "reqs:devicename:unfulfilledMessage" : "A virtual device with the name '%s' already exists.",
     "reqs:devicetype:title" : "Validating specified device type.",
     "reqs:devicetype:fulfilledMessage" : "Device type '%s' is valid.",

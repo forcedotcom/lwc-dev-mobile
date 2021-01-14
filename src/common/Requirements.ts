@@ -111,6 +111,10 @@ export abstract class BaseSetup implements RequirementList {
         '@salesforce/lwc-dev-mobile',
         'setup'
     );
+    // NOTE: The following properties are just place holders to help with typescript compile.
+    protected title: string = '';
+    protected fulfilledMessage: string = '';
+    protected unfulfilledMessage: string = '';
 
     private perfMarker = PerformanceMarkers.getByName(
         PerformanceMarkers.REQUIREMENTS_MARKER_KEY
@@ -209,12 +213,11 @@ export abstract class BaseSetup implements RequirementList {
     }
 
     public async ensureLWCServerPluginInstalled(): Promise<string> {
-        const requirement = CommonUtils.castAsRequirement(this);
         return new Promise<string>(async (resolve, reject) => {
             try {
                 await CommonUtils.isLwcServerPluginInstalled();
                 this.logger.info('sfdx server plugin detected.');
-                resolve(requirement.fulfilledMessage);
+                resolve(this.fulfilledMessage);
             } catch {
                 this.logger.info('sfdx server plugin was not detected.');
                 try {
@@ -229,12 +232,12 @@ export abstract class BaseSetup implements RequirementList {
                         'inherit'
                     ]);
                     this.logger.info('sfdx server plugin installed.');
-                    resolve(requirement.fulfilledMessage);
+                    resolve(this.fulfilledMessage);
                 } catch (error) {
                     this.logger.error(
                         `sfdx server plugin installion failed. ${error}`
                     );
-                    reject(new Error(requirement.unfulfilledMessage));
+                    reject(new Error(this.unfulfilledMessage));
                 }
             }
         });
