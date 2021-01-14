@@ -106,37 +106,19 @@ export function WrappedPromise(
 
 export abstract class BaseSetup implements RequirementList {
     public requirements: Requirement[];
-    protected logger: Logger;
-    protected setupMessages = Messages.loadMessages(
+    public logger: Logger;
+    public setupMessages = Messages.loadMessages(
         '@salesforce/lwc-dev-mobile',
         'setup'
     );
-    // NOTE: The following properties are just place holders to help with typescript compile.
-    protected title: string = '';
-    protected fulfilledMessage: string = '';
-    protected unfulfilledMessage: string = '';
-
-    private perfMarker = PerformanceMarkers.getByName(
-        PerformanceMarkers.REQUIREMENTS_MARKER_KEY
-    )!;
 
     constructor(logger: Logger) {
-        const messages = this.setupMessages;
         this.logger = logger;
         this.requirements = [
-            {
-                checkFunction: this.ensureLWCServerPluginInstalled,
-                fulfilledMessage: `${messages.getMessage(
-                    'common:reqs:serverplugin:fulfilledMessage'
-                )}`,
-                logger,
-                title: `${messages.getMessage(
-                    'common:reqs:serverplugin:title'
-                )}`,
-                unfulfilledMessage: `${messages.getMessage(
-                    'common:reqs:serverplugin:unfulfilledMessage'
-                )}`
-            }
+            new LWCServerPluginInstalledRequirement(
+                this.setupMessages,
+                this.logger
+            )
         ];
     }
 
@@ -212,7 +194,32 @@ export abstract class BaseSetup implements RequirementList {
         });
     }
 
-    public async ensureLWCServerPluginInstalled(): Promise<string> {
+    public addRequirements(reqs: Requirement[]) {
+        if (reqs) {
+            this.requirements = this.requirements.concat(reqs);
+        }
+    }
+}
+
+// tslint:disable-next-line: max-classes-per-file
+export class LWCServerPluginInstalledRequirement implements Requirement {
+    public title: string;
+    public fulfilledMessage: string;
+    public unfulfilledMessage: string;
+    public logger: Logger;
+
+    constructor(messages: Messages, logger: Logger) {
+        this.title = messages.getMessage('common:reqs:serverplugin:title');
+        this.fulfilledMessage = messages.getMessage(
+            'common:reqs:serverplugin:fulfilledMessage'
+        );
+        this.unfulfilledMessage = messages.getMessage(
+            'common:reqs:serverplugin:unfulfilledMessage'
+        );
+        this.logger = logger;
+    }
+
+    public async checkFunction(): Promise<string> {
         return new Promise<string>(async (resolve, reject) => {
             try {
                 await CommonUtils.isLwcServerPluginInstalled();
@@ -241,11 +248,5 @@ export abstract class BaseSetup implements RequirementList {
                 }
             }
         });
-    }
-
-    public addRequirements(reqs: Requirement[]) {
-        if (reqs) {
-            this.requirements = this.requirements.concat(reqs);
-        }
     }
 }
