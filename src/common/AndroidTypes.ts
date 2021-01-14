@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
+import fs from 'fs';
 import { Version } from './Common';
 
 export class AndroidPackages {
@@ -166,26 +167,31 @@ export class AndroidVirtualDevice {
     private static getAvdDefinitions(rawString: string): string[][] {
         // get rid of the error sections (if any)
         const errIdx = rawString.indexOf('\n\n');
-        const cleanedRawString =
+
+        // loaded AVDs are those reported by "avdmanager list avd" under "Available Android Virtual Devices"
+        const loadedAVDs =
             errIdx > 0 ? rawString.substring(0, errIdx - 1) : rawString;
 
-        const lowerCasedRawString = cleanedRawString.toLowerCase();
-        let position = 0;
+        // not loaded AVDs are those reported by "avdmanager list avd" under "The following Android Virtual Devices could not be loaded"
+        const notLoadedAVDs = errIdx > 0 ? rawString.substring(errIdx + 2) : '';
+
         const results: string[][] = [];
 
-        // now parse the device definition sections
+        // now parse the device definition sections for loaded AVDs
+        let position = 0;
+        const lowerCasedLoadedAvds = loadedAVDs.toLowerCase();
         while (position !== -1) {
-            const startIdx = lowerCasedRawString.indexOf('name:', position);
+            const startIdx = lowerCasedLoadedAvds.indexOf('name:', position);
             let endIdx = -1;
 
             if (startIdx > -1) {
-                const sepIdx = lowerCasedRawString.indexOf('---', startIdx);
+                const sepIdx = lowerCasedLoadedAvds.indexOf('---', startIdx);
                 endIdx = sepIdx > -1 ? sepIdx - 1 : -1;
 
                 let chunk =
                     endIdx > -1
-                        ? cleanedRawString.substring(startIdx, endIdx)
-                        : cleanedRawString.substring(startIdx);
+                        ? loadedAVDs.substring(startIdx, endIdx)
+                        : loadedAVDs.substring(startIdx);
                 chunk = chunk.replace('Tag/ABI:', '\nTag/ABI:'); // put ABI info on a line of its own
                 const split = chunk.split('\n');
                 results.push(split);
@@ -194,7 +200,106 @@ export class AndroidVirtualDevice {
             position = endIdx;
         }
 
+        // now parse the device definition sections for not loaded AVDs
+        position = 0;
+        const lowerCasedNotLoadedAvds = notLoadedAVDs.toLowerCase();
+        while (position !== -1) {
+            const startIdx = lowerCasedNotLoadedAvds.indexOf('name:', position);
+            let endIdx = -1;
+
+            if (startIdx > -1) {
+                const sepIdx = lowerCasedNotLoadedAvds.indexOf('---', startIdx);
+                endIdx = sepIdx > -1 ? sepIdx - 1 : -1;
+
+                const chunk =
+                    endIdx > -1
+                        ? notLoadedAVDs.substring(startIdx, endIdx)
+                        : notLoadedAVDs.substring(startIdx);
+                const definition = AndroidVirtualDevice.getDefinitionFromConfigFile(
+                    chunk
+                );
+                results.push(definition);
+            }
+
+            position = endIdx;
+        }
+
         return results;
+    }
+
+    private static getDefinitionFromConfigFile(notLoadedAVD: string): string[] {
+        const result: string[] = [];
+
+        const split = notLoadedAVD.split('\n');
+        const path = AndroidVirtualDevice.getValueForKey(split, 'path:');
+        const configPath = path != null ? `${path}/config.ini` : './config.ini';
+
+        try {
+            if (fs.existsSync(configPath)) {
+                const data = fs
+                    .readFileSync(configPath, 'utf8')
+                    .toString()
+                    .split('\n');
+
+                const avdName = AndroidVirtualDevice.getValueForKey(
+                    split,
+                    'name:'
+                );
+                if (avdName != null) {
+                    result.push(`Name: ${avdName}`);
+                }
+
+                const avdPath = AndroidVirtualDevice.getValueForKey(
+                    split,
+                    'path:'
+                );
+                if (avdPath != null) {
+                    result.push(`Path: ${avdPath}`);
+                }
+
+                const deviceName = AndroidVirtualDevice.getValueForKey(
+                    data,
+                    'hw.device.name'
+                );
+                if (deviceName != null) {
+                    result.push(`Device: ${deviceName}`);
+                }
+
+                const target = AndroidVirtualDevice.getValueForKey(
+                    data,
+                    'tag.display'
+                );
+                if (target != null) {
+                    result.push(`Target: ${target}`);
+                }
+
+                let image = AndroidVirtualDevice.getValueForKey(
+                    data,
+                    'image.sysdir.1'
+                );
+                if (image != null) {
+                    image = image.replace('system-images/', '');
+                    const parts = image.split('/').filter((v) => v);
+                    if (parts.length > 1) {
+                        const apiPkg = parts[0].replace(
+                            'android-',
+                            'Android API '
+                        );
+
+                        parts.shift();
+                        const abi = parts.join('/');
+
+                        result.push(`Based on: ${apiPkg}`);
+                        result.push(`Tag/ABI: ${abi}`);
+                    }
+                }
+            }
+        } catch {
+            // if we can't parse info about this AVD from its config file
+            // afor ny reasons, just ignore and continue.
+        }
+
+        return result;
     }
 
     private static getValueForKey(array: string[], key: string): string | null {
@@ -202,7 +307,7 @@ export class AndroidVirtualDevice {
             const trimmed = item.trim();
 
             if (trimmed.toLowerCase().startsWith(key.toLowerCase())) {
-                const value = trimmed.substring(key.length + 1).trim(); // key.length + 1 to skip over ':' separator
+                const value = trimmed.substring(key.length + 1).trim(); // key.length + 1 to skip over key/value separator
                 return value;
             }
         }

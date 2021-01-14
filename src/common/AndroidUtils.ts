@@ -309,21 +309,10 @@ export class AndroidSDKUtils {
     }
 
     public static hasEmulator(emulatorName: string): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            try {
-                const stdout = AndroidSDKUtils.executeCommand(
-                    AndroidSDKUtils.getEmulatorCommand() + ' ' + '-list-avds'
-                );
-                const listOfAVDs = stdout
-                    .toString()
-                    .split(os.EOL)
-                    .filter((avd: string) => avd === emulatorName);
-                return resolve(listOfAVDs && listOfAVDs.length > 0);
-            } catch (exception) {
-                AndroidSDKUtils.logger.error(exception);
-            }
-            return resolve(false);
-        });
+        const resolvedEmulator = AndroidSDKUtils.resolveEmulatorImage(
+            emulatorName
+        );
+        return Promise.resolve(resolvedEmulator !== undefined);
     }
 
     public static async createNewVirtualDevice(
@@ -333,61 +322,66 @@ export class AndroidSDKUtils {
         device: string,
         abi: string
     ): Promise<boolean> {
-        const createAvdCommand = `${AndroidSDKUtils.getAvdManagerCommand()} create avd -n ${emulatorName} --force -k ${AndroidSDKUtils.systemImagePath(
+        // Just like Android Studio AVD Manager GUI interface, replace blank spaces with _ so that the ID of this AVD
+        // doesn't have blanks (since that's not allowed). AVD Manager will automatially replace _ back with blank
+        // to generate user friendly display names.
+        const resolvedName = emulatorName.replace(/ /gi, '_');
+
+        const createAvdCommand = `${AndroidSDKUtils.getAvdManagerCommand()} create avd -n '${resolvedName}' --force -k ${AndroidSDKUtils.systemImagePath(
             platformAPI,
             emulatorImage,
             abi
         )} --device ${device} --abi ${abi}`;
-        return new Promise((resolve, reject) => {
-            try {
-                const child = AndroidSDKUtils.spawnChild(createAvdCommand);
-                child.stdin.setDefaultEncoding('utf8');
-                child.stdin.write('no');
-                if (child) {
-                    child.stdout.on('data', () => {
-                        setTimeout(() => {
-                            resolve(true);
-                        }, 3000);
-                    });
-                    child.stdout.on('exit', () => resolve(true));
-                    child.stderr.on('error', () => reject(false));
-                } else {
-                    reject(false);
-                }
-            } catch (error) {
-                reject(error);
-            }
-        }).then((resolve) =>
-            AndroidSDKUtils.updateEmulatorConfig(emulatorName)
-        );
+
+        try {
+            AndroidSDKUtils.executeCommand(createAvdCommand, [
+                'pipe',
+                'pipe',
+                'pipe'
+            ]);
+            return AndroidSDKUtils.updateEmulatorConfig(resolvedName);
+        } catch (error) {
+            return Promise.reject(error);
+        }
     }
 
     public static startEmulator(
         emulatorName: string,
         requestedPortNumber: number
     ): Promise<number> {
-        return new Promise((resolve, reject) => {
-            let portNumber = requestedPortNumber;
-            try {
-                if (AndroidSDKUtils.isEmulatorAlreadyStarted(emulatorName)) {
-                    // get port number from emu-launch-params.txt
-                    portNumber = AndroidSDKUtils.getEmulatorPort(
-                        emulatorName,
-                        requestedPortNumber
-                    );
-                    resolve(portNumber);
-                    return;
-                }
-                const child = spawn(
-                    `${AndroidSDKUtils.getEmulatorCommand()} @${emulatorName} -port ${portNumber}`,
-                    { detached: true, shell: true, stdio: 'ignore' }
+        let portNumber = requestedPortNumber;
+        const resolvedEmulator = AndroidSDKUtils.resolveEmulatorImage(
+            emulatorName
+        );
+
+        // This shouldn't happen b/c we make ensure an emulator exists
+        // before calling this method, but keeping it just in case
+        if (resolvedEmulator === undefined) {
+            return Promise.reject(
+                new Error(`Invalid emulator: ${emulatorName}`)
+            );
+        }
+
+        try {
+            if (AndroidSDKUtils.isEmulatorAlreadyStarted(resolvedEmulator)) {
+                // get port number from emu-launch-params.txt
+                portNumber = AndroidSDKUtils.getEmulatorPort(
+                    resolvedEmulator,
+                    requestedPortNumber
                 );
-                resolve(portNumber);
-                child.unref();
-            } catch (error) {
-                reject(error);
+                return Promise.resolve(portNumber);
             }
-        });
+            const cmd = `${AndroidSDKUtils.getEmulatorCommand()} @${resolvedEmulator} -port ${portNumber}`;
+            const child = spawn(cmd, {
+                detached: true,
+                shell: true,
+                stdio: 'ignore'
+            });
+            child.unref();
+            return Promise.resolve(portNumber);
+        } catch (error) {
+            return Promise.reject(error);
+        }
     }
 
     public static async pollDeviceStatus(portNumber: number): Promise<boolean> {
@@ -791,17 +785,34 @@ export class AndroidSDKUtils {
         return foundProcess;
     }
 
-    // NOTE: detaching a process in windows seems to detach the streams. Prevent spawn from detaching when
-    // used in Windows OS for special handling of some commands (adb).
-    private static spawnChild(command: string): childProcess.ChildProcess {
-        if (process.platform === WINDOWS_OS) {
-            const child = spawn(command, { shell: true });
-            return child;
-        } else {
-            const child = spawn(command, { shell: true, detached: true });
-            child.unref();
-            return child;
+    // The user can provide us with emulator name as an ID (Pixel_XL) or as display name (Pixel XL).
+    // This method can be used to resolve a display name back to an id since emulator commands
+    // work with IDs not display names.
+    private static resolveEmulatorImage(
+        emulatorName: string
+    ): string | undefined {
+        const emulatorDisplayName = emulatorName.replace(/[_-]/gi, ' ').trim(); // eg. Pixel_XL --> Pixel XL, tv-emulator --> tv emulator
+
+        try {
+            const stdout = AndroidSDKUtils.executeCommand(
+                AndroidSDKUtils.getEmulatorCommand() + ' ' + '-list-avds'
+            );
+            const listOfAVDs = stdout.toString().split('\n');
+            for (const avd of listOfAVDs) {
+                const avdDisplayName = avd.replace(/[_-]/gi, ' ').trim();
+
+                if (
+                    avd === emulatorName ||
+                    avdDisplayName === emulatorDisplayName
+                ) {
+                    return avd;
+                }
+            }
+        } catch (exception) {
+            AndroidSDKUtils.logger.error(exception);
         }
+
+        return undefined;
     }
 
     private static async readEmulatorConfig(
