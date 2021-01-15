@@ -327,7 +327,7 @@ export class AndroidSDKUtils {
         // to generate user friendly display names.
         const resolvedName = emulatorName.replace(/ /gi, '_');
 
-        const createAvdCommand = `${AndroidSDKUtils.getAvdManagerCommand()} create avd -n '${resolvedName}' --force -k ${AndroidSDKUtils.systemImagePath(
+        const createAvdCommand = `${AndroidSDKUtils.getAvdManagerCommand()} create avd -n ${resolvedName} --force -k ${AndroidSDKUtils.systemImagePath(
             platformAPI,
             emulatorImage,
             abi
@@ -797,7 +797,7 @@ export class AndroidSDKUtils {
             const stdout = AndroidSDKUtils.executeCommand(
                 AndroidSDKUtils.getEmulatorCommand() + ' ' + '-list-avds'
             );
-            const listOfAVDs = stdout.toString().split('\n');
+            const listOfAVDs = stdout.toString().split(os.EOL);
             for (const avd of listOfAVDs) {
                 const avdDisplayName = avd.replace(/[_-]/gi, ' ').trim();
 
