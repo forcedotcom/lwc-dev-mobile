@@ -42,12 +42,12 @@ export class AndroidEnvironmentSetup extends BaseSetup {
             {
                 checkFunction: this.isAndroidSDKToolsInstalled,
                 fulfilledMessage: messages.getMessage(
-                    'android:reqs:sdktools:fulfilledMessage'
+                    'android:reqs:cmdlinetools:fulfilledMessage'
                 ),
                 logger,
-                title: messages.getMessage('android:reqs:sdktools:title'),
+                title: messages.getMessage('android:reqs:cmdlinetools:title'),
                 unfulfilledMessage: messages.getMessage(
-                    'android:reqs:sdktools:unfulfilledMessage'
+                    'android:reqs:cmdlinetools:unfulfilledMessage'
                 )
             },
             {
@@ -120,7 +120,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
 
     public async isAndroidSDKToolsInstalled(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            AndroidSDKUtils.fetchAndroidSDKToolsLocation()
+            AndroidSDKUtils.fetchAndroidCmdLineToolsLocation()
                 .then((result) =>
                     resolve(
                         AndroidSDKUtils.convertToUnixPath(
@@ -128,14 +128,7 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                         )
                     )
                 )
-                .catch((error) =>
-                    reject(
-                        util.format(
-                            this.unfulfilledMessage,
-                            androidConfig.minSupportedRuntimeAndroid
-                        )
-                    )
-                );
+                .catch((error) => reject(this.unfulfilledMessage));
         });
     }
 

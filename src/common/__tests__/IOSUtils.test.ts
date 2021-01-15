@@ -125,7 +125,7 @@ describe('IOS utils tests', () => {
         const runtimeType = 'MOCK-SIM';
         await IOSUtils.createNewDevice(simName, deviceType, runtimeType);
         expect(launchCommandMock).toHaveBeenCalledWith(
-            `/usr/bin/xcrun simctl create ${simName} ${DEVICE_TYPE_PREFIX}.${deviceType} ${RUNTIME_TYPE_PREFIX}.${runtimeType}`
+            `/usr/bin/xcrun simctl create '${simName}' ${DEVICE_TYPE_PREFIX}.${deviceType} ${RUNTIME_TYPE_PREFIX}.${runtimeType}`
         );
     });
 
