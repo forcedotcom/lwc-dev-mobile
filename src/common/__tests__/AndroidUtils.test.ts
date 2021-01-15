@@ -140,7 +140,9 @@ describe('Android utils', () => {
             myCommandBlockMock
         );
         await AndroidSDKUtils.fetchInstalledPackages();
-        expect(myCommandBlockMock).toHaveBeenCalledWith(`${sdkCommand} --list`);
+        expect(myCommandBlockMock).toHaveBeenCalledWith(
+            `${sdkCommand} --list --verbose`
+        );
     });
 
     test('Should attempt to invoke the sdkmanager and get installed packages', async () => {

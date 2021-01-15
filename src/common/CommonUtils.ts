@@ -78,5 +78,17 @@ export class CommonUtils {
         }
     }
 
+    public static getValueForKey(array: string[], key: string): string | null {
+        for (const item of array) {
+            const trimmed = item.trim();
+
+            if (trimmed.toLowerCase().startsWith(key.toLowerCase())) {
+                const value = trimmed.substring(key.length + 1).trim(); // key.length + 1 to skip over key/value separator
+                return value;
+            }
+        }
+        return null;
+    }
+
     private static logger: Logger = new Logger(LOGGER_NAME);
 }

@@ -164,7 +164,7 @@ export class AndroidSDKUtils {
         if (!AndroidSDKUtils.isCached()) {
             try {
                 const stdout = AndroidSDKUtils.executeCommand(
-                    `${AndroidSDKUtils.getSdkManagerCommand()} --list`
+                    `${AndroidSDKUtils.getSdkManagerCommand()} --list --verbose`
                 );
                 if (stdout) {
                     const packages = AndroidPackages.parseRawPackagesString(

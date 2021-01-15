@@ -4,72 +4,81 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
+import fs from 'fs';
 import { Version } from './Common';
+import { CommonUtils } from './CommonUtils';
 
 export class AndroidPackages {
     public static parseRawPackagesString(
         rawStringInput: string
     ): AndroidPackages {
-        const startIndx = rawStringInput
-            .toLowerCase()
-            .indexOf('installed packages:', 0);
-        const endIndx = rawStringInput
-            .toLowerCase()
-            .indexOf('available packages:', startIndx);
-        const rawString = rawStringInput.substring(startIndx, endIndx);
         const packages: AndroidPackages = new AndroidPackages();
 
-        // Installed packages:
-        const lines = rawString.split('\n');
-        if (lines.length > 0) {
-            let i = 0;
-            for (; i < lines.length; i++) {
-                if (lines[i].toLowerCase().indexOf('path') > -1) {
-                    i = i + 2; // skip ---- and header
-                    break; // start of installed packages
-                }
-            }
+        const installedPkgsHeader = 'installed packages:';
+        const availablePkgsHeader = 'available packages:';
+        const headerSeparator = '----\n';
 
-            for (; i < lines.length; i++) {
-                const rawStringSplits: string[] = lines[i].split('|');
-                if (rawStringSplits.length > 1) {
-                    const path = rawStringSplits[0].trim();
-                    if (
-                        path.startsWith('platforms;android-') ||
-                        path.startsWith('system-images;android-')
-                    ) {
-                        const pathName = path
-                            .replace('platforms;', '')
-                            .replace('system-images;', '');
-                        let versionString = pathName.replace('android-', '');
-                        if (versionString.indexOf(';') >= 0) {
-                            versionString = versionString.substring(
-                                0,
-                                versionString.indexOf(';')
-                            );
-                        }
-                        const version = Version.from(versionString);
-                        const description = rawStringSplits[2].trim();
-                        const locationOfPack =
-                            rawStringSplits.length > 2
-                                ? rawStringSplits[3].trim()
-                                : '';
-                        const pkg = new AndroidPackage(
-                            pathName,
-                            version,
-                            description,
-                            locationOfPack
-                        );
-                        if (path.startsWith('platforms;android-')) {
-                            packages.platforms.push(pkg);
-                        } else {
-                            packages.systemImages.push(pkg);
-                        }
-                    }
+        const lowerCaseRawInput = rawStringInput.toLowerCase();
+        let startIndx = lowerCaseRawInput.indexOf(installedPkgsHeader);
+        const endIndx = lowerCaseRawInput.indexOf(availablePkgsHeader);
+        if (startIndx < 0 || endIndx <= startIndx) {
+            return packages;
+        }
+
+        const sepIndx = lowerCaseRawInput.indexOf(headerSeparator, startIndx);
+        startIndx =
+            sepIndx > startIndx
+                ? sepIndx + headerSeparator.length
+                : startIndx + installedPkgsHeader.length;
+        const rawString = rawStringInput.substring(startIndx, endIndx).trim();
+
+        const pkgDefinitions = rawString.split('\n\n');
+        for (const pkgDefinition of pkgDefinitions) {
+            const lines = pkgDefinition.split('\n');
+            const path = lines.length > 0 ? lines[0].trim() : '';
+            if (
+                path.startsWith('platforms;android-') ||
+                path.startsWith('system-images;android-')
+            ) {
+                const pathName = path
+                    .replace('platforms;', '')
+                    .replace('system-images;', '');
+
+                let apiVersionString = pathName.replace('android-', '');
+                if (apiVersionString.indexOf(';') >= 0) {
+                    apiVersionString = apiVersionString.substring(
+                        0,
+                        apiVersionString.indexOf(';')
+                    );
+                }
+                const apiVersion = Version.from(apiVersionString);
+
+                let description = CommonUtils.getValueForKey(
+                    lines,
+                    'description:'
+                );
+                if (description == null) {
+                    description = '';
                 }
 
-                if (lines[i].indexOf('Available Packages:') > -1) {
-                    break;
+                let location = CommonUtils.getValueForKey(
+                    lines,
+                    'installed location:'
+                );
+                if (location == null) {
+                    location = '';
+                }
+
+                const pkg = new AndroidPackage(
+                    pathName,
+                    apiVersion,
+                    description,
+                    location
+                );
+                if (path.startsWith('platforms;android-')) {
+                    packages.platforms.push(pkg);
+                } else {
+                    packages.systemImages.push(pkg);
                 }
             }
         }
@@ -126,11 +135,11 @@ export class AndroidVirtualDevice {
         const devices: AndroidVirtualDevice[] = [];
 
         for (const avd of avds) {
-            const name = AndroidVirtualDevice.getValueForKey(avd, 'name:');
-            const device = AndroidVirtualDevice.getValueForKey(avd, 'device:');
-            const path = AndroidVirtualDevice.getValueForKey(avd, 'path:');
-            const target = AndroidVirtualDevice.getValueForKey(avd, 'target:');
-            const api = AndroidVirtualDevice.getValueForKey(avd, 'based on:');
+            const name = CommonUtils.getValueForKey(avd, 'name:');
+            const device = CommonUtils.getValueForKey(avd, 'device:');
+            const path = CommonUtils.getValueForKey(avd, 'path:');
+            const target = CommonUtils.getValueForKey(avd, 'target:');
+            const api = CommonUtils.getValueForKey(avd, 'based on:');
 
             if (name && device && path && target && api) {
                 devices.push(
@@ -197,16 +206,67 @@ export class AndroidVirtualDevice {
         return results;
     }
 
-    private static getValueForKey(array: string[], key: string): string | null {
-        for (const item of array) {
-            const trimmed = item.trim();
+    private static getDefinitionFromConfigFile(notLoadedAVD: string): string[] {
+        const result: string[] = [];
 
-            if (trimmed.toLowerCase().startsWith(key.toLowerCase())) {
-                const value = trimmed.substring(key.length + 1).trim(); // key.length + 1 to skip over ':' separator
-                return value;
+        const split = notLoadedAVD.split('\n');
+        const path = CommonUtils.getValueForKey(split, 'path:');
+        const configPath = path != null ? `${path}/config.ini` : './config.ini';
+
+        try {
+            if (fs.existsSync(configPath)) {
+                const data = fs
+                    .readFileSync(configPath, 'utf8')
+                    .toString()
+                    .split('\n');
+
+                const avdName = CommonUtils.getValueForKey(split, 'name:');
+                if (avdName != null) {
+                    result.push(`Name: ${avdName}`);
+                }
+
+                const avdPath = CommonUtils.getValueForKey(split, 'path:');
+                if (avdPath != null) {
+                    result.push(`Path: ${avdPath}`);
+                }
+
+                const deviceName = CommonUtils.getValueForKey(
+                    data,
+                    'hw.device.name'
+                );
+                if (deviceName != null) {
+                    result.push(`Device: ${deviceName}`);
+                }
+
+                const target = CommonUtils.getValueForKey(data, 'tag.display');
+                if (target != null) {
+                    result.push(`Target: ${target}`);
+                }
+
+                let image = CommonUtils.getValueForKey(data, 'image.sysdir.1');
+                if (image != null) {
+                    image = image.replace('system-images/', '');
+                    const parts = image.split('/').filter((v) => v);
+                    if (parts.length > 1) {
+                        const apiPkg = parts[0].replace(
+                            'android-',
+                            'Android API '
+                        );
+
+                        parts.shift();
+                        const abi = parts.join('/');
+
+                        result.push(`Based on: ${apiPkg}`);
+                        result.push(`Tag/ABI: ${abi}`);
+                    }
+                }
             }
+        } catch {
+            // if we can't parse info about this AVD from its config file
+            // afor ny reasons, just ignore and continue.
         }
-        return null;
+
+        return result;
     }
 
     public name: string;
