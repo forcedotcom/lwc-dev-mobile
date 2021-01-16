@@ -348,39 +348,61 @@ export class AndroidSDKUtils {
         emulatorName: string,
         requestedPortNumber: number
     ): Promise<number> {
-        let portNumber = requestedPortNumber;
-        const resolvedEmulator = AndroidSDKUtils.resolveEmulatorImage(
-            emulatorName
-        );
-
-        // This shouldn't happen b/c we make ensure an emulator exists
-        // before calling this method, but keeping it just in case
-        if (resolvedEmulator === undefined) {
-            return Promise.reject(
-                new Error(`Invalid emulator: ${emulatorName}`)
+        return new Promise<number>((resolve, reject) => {
+            let portNumber = requestedPortNumber;
+            const resolvedEmulator = AndroidSDKUtils.resolveEmulatorImage(
+                emulatorName
             );
-        }
 
-        try {
-            if (AndroidSDKUtils.isEmulatorAlreadyStarted(resolvedEmulator)) {
-                // get port number from emu-launch-params.txt
-                portNumber = AndroidSDKUtils.getEmulatorPort(
-                    resolvedEmulator,
-                    requestedPortNumber
-                );
-                return Promise.resolve(portNumber);
+            // This shouldn't happen b/c we make ensure an emulator exists
+            // before calling this method, but keeping it just in case
+            if (resolvedEmulator === undefined) {
+                reject(new Error(`Invalid emulator: ${emulatorName}`));
+                return;
             }
-            const cmd = `${AndroidSDKUtils.getEmulatorCommand()} @${resolvedEmulator} -port ${portNumber}`;
-            const child = spawn(cmd, {
-                detached: true,
-                shell: true,
-                stdio: 'ignore'
-            });
-            child.unref();
-            return Promise.resolve(portNumber);
-        } catch (error) {
-            return Promise.reject(error);
-        }
+
+            try {
+                if (
+                    AndroidSDKUtils.isEmulatorAlreadyStarted(resolvedEmulator)
+                ) {
+                    // get port number from emu-launch-params.txt
+                    portNumber = AndroidSDKUtils.getEmulatorPort(
+                        resolvedEmulator,
+                        requestedPortNumber
+                    );
+                    resolve(portNumber);
+                    return;
+                }
+                const cmd = `${AndroidSDKUtils.getEmulatorCommand()} @${resolvedEmulator} -port ${portNumber}`;
+                const child = spawn(cmd, {
+                    detached: true,
+                    shell: true
+                });
+                if (child) {
+                    child.unref();
+
+                    child.stdout.on('data', () => {
+                        // TODO: rather than calling into pollDeviceStatus() to see if device is booted
+                        // we could just listen to the boot message that is sent to stdout of the process
+
+                        // if stdout is called then it means that the process succeeded in launching the emulator
+                        resolve(portNumber);
+                    });
+
+                    child.stderr.on('data', (data) => {
+                        reject(
+                            new Error(
+                                `Could not start emulator. Command failed: ${cmd}\n${data}`
+                            )
+                        );
+                    });
+                } else {
+                    reject(new Error(`Could not start emulator.`));
+                }
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
 
     public static async pollDeviceStatus(portNumber: number): Promise<boolean> {
