@@ -332,16 +332,41 @@ export class AndroidSDKUtils {
             abi
         )} --device ${device} --abi ${abi}`;
 
-        try {
-            AndroidSDKUtils.executeCommand(createAvdCommand, [
-                'pipe',
-                'pipe',
-                'pipe'
-            ]);
-            return AndroidSDKUtils.updateEmulatorConfig(resolvedName);
-        } catch (error) {
-            return Promise.reject(error);
-        }
+        return new Promise((resolve, reject) => {
+            try {
+                const child = AndroidSDKUtils.spawnChild(createAvdCommand);
+                child.stdin.setDefaultEncoding('utf8');
+                child.stdin.write('no');
+                if (child) {
+                    child.stdout.on('data', () => {
+                        setTimeout(() => {
+                            resolve(true);
+                        }, 3000);
+                    });
+                    child.stdout.on('exit', () => resolve(true));
+                    child.stderr.on('error', (err) => {
+                        reject(
+                            new Error(
+                                `Could not create emulator. Command failed: ${createAvdCommand}\n${err}`
+                            )
+                        );
+                    });
+                    child.stderr.on('data', (data) => {
+                        reject(
+                            new Error(
+                                `Could not create emulator. Command failed: ${createAvdCommand}\n${data}`
+                            )
+                        );
+                    });
+                } else {
+                    reject(new Error(`Could not create emulator.`));
+                }
+            } catch (error) {
+                reject(new Error(`Could not create emulator. ${error}`));
+            }
+        }).then((resolve) =>
+            AndroidSDKUtils.updateEmulatorConfig(emulatorName)
+        );
     }
 
     public static startEmulator(
@@ -807,6 +832,19 @@ export class AndroidSDKUtils {
             );
         }
         return foundProcess;
+    }
+
+    // NOTE: detaching a process in windows seems to detach the streams. Prevent spawn from detaching when
+    // used in Windows OS for special handling of some commands (adb).
+    private static spawnChild(command: string): childProcess.ChildProcess {
+        if (process.platform === WINDOWS_OS) {
+            const child = spawn(command, { shell: true });
+            return child;
+        } else {
+            const child = spawn(command, { shell: true, detached: true });
+            child.unref();
+            return child;
+        }
     }
 
     // The user can provide us with emulator name as an ID (Pixel_XL) or as display name (Pixel XL).
