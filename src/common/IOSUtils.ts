@@ -47,7 +47,7 @@ export class IOSUtils {
         deviceType: string,
         runtime: string
     ): Promise<string> {
-        const command = `${XCRUN_CMD} simctl create ${simulatorName} ${DEVICE_TYPE_PREFIX}.${deviceType} ${RUNTIME_TYPE_PREFIX}.${runtime}`;
+        const command = `${XCRUN_CMD} simctl create '${simulatorName}' ${DEVICE_TYPE_PREFIX}.${deviceType} ${RUNTIME_TYPE_PREFIX}.${runtime}`;
         try {
             const { stdout } = await IOSUtils.executeCommand(command);
             return new Promise<string>((resolve, reject) => {

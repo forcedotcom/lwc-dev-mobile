@@ -71,7 +71,6 @@ export class AndroidSDKUtils {
 
     public static clearCaches() {
         AndroidSDKUtils.emulatorCommand = undefined;
-        AndroidSDKUtils.androidToolsBin = undefined;
         AndroidSDKUtils.androidCmdLineToolsBin = undefined;
         AndroidSDKUtils.androidPlatformTools = undefined;
         AndroidSDKUtils.avdManagerCommand = undefined;
@@ -87,7 +86,7 @@ export class AndroidSDKUtils {
             // If no errors are encountered then all prerequisites are met.
             // But if an error is encountered then we'll try to see if it
             // is due to unsupported Java version or something else.
-            AndroidSDKUtils.fetchAndroidSDKToolsLocation([
+            AndroidSDKUtils.fetchAndroidCmdLineToolsLocation([
                 'ignore', // stdin
                 'pipe', // stdout
                 'pipe' // stderr
@@ -117,7 +116,7 @@ export class AndroidSDKUtils {
         });
     }
 
-    public static async fetchAndroidSDKToolsLocation(
+    public static async fetchAndroidCmdLineToolsLocation(
         stdioOptions: StdioOptions = ['ignore', 'pipe', 'ignore']
     ): Promise<string> {
         return new Promise(async (resolve, reject) => {
@@ -130,7 +129,7 @@ export class AndroidSDKUtils {
                     `${AndroidSDKUtils.getSdkManagerCommand()} --version`,
                     stdioOptions
                 );
-                resolve(AndroidSDKUtils.getAndroidToolsBin());
+                resolve(AndroidSDKUtils.getAndroidCmdLineToolsBin());
             } catch (err) {
                 reject(err);
                 return;
@@ -309,21 +308,10 @@ export class AndroidSDKUtils {
     }
 
     public static hasEmulator(emulatorName: string): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            try {
-                const stdout = AndroidSDKUtils.executeCommand(
-                    AndroidSDKUtils.getEmulatorCommand() + ' ' + '-list-avds'
-                );
-                const listOfAVDs = stdout
-                    .toString()
-                    .split(os.EOL)
-                    .filter((avd: string) => avd === emulatorName);
-                return resolve(listOfAVDs && listOfAVDs.length > 0);
-            } catch (exception) {
-                AndroidSDKUtils.logger.error(exception);
-            }
-            return resolve(false);
-        });
+        const resolvedEmulator = AndroidSDKUtils.resolveEmulatorImage(
+            emulatorName
+        );
+        return Promise.resolve(resolvedEmulator !== undefined);
     }
 
     public static async createNewVirtualDevice(
@@ -333,11 +321,17 @@ export class AndroidSDKUtils {
         device: string,
         abi: string
     ): Promise<boolean> {
-        const createAvdCommand = `${AndroidSDKUtils.getAvdManagerCommand()} create avd -n ${emulatorName} --force -k ${AndroidSDKUtils.systemImagePath(
+        // Just like Android Studio AVD Manager GUI interface, replace blank spaces with _ so that the ID of this AVD
+        // doesn't have blanks (since that's not allowed). AVD Manager will automatially replace _ back with blank
+        // to generate user friendly display names.
+        const resolvedName = emulatorName.replace(/ /gi, '_');
+
+        const createAvdCommand = `${AndroidSDKUtils.getAvdManagerCommand()} create avd -n ${resolvedName} --force -k ${AndroidSDKUtils.systemImagePath(
             platformAPI,
             emulatorImage,
             abi
         )} --device ${device} --abi ${abi}`;
+
         return new Promise((resolve, reject) => {
             try {
                 const child = AndroidSDKUtils.spawnChild(createAvdCommand);
@@ -350,12 +344,25 @@ export class AndroidSDKUtils {
                         }, 3000);
                     });
                     child.stdout.on('exit', () => resolve(true));
-                    child.stderr.on('error', () => reject(false));
+                    child.stderr.on('error', (err) => {
+                        reject(
+                            new Error(
+                                `Could not create emulator. Command failed: ${createAvdCommand}\n${err}`
+                            )
+                        );
+                    });
+                    child.stderr.on('data', (data) => {
+                        reject(
+                            new Error(
+                                `Could not create emulator. Command failed: ${createAvdCommand}\n${data}`
+                            )
+                        );
+                    });
                 } else {
-                    reject(false);
+                    reject(new Error(`Could not create emulator.`));
                 }
             } catch (error) {
-                reject(error);
+                reject(new Error(`Could not create emulator. ${error}`));
             }
         }).then((resolve) =>
             AndroidSDKUtils.updateEmulatorConfig(emulatorName)
@@ -366,24 +373,57 @@ export class AndroidSDKUtils {
         emulatorName: string,
         requestedPortNumber: number
     ): Promise<number> {
-        return new Promise((resolve, reject) => {
+        return new Promise<number>((resolve, reject) => {
             let portNumber = requestedPortNumber;
+            const resolvedEmulator = AndroidSDKUtils.resolveEmulatorImage(
+                emulatorName
+            );
+
+            // This shouldn't happen b/c we make ensure an emulator exists
+            // before calling this method, but keeping it just in case
+            if (resolvedEmulator === undefined) {
+                reject(new Error(`Invalid emulator: ${emulatorName}`));
+                return;
+            }
+
             try {
-                if (AndroidSDKUtils.isEmulatorAlreadyStarted(emulatorName)) {
+                if (
+                    AndroidSDKUtils.isEmulatorAlreadyStarted(resolvedEmulator)
+                ) {
                     // get port number from emu-launch-params.txt
                     portNumber = AndroidSDKUtils.getEmulatorPort(
-                        emulatorName,
+                        resolvedEmulator,
                         requestedPortNumber
                     );
                     resolve(portNumber);
                     return;
                 }
-                const child = spawn(
-                    `${AndroidSDKUtils.getEmulatorCommand()} @${emulatorName} -port ${portNumber}`,
-                    { detached: true, shell: true, stdio: 'ignore' }
-                );
-                resolve(portNumber);
-                child.unref();
+                const cmd = `${AndroidSDKUtils.getEmulatorCommand()} @${resolvedEmulator} -port ${portNumber}`;
+                const child = spawn(cmd, {
+                    detached: true,
+                    shell: true
+                });
+                if (child) {
+                    child.unref();
+
+                    child.stdout.on('data', () => {
+                        // TODO: rather than calling into pollDeviceStatus() to see if device is booted
+                        // we could just listen to the boot message that is sent to stdout of the process
+
+                        // if stdout is called then it means that the process succeeded in launching the emulator
+                        resolve(portNumber);
+                    });
+
+                    child.stderr.on('data', (data) => {
+                        reject(
+                            new Error(
+                                `Could not start emulator. Command failed: ${cmd}\n${data}`
+                            )
+                        );
+                    });
+                } else {
+                    reject(new Error(`Could not start emulator.`));
+                }
             } catch (error) {
                 reject(error);
             }
@@ -623,7 +663,6 @@ export class AndroidSDKUtils {
     private static logger: Logger = new Logger(LOGGER_NAME);
     private static packageCache: AndroidPackages = new AndroidPackages();
     private static emulatorCommand: string | undefined;
-    private static androidToolsBin: string | undefined;
     private static androidCmdLineToolsBin: string | undefined;
     private static androidPlatformTools: string | undefined;
     private static avdManagerCommand: string | undefined;
@@ -644,35 +683,39 @@ export class AndroidSDKUtils {
         return AndroidSDKUtils.emulatorCommand;
     }
 
-    private static getAndroidToolsBin(): string {
-        if (!AndroidSDKUtils.androidToolsBin) {
-            const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
-            AndroidSDKUtils.androidToolsBin = path.join(
-                (sdkRoot && sdkRoot.rootLocation) || '',
-                'tools',
-                'bin'
-            );
-
-            if (
-                !fs.existsSync(AndroidSDKUtils.androidToolsBin) &&
-                fs.existsSync(AndroidSDKUtils.getAndroidCmdLineToolsBin())
-            ) {
-                AndroidSDKUtils.androidToolsBin = AndroidSDKUtils.getAndroidCmdLineToolsBin();
-            }
-        }
-
-        return AndroidSDKUtils.androidToolsBin;
-    }
-
     private static getAndroidCmdLineToolsBin(): string {
         if (!AndroidSDKUtils.androidCmdLineToolsBin) {
             const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
             AndroidSDKUtils.androidCmdLineToolsBin = path.join(
                 (sdkRoot && sdkRoot.rootLocation) || '',
-                'cmdline-tools',
-                'latest',
-                'bin'
+                'cmdline-tools'
             );
+
+            // It is possible to install various versions of the command line tools side-by-side
+            // In this case the directory structure would be based on tool versions:
+            //
+            //    cmdline-tools/1.0/bin
+            //    cmdline-tools/2.1/bin
+            //    cmdline-tools/3.0/bin
+            //    cmdline-tools/4.0-beta01/bin
+            //    cmdline-tools/latest/bin
+            //
+            // Below, we get the list of all directories, then sort them descendingly and grab the first one.
+            // This would either resolve to 'latest' or the latest versioned folder name
+            if (fs.existsSync(AndroidSDKUtils.androidCmdLineToolsBin)) {
+                const content = fs.readdirSync(
+                    AndroidSDKUtils.androidCmdLineToolsBin
+                );
+                if (content && content.length > 0) {
+                    content.sort((a, b) => (a > b ? -1 : 1));
+
+                    AndroidSDKUtils.androidCmdLineToolsBin = path.join(
+                        AndroidSDKUtils.androidCmdLineToolsBin,
+                        content[0],
+                        'bin'
+                    );
+                }
+            }
         }
 
         return AndroidSDKUtils.androidCmdLineToolsBin;
@@ -681,7 +724,7 @@ export class AndroidSDKUtils {
     private static getAvdManagerCommand(): string {
         if (!AndroidSDKUtils.avdManagerCommand) {
             AndroidSDKUtils.avdManagerCommand = path.join(
-                AndroidSDKUtils.getAndroidToolsBin(),
+                AndroidSDKUtils.getAndroidCmdLineToolsBin(),
                 ANDROID_AVD_MANAGER_NAME
             );
         }
@@ -703,7 +746,7 @@ export class AndroidSDKUtils {
     private static getSdkManagerCommand(): string {
         if (!AndroidSDKUtils.sdkManagerCommand) {
             AndroidSDKUtils.sdkManagerCommand = path.join(
-                AndroidSDKUtils.getAndroidToolsBin(),
+                AndroidSDKUtils.getAndroidCmdLineToolsBin(),
                 ANDROID_SDK_MANAGER_NAME
             );
         }
@@ -802,6 +845,36 @@ export class AndroidSDKUtils {
             child.unref();
             return child;
         }
+    }
+
+    // The user can provide us with emulator name as an ID (Pixel_XL) or as display name (Pixel XL).
+    // This method can be used to resolve a display name back to an id since emulator commands
+    // work with IDs not display names.
+    private static resolveEmulatorImage(
+        emulatorName: string
+    ): string | undefined {
+        const emulatorDisplayName = emulatorName.replace(/[_-]/gi, ' ').trim(); // eg. Pixel_XL --> Pixel XL, tv-emulator --> tv emulator
+
+        try {
+            const stdout = AndroidSDKUtils.executeCommand(
+                AndroidSDKUtils.getEmulatorCommand() + ' ' + '-list-avds'
+            );
+            const listOfAVDs = stdout.toString().split(os.EOL);
+            for (const avd of listOfAVDs) {
+                const avdDisplayName = avd.replace(/[_-]/gi, ' ').trim();
+
+                if (
+                    avd === emulatorName ||
+                    avdDisplayName === emulatorDisplayName
+                ) {
+                    return avd;
+                }
+            }
+        } catch (exception) {
+            AndroidSDKUtils.logger.error(exception);
+        }
+
+        return undefined;
     }
 
     private static async readEmulatorConfig(

@@ -45,7 +45,9 @@ const launchCommandThrowsMock = jest.fn((): string => {
     throw new Error(' Mock Error');
 });
 
-const sdkCommand = path.normalize(mockAndroidHome + '/tools/bin/sdkmanager');
+const sdkCommand = path.normalize(
+    mockAndroidHome + '/cmdline-tools/sdkmanager'
+);
 const adbCommand = path.normalize(mockAndroidHome + '/platform-tools/adb');
 
 let readFileSpy: jest.SpyInstance<any>;
@@ -95,7 +97,7 @@ describe('Android utils', () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
             myGenericVersionsCommandBlockMock
         );
-        await AndroidSDKUtils.fetchAndroidSDKToolsLocation();
+        await AndroidSDKUtils.fetchAndroidCmdLineToolsLocation();
         expect(
             myGenericVersionsCommandBlockMock
         ).toHaveBeenCalledWith(`${sdkCommand} --version`, [
@@ -109,7 +111,7 @@ describe('Android utils', () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
             myGenericVersionsCommandBlockMockThrows
         );
-        AndroidSDKUtils.fetchAndroidSDKToolsLocation().catch((error) => {
+        AndroidSDKUtils.fetchAndroidCmdLineToolsLocation().catch((error) => {
             expect(error).toBeTruthy();
         });
     });

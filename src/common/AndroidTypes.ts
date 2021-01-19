@@ -225,10 +225,10 @@ export class AndroidVirtualDevice {
     ) {
         this.name = name;
         this.displayName = name.replace(/[_-]/gi, ' ').trim(); // eg. Pixel_XL --> Pixel XL, tv-emulator --> tv emulator
-        this.deviceName = deviceName.replace(/\([^\(]*\)/, '').trim(); // eg. Nexus 5X (Google) --> Nexus 5X
+        this.deviceName = deviceName.replace(/\([^\(]*\)/gi, '').trim(); // eg. Nexus 5X (Google) --> Nexus 5X
         this.path = path.trim();
-        this.target = target.replace(/\([^\(]*\)/, '').trim(); // eg. Google APIs (Google Inc.) --> Google APIs
-        this.api = api.replace('Android', '').trim(); // eg. Android API 29 --> API 29
+        this.target = target.replace(/\([^\(]*\)/gi, '').trim(); // eg. Google APIs (Google Inc.) --> Google APIs
+        this.api = api.trim();
     }
 
     public toString(): string {
