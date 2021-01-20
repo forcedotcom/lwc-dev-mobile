@@ -11,8 +11,8 @@ process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 
 import { Logger, Messages } from '@salesforce/core';
 import { AndroidEnvironmentSetup } from '../AndroidEnvironmentSetup';
-import { CommonUtils } from '../CommonUtils';
 import { AndroidSDKRootSource, AndroidSDKUtils } from '../AndroidUtils';
+import { CommonUtils } from '../CommonUtils';
 import { AndroidMockData } from './AndroidMockData';
 
 const myCommandBlockMock = jest.fn((): string => {
