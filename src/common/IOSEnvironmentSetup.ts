@@ -4,22 +4,14 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import { Logger, Messages } from '@salesforce/core';
-import childProcess from 'child_process';
+import { Logger } from '@salesforce/core';
 import util from 'util';
 import iOSConfig from '../config/iosconfig.json';
+import { CommonUtils } from './CommonUtils';
 import { IOSUtils } from './IOSUtils';
 import { BaseSetup } from './Requirements';
 
-const exec = util.promisify(childProcess.exec);
-
 export class IOSEnvironmentSetup extends BaseSetup {
-    public static executeCommand(
-        command: string
-    ): Promise<{ stdout: string; stderr: string }> {
-        return IOSUtils.executeCommand(command);
-    }
-
     constructor(logger: Logger) {
         super(logger);
         const messages = this.setupMessages;
@@ -65,7 +57,7 @@ export class IOSEnvironmentSetup extends BaseSetup {
         const unameCommand: string = '/usr/bin/uname';
         try {
             this.logger.info('Executing a check for supported environment');
-            const { stdout } = await IOSEnvironmentSetup.executeCommand(
+            const { stdout } = await CommonUtils.executeCommandAsync(
                 unameCommand
             );
             const unameOutput = stdout.trim();
@@ -94,7 +86,7 @@ export class IOSEnvironmentSetup extends BaseSetup {
         const xcodeBuildCommand: string = 'xcodebuild -version';
         try {
             this.logger.info('Executing a check for Xcode environment');
-            const { stdout, stderr } = await IOSEnvironmentSetup.executeCommand(
+            const { stdout, stderr } = await CommonUtils.executeCommandAsync(
                 xcodeBuildCommand
             );
             if (stdout) {

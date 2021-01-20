@@ -7,6 +7,7 @@
 import fs from 'fs';
 import path from 'path';
 import { AndroidSDKRootSource, AndroidSDKUtils } from '../AndroidUtils';
+import { CommonUtils } from '../CommonUtils';
 import { PreviewUtils } from '../PreviewUtils';
 import { AndroidMockData } from './AndroidMockData';
 
@@ -80,7 +81,7 @@ describe('Android utils', () => {
     });
 
     test('Should attempt to verify Android SDK prerequisites are met', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             myGenericVersionsCommandBlockMock
         );
         await AndroidSDKUtils.androidSDKPrerequisitesCheck();
@@ -94,7 +95,7 @@ describe('Android utils', () => {
     });
 
     test('Should attempt to look for android sdk tools (sdkmanager)', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             myGenericVersionsCommandBlockMock
         );
         await AndroidSDKUtils.fetchAndroidCmdLineToolsLocation();
@@ -108,7 +109,7 @@ describe('Android utils', () => {
     });
 
     test('Should attempt to look for android sdk tools (sdkmanager)', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             myGenericVersionsCommandBlockMockThrows
         );
         AndroidSDKUtils.fetchAndroidCmdLineToolsLocation().catch((error) => {
@@ -117,7 +118,7 @@ describe('Android utils', () => {
     });
 
     test('Should attempt to look for android sdk platform tools', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             myGenericVersionsCommandBlockMock
         );
         await AndroidSDKUtils.fetchAndroidSDKPlatformToolsLocation();
@@ -127,7 +128,7 @@ describe('Android utils', () => {
     });
 
     test('Should attempt to look for android sdk platform tools', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             myGenericVersionsCommandBlockMockThrows
         );
         AndroidSDKUtils.fetchAndroidSDKPlatformToolsLocation().catch(
@@ -138,7 +139,7 @@ describe('Android utils', () => {
     });
 
     test('Should attempt to invoke the sdkmanager for installed packages', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             myCommandBlockMock
         );
         await AndroidSDKUtils.fetchInstalledPackages();
@@ -146,7 +147,7 @@ describe('Android utils', () => {
     });
 
     test('Should attempt to invoke the sdkmanager and get installed packages', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             myCommandBlockMock
         );
         const packages = await AndroidSDKUtils.fetchInstalledPackages();
@@ -157,7 +158,7 @@ describe('Android utils', () => {
     });
 
     test('Should attempt to invoke the sdkmanager and retrieve an empty list for a bad sdkmanager list', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             badBlockMock
         );
         const packages = await AndroidSDKUtils.fetchInstalledPackages();
@@ -169,7 +170,7 @@ describe('Android utils', () => {
     });
 
     test('Should establish cache on first call', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             myCommandBlockMock
         );
         const packages = await AndroidSDKUtils.fetchInstalledPackages();
@@ -177,7 +178,7 @@ describe('Android utils', () => {
     });
 
     test('Should utilize cache for subsequent calls', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             myCommandBlockMock
         );
         let packages = await AndroidSDKUtils.fetchInstalledPackages();
@@ -187,7 +188,7 @@ describe('Android utils', () => {
     });
 
     test('Should rebuild cache after clear in subsequent calls', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             myCommandBlockMock
         );
         let packages = await AndroidSDKUtils.fetchInstalledPackages();
@@ -198,7 +199,7 @@ describe('Android utils', () => {
     });
 
     test('Should rebuild cache after clear in subsequent calls', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             myCommandBlockMock
         );
         let packages = await AndroidSDKUtils.fetchInstalledPackages();
@@ -209,7 +210,7 @@ describe('Android utils', () => {
     });
 
     test('Should Find a preferred Android package', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             myCommandBlockMock
         );
         const apiPackage = await AndroidSDKUtils.findRequiredAndroidAPIPackage();
@@ -219,7 +220,7 @@ describe('Android utils', () => {
     });
 
     test('Should not find a preferred Android package', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             badBlockMock
         );
         AndroidSDKUtils.findRequiredAndroidAPIPackage().catch((error) => {
@@ -228,7 +229,7 @@ describe('Android utils', () => {
     });
 
     test('Should Find a preferred Android emulator package', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             myCommandBlockMock
         );
         const apiPackage = await AndroidSDKUtils.findRequiredEmulatorImages();
@@ -238,7 +239,7 @@ describe('Android utils', () => {
     });
 
     test('Should not find a preferred Android build tools package', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             badBlockMock
         );
         AndroidSDKUtils.findRequiredEmulatorImages().catch((error) => {
@@ -337,7 +338,7 @@ describe('Android utils', () => {
     });
 
     test('Should attempt to launch url and resolve.', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             launchCommandMock
         );
         const url = 'mock.url';
@@ -348,7 +349,7 @@ describe('Android utils', () => {
     });
 
     test('Should attempt to launch url and reject if error is encountered.', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             launchCommandThrowsMock
         );
         const url = 'mock.url';
@@ -377,7 +378,7 @@ describe('Android utils', () => {
             return `${targetApp}/.MainActivity`;
         });
 
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             mockCmd
         );
 
@@ -405,7 +406,7 @@ describe('Android utils', () => {
     });
 
     test('Should attempt to launch native app and reject if error is encountered.', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             launchCommandThrowsMock
         );
         const compName = 'mock.compName';
@@ -452,7 +453,7 @@ describe('Android utils', () => {
             return `${targetApp}/.MainActivity`;
         });
 
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             mockCmd
         );
 

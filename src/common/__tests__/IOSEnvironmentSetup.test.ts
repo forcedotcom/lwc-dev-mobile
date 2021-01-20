@@ -5,6 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 import { Logger, Messages } from '@salesforce/core';
+import { CommonUtils } from '../CommonUtils';
 
 const myUnameMock = jest.fn(
     (): Promise<{ stdout: string; stderr: string }> => {
@@ -60,7 +61,7 @@ describe('IOS Environment Setup tests', () => {
     });
 
     it('Should attempt to validate supported OS environment', async () => {
-        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             myUnameMock
         );
         const setup = new IOSEnvironmentSetup(logger);
@@ -69,7 +70,7 @@ describe('IOS Environment Setup tests', () => {
     });
 
     it('Should throw an error for an unsupported OS environment', async () => {
-        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             badBadMock
         );
         const setup = new IOSEnvironmentSetup(logger);
@@ -80,7 +81,7 @@ describe('IOS Environment Setup tests', () => {
 
     it('Checks to see that the logger is set', async () => {
         const logInfo = jest.spyOn(logger, 'info');
-        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             myUnameMock
         );
         const setup = new IOSEnvironmentSetup(logger);
@@ -89,7 +90,7 @@ describe('IOS Environment Setup tests', () => {
     });
 
     it('Should attempt to validate supported Xcode environment', async () => {
-        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             myXcodeSelectMock
         );
         const setup = new IOSEnvironmentSetup(logger);
@@ -98,7 +99,7 @@ describe('IOS Environment Setup tests', () => {
     });
 
     it('Should throw an error for unsupported Xcode Env', async () => {
-        jest.spyOn(IOSEnvironmentSetup, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             badBadMock
         );
         const setup = new IOSEnvironmentSetup(logger);

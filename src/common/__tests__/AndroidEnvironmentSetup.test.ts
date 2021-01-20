@@ -11,6 +11,7 @@ process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 
 import { Logger, Messages } from '@salesforce/core';
 import { AndroidEnvironmentSetup } from '../AndroidEnvironmentSetup';
+import { CommonUtils } from '../CommonUtils';
 import { AndroidSDKRootSource, AndroidSDKUtils } from '../AndroidUtils';
 import { AndroidMockData } from './AndroidMockData';
 
@@ -63,7 +64,7 @@ describe('Android enviroment setup tests', () => {
     });
 
     test('Should resolve when Android sdk tools are present', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             () => MOCK_ANDROID_HOME
         );
         const aPromise = andrEnvironment
@@ -73,7 +74,7 @@ describe('Android enviroment setup tests', () => {
     });
 
     test('Should reject when Android sdk tools are missing', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(() => {
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(() => {
             throw new Error('None');
         });
         const aPromise = andrEnvironment
@@ -83,7 +84,7 @@ describe('Android enviroment setup tests', () => {
     });
 
     test('Should resolve when Android sdk platform tools are present', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             () => MOCK_ANDROID_HOME
         );
         const aPromise = andrEnvironment
@@ -93,7 +94,7 @@ describe('Android enviroment setup tests', () => {
     });
 
     test('Should reject when Android sdk platform tools are missing', async () => {
-        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(() => {
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(() => {
             throw new Error('None');
         });
         const aPromise = andrEnvironment
