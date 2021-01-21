@@ -398,32 +398,17 @@ export class AndroidSDKUtils {
                     resolve(portNumber);
                     return;
                 }
-                const cmd = `${AndroidSDKUtils.getEmulatorCommand()} @${resolvedEmulator} -port ${portNumber}`;
-                const child = spawn(cmd, {
-                    detached: true,
-                    shell: true
-                });
-                if (child) {
-                    child.unref();
 
-                    child.stdout.on('data', () => {
-                        // TODO: rather than calling into pollDeviceStatus() to see if device is booted
-                        // we could just listen to the boot message that is sent to stdout of the process
-
-                        // if stdout is called then it means that the process succeeded in launching the emulator
-                        resolve(portNumber);
-                    });
-
-                    child.stderr.on('data', (data) => {
-                        reject(
-                            new Error(
-                                `Could not start emulator. Command failed: ${cmd}\n${data}`
-                            )
-                        );
-                    });
-                } else {
-                    reject(new Error(`Could not start emulator.`));
-                }
+                // We intentionally use spawn and ignore stdio here b/c emulator command can
+                // spit out a bunch of output to stderr where they are not really errors. This
+                // is specially true on Windows platform. So istead we spawn the process to launch
+                // the emulator and later attempt at polling the emulator to see if it failed to boot.
+                const child = spawn(
+                    `${AndroidSDKUtils.getEmulatorCommand()} @${resolvedEmulator} -port ${portNumber}`,
+                    { detached: true, shell: true, stdio: 'ignore' }
+                );
+                resolve(portNumber);
+                child.unref();
             } catch (error) {
                 reject(error);
             }
@@ -802,7 +787,7 @@ export class AndroidSDKUtils {
     private static isEmulatorAlreadyStarted(emulatorName: string): boolean {
         const findProcessCommand =
             process.platform === WINDOWS_OS
-                ? `wmic process where "CommandLine Like \'%qemu-system-x86_64%\'" get CommandLine  | findstr "${emulatorName}"`
+                ? `wmic process where "CommandLine Like \'%qemu-system-x86_64%\'" get CommandLine | findstr /V "wmic process where" | findstr "${emulatorName}"`
                 : `ps -ax | grep qemu-system-x86_64 | grep ${emulatorName} | grep -v grep`;
 
         // ram.img.dirty is a one byte file created when avd is started and removed when avd is stopped.
