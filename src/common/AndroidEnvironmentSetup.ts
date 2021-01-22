@@ -4,102 +4,52 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import { Logger } from '@salesforce/core';
+import { Logger, Messages } from '@salesforce/core';
 import util from 'util';
 import androidConfig from '../config/androidconfig.json';
 import { AndroidSDKUtils } from './AndroidUtils';
-import { BaseSetup } from './Requirements';
+import { BaseSetup, Requirement } from './Requirements';
 
 export class AndroidEnvironmentSetup extends BaseSetup {
     constructor(logger: Logger) {
         super(logger);
-        const messages = this.setupMessages;
         const requirements = [
-            {
-                checkFunction: this.isAndroidSdkRootSet,
-                fulfilledMessage: messages.getMessage(
-                    'android:reqs:androidhome:fulfilledMessage'
-                ),
-                logger,
-                title: messages.getMessage('android:reqs:androidhome:title'),
-                unfulfilledMessage: messages.getMessage(
-                    'android:reqs:androidhome:unfulfilledMessage'
-                )
-            },
-            {
-                checkFunction: this.isJava8Available,
-                fulfilledMessage: messages.getMessage(
-                    'android:reqs:androidsdkprerequisitescheck:fulfilledMessage'
-                ),
-                logger,
-                title: messages.getMessage(
-                    'android:reqs:androidsdkprerequisitescheck:title'
-                ),
-                unfulfilledMessage: messages.getMessage(
-                    'android:reqs:androidsdkprerequisitescheck:unfulfilledMessage'
-                )
-            },
-            {
-                checkFunction: this.isAndroidSDKToolsInstalled,
-                fulfilledMessage: messages.getMessage(
-                    'android:reqs:cmdlinetools:fulfilledMessage'
-                ),
-                logger,
-                title: messages.getMessage('android:reqs:cmdlinetools:title'),
-                unfulfilledMessage: messages.getMessage(
-                    'android:reqs:cmdlinetools:unfulfilledMessage'
-                )
-            },
-            {
-                checkFunction: this.isAndroidSDKPlatformToolsInstalled,
-                fulfilledMessage: messages.getMessage(
-                    'android:reqs:platformtools:fulfilledMessage'
-                ),
-                logger,
-                title: messages.getMessage('android:reqs:platformtools:title'),
-                unfulfilledMessage: messages.getMessage(
-                    'android:reqs:platformtools:unfulfilledMessage'
-                )
-            },
-            {
-                checkFunction: this.hasRequiredPlatformAPIPackage,
-                fulfilledMessage: messages.getMessage(
-                    'android:reqs:platformapi:fulfilledMessage'
-                ),
-                logger,
-                title: messages.getMessage('android:reqs:platformapi:title'),
-                unfulfilledMessage: messages.getMessage(
-                    'android:reqs:platformapi:unfulfilledMessage'
-                )
-            },
-            {
-                checkFunction: this.hasRequiredEmulatorImages,
-                fulfilledMessage: messages.getMessage(
-                    'android:reqs:emulatorimages:fulfilledMessage'
-                ),
-                logger,
-                title: messages.getMessage('android:reqs:emulatorimages:title'),
-                unfulfilledMessage: messages.getMessage(
-                    'android:reqs:emulatorimages:unfulfilledMessage'
-                )
-            }
+            new AndroidSDKRootSetRequirement(this.setupMessages, this.logger),
+            new Java8AvailableRequirement(this.setupMessages, this.logger),
+            new AndroidSDKToolsInstalledRequirement(
+                this.setupMessages,
+                this.logger
+            ),
+            new AndroidSDKPlatformToolsInstalledRequirement(
+                this.setupMessages,
+                this.logger
+            ),
+            new PlatformAPIPackageRequirement(this.setupMessages, this.logger),
+            new EmulatorImagesRequirement(this.setupMessages, this.logger)
         ];
         super.addRequirements(requirements);
     }
+}
 
-    public async isJava8Available(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            AndroidSDKUtils.androidSDKPrerequisitesCheck()
-                .then((result) => {
-                    resolve(this.fulfilledMessage);
-                })
-                .catch((error) => {
-                    reject(util.format(this.unfulfilledMessage, error.message));
-                });
-        });
+// tslint:disable-next-line: max-classes-per-file
+export class AndroidSDKRootSetRequirement implements Requirement {
+    public title: string;
+    public fulfilledMessage: string;
+    public unfulfilledMessage: string;
+    public logger: Logger;
+
+    constructor(messages: Messages, logger: Logger) {
+        this.title = messages.getMessage('android:reqs:androidhome:title');
+        this.fulfilledMessage = messages.getMessage(
+            'android:reqs:androidhome:fulfilledMessage'
+        );
+        this.unfulfilledMessage = messages.getMessage(
+            'android:reqs:androidhome:unfulfilledMessage'
+        );
+        this.logger = logger;
     }
 
-    public async isAndroidSdkRootSet(): Promise<string> {
+    public async checkFunction(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             const root = AndroidSDKUtils.getAndroidSdkRoot();
             if (root) {
@@ -117,8 +67,60 @@ export class AndroidEnvironmentSetup extends BaseSetup {
             }
         });
     }
+}
 
-    public async isAndroidSDKToolsInstalled(): Promise<string> {
+// tslint:disable-next-line: max-classes-per-file
+export class Java8AvailableRequirement implements Requirement {
+    public title: string;
+    public fulfilledMessage: string;
+    public unfulfilledMessage: string;
+    public logger: Logger;
+
+    constructor(messages: Messages, logger: Logger) {
+        this.title = messages.getMessage(
+            'android:reqs:androidsdkprerequisitescheck:title'
+        );
+        this.fulfilledMessage = messages.getMessage(
+            'android:reqs:androidsdkprerequisitescheck:fulfilledMessage'
+        );
+        this.unfulfilledMessage = messages.getMessage(
+            'android:reqs:androidsdkprerequisitescheck:unfulfilledMessage'
+        );
+        this.logger = logger;
+    }
+
+    public async checkFunction(): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            AndroidSDKUtils.androidSDKPrerequisitesCheck()
+                .then((result) => {
+                    resolve(this.fulfilledMessage);
+                })
+                .catch((error) => {
+                    reject(util.format(this.unfulfilledMessage, error.message));
+                });
+        });
+    }
+}
+
+// tslint:disable-next-line: max-classes-per-file
+export class AndroidSDKToolsInstalledRequirement implements Requirement {
+    public title: string;
+    public fulfilledMessage: string;
+    public unfulfilledMessage: string;
+    public logger: Logger;
+
+    constructor(messages: Messages, logger: Logger) {
+        this.title = messages.getMessage('android:reqs:cmdlinetools:title');
+        this.fulfilledMessage = messages.getMessage(
+            'android:reqs:cmdlinetools:fulfilledMessage'
+        );
+        this.unfulfilledMessage = messages.getMessage(
+            'android:reqs:cmdlinetools:unfulfilledMessage'
+        );
+        this.logger = logger;
+    }
+
+    public async checkFunction(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.fetchAndroidCmdLineToolsLocation()
                 .then((result) =>
@@ -131,8 +133,28 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                 .catch((error) => reject(this.unfulfilledMessage));
         });
     }
+}
 
-    public async isAndroidSDKPlatformToolsInstalled(): Promise<string> {
+// tslint:disable-next-line: max-classes-per-file
+export class AndroidSDKPlatformToolsInstalledRequirement
+    implements Requirement {
+    public title: string;
+    public fulfilledMessage: string;
+    public unfulfilledMessage: string;
+    public logger: Logger;
+
+    constructor(messages: Messages, logger: Logger) {
+        this.title = messages.getMessage('android:reqs:platformtools:title');
+        this.fulfilledMessage = messages.getMessage(
+            'android:reqs:platformtools:fulfilledMessage'
+        );
+        this.unfulfilledMessage = messages.getMessage(
+            'android:reqs:platformtools:unfulfilledMessage'
+        );
+        this.logger = logger;
+    }
+
+    public async checkFunction(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.fetchAndroidSDKPlatformToolsLocation()
                 .then((result) => {
@@ -161,8 +183,27 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                 });
         });
     }
+}
 
-    public async hasRequiredPlatformAPIPackage(): Promise<string> {
+// tslint:disable-next-line: max-classes-per-file
+export class PlatformAPIPackageRequirement implements Requirement {
+    public title: string;
+    public fulfilledMessage: string;
+    public unfulfilledMessage: string;
+    public logger: Logger;
+
+    constructor(messages: Messages, logger: Logger) {
+        this.title = messages.getMessage('android:reqs:platformapi:title');
+        this.fulfilledMessage = messages.getMessage(
+            'android:reqs:platformapi:fulfilledMessage'
+        );
+        this.unfulfilledMessage = messages.getMessage(
+            'android:reqs:platformapi:unfulfilledMessage'
+        );
+        this.logger = logger;
+    }
+
+    public async checkFunction(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.findRequiredAndroidAPIPackage()
                 .then((result) =>
@@ -180,8 +221,27 @@ export class AndroidEnvironmentSetup extends BaseSetup {
                 );
         });
     }
+}
 
-    public async hasRequiredEmulatorImages(): Promise<string> {
+// tslint:disable-next-line: max-classes-per-file
+export class EmulatorImagesRequirement implements Requirement {
+    public title: string;
+    public fulfilledMessage: string;
+    public unfulfilledMessage: string;
+    public logger: Logger;
+
+    constructor(messages: Messages, logger: Logger) {
+        this.title = messages.getMessage('android:reqs:emulatorimages:title');
+        this.fulfilledMessage = messages.getMessage(
+            'android:reqs:emulatorimages:fulfilledMessage'
+        );
+        this.unfulfilledMessage = messages.getMessage(
+            'android:reqs:emulatorimages:unfulfilledMessage'
+        );
+        this.logger = logger;
+    }
+
+    public async checkFunction(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             AndroidSDKUtils.findRequiredEmulatorImages()
                 .then((result) =>

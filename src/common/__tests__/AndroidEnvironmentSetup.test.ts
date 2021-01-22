@@ -10,8 +10,18 @@ const MOCK_ANDROID_HOME = '/mock-android-home';
 process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 
 import { Logger, Messages } from '@salesforce/core';
-import { AndroidEnvironmentSetup } from '../AndroidEnvironmentSetup';
+import {
+    AndroidEnvironmentSetup,
+    AndroidSDKPlatformToolsInstalledRequirement,
+    AndroidSDKRootSetRequirement,
+    AndroidSDKToolsInstalledRequirement,
+    EmulatorImagesRequirement,
+    Java8AvailableRequirement,
+    PlatformAPIPackageRequirement
+} from '../AndroidEnvironmentSetup';
+import { AndroidPackage } from '../AndroidTypes';
 import { AndroidSDKRootSource, AndroidSDKUtils } from '../AndroidUtils';
+import { Version } from '../Common';
 import { CommonUtils } from '../CommonUtils';
 import { AndroidMockData } from './AndroidMockData';
 
@@ -24,13 +34,13 @@ const badBlockMock = jest.fn((): string => {
 });
 
 Messages.importMessagesDirectory(__dirname);
-
 const logger = new Logger('test');
+
 describe('Android enviroment setup tests', () => {
-    let andrEnvironment: AndroidEnvironmentSetup;
+    let androidEnvironment: AndroidEnvironmentSetup;
 
     beforeEach(() => {
-        andrEnvironment = new AndroidEnvironmentSetup(logger);
+        androidEnvironment = new AndroidEnvironmentSetup(logger);
     });
 
     afterEach(() => {
@@ -47,9 +57,11 @@ describe('Android enviroment setup tests', () => {
                 };
             }
         );
-        const aPromise = andrEnvironment
-            .isAndroidSdkRootSet()
-            .catch(() => undefined);
+        const requirement = new AndroidSDKRootSetRequirement(
+            androidEnvironment.setupMessages,
+            logger
+        );
+        const aPromise = requirement.checkFunction().catch(() => undefined);
         expect(aPromise).resolves;
     });
 
@@ -57,9 +69,11 @@ describe('Android enviroment setup tests', () => {
         jest.spyOn(AndroidSDKUtils, 'getAndroidSdkRoot').mockImplementation(
             () => undefined
         );
-        const aPromise = andrEnvironment
-            .isAndroidSdkRootSet()
-            .catch(() => undefined);
+        const requirement = new AndroidSDKRootSetRequirement(
+            androidEnvironment.setupMessages,
+            logger
+        );
+        const aPromise = requirement.checkFunction().catch(() => undefined);
         expect(aPromise).rejects;
     });
 
@@ -67,9 +81,11 @@ describe('Android enviroment setup tests', () => {
         jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             () => MOCK_ANDROID_HOME
         );
-        const aPromise = andrEnvironment
-            .isAndroidSDKToolsInstalled()
-            .catch(() => undefined);
+        const requirement = new AndroidSDKToolsInstalledRequirement(
+            androidEnvironment.setupMessages,
+            logger
+        );
+        const aPromise = requirement.checkFunction().catch(() => undefined);
         expect(aPromise).resolves;
     });
 
@@ -77,9 +93,11 @@ describe('Android enviroment setup tests', () => {
         jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(() => {
             throw new Error('None');
         });
-        const aPromise = andrEnvironment
-            .isAndroidSDKToolsInstalled()
-            .catch(() => undefined);
+        const requirement = new AndroidSDKToolsInstalledRequirement(
+            androidEnvironment.setupMessages,
+            logger
+        );
+        const aPromise = requirement.checkFunction().catch(() => undefined);
         expect(aPromise).rejects;
     });
 
@@ -87,9 +105,11 @@ describe('Android enviroment setup tests', () => {
         jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
             () => MOCK_ANDROID_HOME
         );
-        const aPromise = andrEnvironment
-            .isAndroidSDKPlatformToolsInstalled()
-            .catch(() => undefined);
+        const requirement = new AndroidSDKPlatformToolsInstalledRequirement(
+            androidEnvironment.setupMessages,
+            logger
+        );
+        const aPromise = requirement.checkFunction().catch(() => undefined);
         expect(aPromise).resolves;
     });
 
@@ -97,9 +117,97 @@ describe('Android enviroment setup tests', () => {
         jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(() => {
             throw new Error('None');
         });
-        const aPromise = andrEnvironment
-            .isAndroidSDKPlatformToolsInstalled()
-            .catch(() => undefined);
+        const requirement = new AndroidSDKPlatformToolsInstalledRequirement(
+            androidEnvironment.setupMessages,
+            logger
+        );
+        const aPromise = requirement.checkFunction().catch(() => undefined);
+        expect(aPromise).rejects;
+    });
+
+    test('Should resolve when Java 8 is available', async () => {
+        jest.spyOn(
+            AndroidSDKUtils,
+            'androidSDKPrerequisitesCheck'
+        ).mockImplementation(() => Promise.resolve(''));
+        const requirement = new Java8AvailableRequirement(
+            androidEnvironment.setupMessages,
+            logger
+        );
+        const aPromise = requirement.checkFunction().catch(() => undefined);
+        expect(aPromise).resolves;
+    });
+
+    test('Should reject when Java 8 is not available', async () => {
+        jest.spyOn(
+            AndroidSDKUtils,
+            'androidSDKPrerequisitesCheck'
+        ).mockImplementation(() => Promise.reject(''));
+        const requirement = new Java8AvailableRequirement(
+            androidEnvironment.setupMessages,
+            logger
+        );
+        const aPromise = requirement.checkFunction().catch(() => undefined);
+        expect(aPromise).rejects;
+    });
+
+    test('Should resolve when required platform API packages are present', async () => {
+        jest.spyOn(
+            AndroidSDKUtils,
+            'findRequiredAndroidAPIPackage'
+        ).mockImplementation(() =>
+            Promise.resolve(
+                new AndroidPackage('', new Version(0, 0, 0), '', '')
+            )
+        );
+        const requirement = new PlatformAPIPackageRequirement(
+            androidEnvironment.setupMessages,
+            logger
+        );
+        const aPromise = requirement.checkFunction().catch(() => undefined);
+        expect(aPromise).resolves;
+    });
+
+    test('Should reject when required platform API packages are not present', async () => {
+        jest.spyOn(
+            AndroidSDKUtils,
+            'findRequiredAndroidAPIPackage'
+        ).mockImplementation(() => Promise.reject(''));
+        const requirement = new PlatformAPIPackageRequirement(
+            androidEnvironment.setupMessages,
+            logger
+        );
+        const aPromise = requirement.checkFunction().catch(() => undefined);
+        expect(aPromise).rejects;
+    });
+
+    test('Should resolve when required emulator images are available', async () => {
+        jest.spyOn(
+            AndroidSDKUtils,
+            'findRequiredEmulatorImages'
+        ).mockImplementation(() =>
+            Promise.resolve(
+                new AndroidPackage('', new Version(0, 0, 0), '', '')
+            )
+        );
+        const requirement = new EmulatorImagesRequirement(
+            androidEnvironment.setupMessages,
+            logger
+        );
+        const aPromise = requirement.checkFunction().catch(() => undefined);
+        expect(aPromise).resolves;
+    });
+
+    test('Should reject when Java 8 is not available', async () => {
+        jest.spyOn(
+            AndroidSDKUtils,
+            'findRequiredEmulatorImages'
+        ).mockImplementation(() => Promise.reject(''));
+        const requirement = new EmulatorImagesRequirement(
+            androidEnvironment.setupMessages,
+            logger
+        );
+        const aPromise = requirement.checkFunction().catch(() => undefined);
         expect(aPromise).rejects;
     });
 });

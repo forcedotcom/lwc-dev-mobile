@@ -5,7 +5,10 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 import { Logger } from '@salesforce/core';
-import { BaseSetup } from '../Requirements';
+import {
+    BaseSetup,
+    LWCServerPluginInstalledRequirement
+} from '../Requirements';
 
 const logger = new Logger('test');
 
@@ -109,8 +112,8 @@ describe('Requirements Processing', () => {
     test('Meets all requirements', async () => {
         expect.assertions(1);
         jest.spyOn(
-            BaseSetup.prototype,
-            'ensureLWCServerPluginInstalled'
+            LWCServerPluginInstalledRequirement.prototype,
+            'checkFunction'
         ).mockImplementation(passedBaseRequirementsMock);
         const setupResult = await new TruthyExtension().executeSetup();
         expect(setupResult.hasMetAllRequirements).toBeTruthy();
@@ -119,8 +122,8 @@ describe('Requirements Processing', () => {
     test('Executes all true requirements', async () => {
         expect.assertions(1);
         jest.spyOn(
-            BaseSetup.prototype,
-            'ensureLWCServerPluginInstalled'
+            LWCServerPluginInstalledRequirement.prototype,
+            'checkFunction'
         ).mockImplementation(passedBaseRequirementsMock);
         const extension = new TruthyExtension();
         const setupResult = await extension.executeSetup();
@@ -132,8 +135,8 @@ describe('Requirements Processing', () => {
     test('Executes all passed and failed requirements', async () => {
         expect.assertions(1);
         jest.spyOn(
-            BaseSetup.prototype,
-            'ensureLWCServerPluginInstalled'
+            LWCServerPluginInstalledRequirement.prototype,
+            'checkFunction'
         ).mockImplementation(passedBaseRequirementsMock);
         const setupResult = await new FalsyExtension().executeSetup();
         expect(setupResult.hasMetAllRequirements).toBeFalsy();
@@ -142,8 +145,8 @@ describe('Requirements Processing', () => {
     test('Executes all passed and failed base requirements', async () => {
         expect.assertions(1);
         jest.spyOn(
-            BaseSetup.prototype,
-            'ensureLWCServerPluginInstalled'
+            LWCServerPluginInstalledRequirement.prototype,
+            'checkFunction'
         ).mockImplementation(failedBaseRequirementsMock);
         const setupResult = await new TruthyExtension().executeSetup();
         expect(setupResult.hasMetAllRequirements).toBeFalsy();
@@ -152,8 +155,8 @@ describe('Requirements Processing', () => {
     test('Executes all passed and failed requirements', async () => {
         expect.assertions(1);
         jest.spyOn(
-            BaseSetup.prototype,
-            'ensureLWCServerPluginInstalled'
+            LWCServerPluginInstalledRequirement.prototype,
+            'checkFunction'
         ).mockImplementation(passedBaseRequirementsMock);
         const extension = new TruthyExtension();
         const setupResult = await extension.executeSetup();
@@ -165,8 +168,8 @@ describe('Requirements Processing', () => {
     test('There is only one test that failed with supplemental message', async () => {
         expect.assertions(2);
         jest.spyOn(
-            BaseSetup.prototype,
-            'ensureLWCServerPluginInstalled'
+            LWCServerPluginInstalledRequirement.prototype,
+            'checkFunction'
         ).mockImplementation(passedBaseRequirementsMock);
         const extension = new FalsyExtension();
         const setupResult = await extension.executeSetup();
@@ -188,8 +191,8 @@ describe('Requirements Processing', () => {
     test('There is only one test without any message', async () => {
         expect.assertions(2);
         jest.spyOn(
-            BaseSetup.prototype,
-            'ensureLWCServerPluginInstalled'
+            LWCServerPluginInstalledRequirement.prototype,
+            'checkFunction'
         ).mockImplementation(passedBaseRequirementsMock);
         const extension = new FalsyExtension();
         const setupResult = await extension.executeSetup();

@@ -31,7 +31,7 @@ Messages.importMessagesDirectory(__dirname);
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'preview');
 
-export default class Preview extends Setup {
+export class Preview extends Setup {
     public static description = messages.getMessage('commandDescription');
 
     public static args = [{ name: 'file' }];
@@ -89,11 +89,6 @@ export default class Preview extends Setup {
         `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -n HellowWordComponent`
     ];
 
-    // NOTE: The following properties are just place holders to help with typescript compile.
-    protected title: string = '';
-    protected fulfilledMessage: string = '';
-    protected unfulfilledMessage: string = '';
-
     private serverPort: string = '';
     private deviceName: string = '';
     private componentName: string = '';
@@ -106,41 +101,33 @@ export default class Preview extends Setup {
         | undefined;
 
     public async run(): Promise<any> {
-        const logger = this.logger;
-        logger.info(`Preview command invoked for ${this.flags.platform}`);
+        this.logger.info(`Preview command invoked for ${this.flags.platform}`);
 
         return this.validateAdditionalInputs() // first validate input parameters
-            .then((result) => {
+            .then(() => {
                 // then validate setup requirements
                 if (
-                    PreviewUtils.isTargetingBrowser(this.targetApp) ||
-                    (this.appConfig &&
-                        this.appConfig.preview_server_enabled === true)
+                    PreviewUtils.useLwcServerForPreviewing(
+                        this.targetApp,
+                        this.appConfig
+                    )
                 ) {
                     const extraReqs: Requirement[] = [
-                        {
-                            checkFunction: this.isLwcServerRunning,
-                            fulfilledMessage: messages.getMessage(
-                                'reqs:server:fulfilledMessage'
-                            ),
-                            logger,
-                            title: messages.getMessage('reqs:server:title'),
-                            unfulfilledMessage: messages.getMessage(
-                                'reqs:server:unfulfilledMessage'
-                            )
-                        }
+                        new LwcServerIsRunningRequirement(this.logger)
                     ];
                     this.addRequirements(extraReqs);
                 }
                 return super.run();
             })
-            .then((result) => {
+            .then(() => {
                 // then launch the preview if all validations have passed
-                logger.info('Setup requirements met, continuing with preview');
+                this.logger.info(
+                    'Setup requirements met, continuing with preview'
+                );
                 return this.launchPreview();
             })
             .catch((error) => {
-                logger.warn(`Preview failed for ${this.flags.platform}.`);
+                this.logger.warn(`Preview failed for ${this.flags.platform}.`);
                 return Promise.reject(error);
             });
     }
@@ -278,15 +265,6 @@ export default class Preview extends Setup {
         return Promise.resolve();
     }
 
-    public async isLwcServerRunning(): Promise<string> {
-        const port = CommonUtils.getLwcServerPort();
-        if (!port) {
-            return Promise.reject(this.unfulfilledMessage);
-        } else {
-            return Promise.resolve(util.format(this.fulfilledMessage, port));
-        }
-    }
-
     public launchPreview(): Promise<boolean> {
         // At this point all of the inputs/parameters have been verified and parsed so we can just use them.
 
@@ -396,5 +374,30 @@ export default class Preview extends Setup {
             appConfig,
             serverPort
         );
+    }
+}
+
+// tslint:disable-next-line: max-classes-per-file
+export class LwcServerIsRunningRequirement implements Requirement {
+    public title: string = messages.getMessage('reqs:server:title');
+    public fulfilledMessage: string = messages.getMessage(
+        'reqs:server:fulfilledMessage'
+    );
+    public unfulfilledMessage: string = messages.getMessage(
+        'reqs:server:unfulfilledMessage'
+    );
+    public logger: Logger;
+
+    constructor(logger: Logger) {
+        this.logger = logger;
+    }
+
+    public async checkFunction(): Promise<string> {
+        const port = CommonUtils.getLwcServerPort();
+        if (!port) {
+            return Promise.reject(this.unfulfilledMessage);
+        } else {
+            return Promise.resolve(util.format(this.fulfilledMessage, port));
+        }
     }
 }
