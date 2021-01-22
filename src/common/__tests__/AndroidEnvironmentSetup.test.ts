@@ -21,8 +21,8 @@ import {
 } from '../AndroidEnvironmentSetup';
 import { AndroidPackage } from '../AndroidTypes';
 import { AndroidSDKRootSource, AndroidSDKUtils } from '../AndroidUtils';
-import { CommonUtils } from '../CommonUtils';
 import { Version } from '../Common';
+import { CommonUtils } from '../CommonUtils';
 import { AndroidMockData } from './AndroidMockData';
 
 const myCommandBlockMock = jest.fn((): string => {

@@ -7,8 +7,8 @@
 import { Logger, Messages } from '@salesforce/core';
 import util from 'util';
 import iOSConfig from '../config/iosconfig.json';
-import { IOSUtils } from './IOSUtils';
 import { CommonUtils } from './CommonUtils';
+import { IOSUtils } from './IOSUtils';
 import { BaseSetup, Requirement } from './Requirements';
 
 export class IOSEnvironmentSetup extends BaseSetup {
