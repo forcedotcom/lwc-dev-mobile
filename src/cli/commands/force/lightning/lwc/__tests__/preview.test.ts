@@ -102,7 +102,9 @@ describe('Preview Tests', () => {
         const cmdMock = jest.fn((): string => {
             throw new Error('test error');
         });
-        jest.spyOn(CommonUtils, 'executeCommand').mockImplementation(cmdMock);
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
+            cmdMock
+        );
         preview.isLwcServerRunning().catch((error) => {
             expect(typeof error === 'string').toBeTruthy();
         });
@@ -115,7 +117,9 @@ describe('Preview Tests', () => {
         const cmdMock = jest.fn((): string => {
             return 'path/to/bin/node /path/to/bin/sfdx.js force:lightning:lwc:start';
         });
-        jest.spyOn(CommonUtils, 'executeCommand').mockImplementation(cmdMock);
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
+            cmdMock
+        );
         const port = (await preview.isLwcServerRunning()).trim();
         expect(port).toBe('3333');
     });
@@ -128,7 +132,9 @@ describe('Preview Tests', () => {
         const cmdMock = jest.fn((): string => {
             return `path/to/bin/node /path/to/bin/sfdx.js force:lightning:lwc:start -p ${specifiedPort}`;
         });
-        jest.spyOn(CommonUtils, 'executeCommand').mockImplementation(cmdMock);
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
+            cmdMock
+        );
         const port = (await preview.isLwcServerRunning()).trim();
         expect(port).toBe(specifiedPort);
     });

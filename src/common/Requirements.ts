@@ -226,7 +226,7 @@ export abstract class BaseSetup implements RequirementList {
                     this.logger.info(
                         `Installing sfdx server plugin.... ${command}`
                     );
-                    CommonUtils.executeCommand(command, [
+                    CommonUtils.executeCommandSync(command, [
                         'inherit',
                         'pipe',
                         'inherit'

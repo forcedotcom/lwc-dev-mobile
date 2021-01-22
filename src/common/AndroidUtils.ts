@@ -56,13 +56,6 @@ export class AndroidSDKUtils {
         return !AndroidSDKUtils.packageCache.isEmpty();
     }
 
-    public static executeCommand(
-        command: string,
-        stdioOptions: StdioOptions = ['ignore', 'pipe', 'ignore']
-    ): string {
-        return CommonUtils.executeCommand(command, stdioOptions);
-    }
-
     public static isJavaHomeSet(): boolean {
         return process.env.JAVA_HOME
             ? process.env.JAVA_HOME.trim().length > 0
@@ -125,7 +118,7 @@ export class AndroidSDKUtils {
                 return;
             }
             try {
-                AndroidSDKUtils.executeCommand(
+                CommonUtils.executeCommandSync(
                     `${AndroidSDKUtils.getSdkManagerCommand()} --version`,
                     stdioOptions
                 );
@@ -145,7 +138,7 @@ export class AndroidSDKUtils {
                 return reject(new Error('Android SDK root is not set.'));
             }
             try {
-                AndroidSDKUtils.executeCommand(
+                CommonUtils.executeCommandSync(
                     `${AndroidSDKUtils.getAdbShellCommand()} --version`
                 );
                 resolve(AndroidSDKUtils.getAndroidPlatformTools());
@@ -162,7 +155,7 @@ export class AndroidSDKUtils {
 
         if (!AndroidSDKUtils.isCached()) {
             try {
-                const stdout = AndroidSDKUtils.executeCommand(
+                const stdout = CommonUtils.executeCommandSync(
                     `${AndroidSDKUtils.getSdkManagerCommand()} --list`
                 );
                 if (stdout) {
@@ -183,7 +176,7 @@ export class AndroidSDKUtils {
         return new Promise((resolve, reject) => {
             let devices: AndroidVirtualDevice[] = [];
             try {
-                const result = AndroidSDKUtils.executeCommand(
+                const result = CommonUtils.executeCommandSync(
                     AndroidSDKUtils.getAvdManagerCommand() + ' list avd'
                 );
                 if (result) {
@@ -284,7 +277,7 @@ export class AndroidSDKUtils {
         return new Promise<number>((resolve, reject) => {
             let adbPort = 0;
             try {
-                const stdout = AndroidSDKUtils.executeCommand(command);
+                const stdout = CommonUtils.executeCommandSync(command);
                 let listOfDevices: number[] = stdout
                     .toString()
                     .split(os.EOL)
@@ -422,7 +415,7 @@ export class AndroidSDKUtils {
         return new Promise<boolean>((resolve, reject) => {
             const timeoutFunc = (commandStr: string, noOfRetries: number) => {
                 try {
-                    const stdout = AndroidSDKUtils.executeCommand(commandStr);
+                    const stdout = CommonUtils.executeCommandSync(commandStr);
                     if (stdout && stdout.trim() === '1') {
                         resolve(true);
                     } else {
@@ -460,7 +453,7 @@ export class AndroidSDKUtils {
         const openUrlCommand = `${AndroidSDKUtils.getAdbShellCommand()} -s emulator-${emulatorPort} shell am start -a android.intent.action.VIEW -d ${url}`;
         return new Promise((resolve, reject) => {
             try {
-                AndroidSDKUtils.executeCommand(openUrlCommand);
+                CommonUtils.executeCommandSync(openUrlCommand);
                 resolve(true);
             } catch (error) {
                 reject(error);
@@ -486,7 +479,7 @@ export class AndroidSDKUtils {
                 );
                 const pathQuote = process.platform === WINDOWS_OS ? '"' : "'";
                 const installCommand = `${AndroidSDKUtils.getAdbShellCommand()} -s emulator-${emulatorPort} install -r -t ${pathQuote}${appBundlePath.trim()}${pathQuote}`;
-                AndroidSDKUtils.executeCommand(installCommand);
+                CommonUtils.executeCommandSync(installCommand);
             }
 
             let launchArgs =
@@ -515,7 +508,7 @@ export class AndroidSDKUtils {
             AndroidSDKUtils.logger.info(
                 `Relaunching app ${targetApp} in emulator`
             );
-            AndroidSDKUtils.executeCommand(launchCommand);
+            CommonUtils.executeCommandSync(launchCommand);
 
             return Promise.resolve(true);
         } catch (error) {
@@ -809,7 +802,9 @@ export class AndroidSDKUtils {
         // then ensure that the process is also running for the selected emulator
         let foundProcess = false;
         try {
-            const findResult = CommonUtils.executeCommand(findProcessCommand);
+            const findResult = CommonUtils.executeCommandSync(
+                findProcessCommand
+            );
             foundProcess = findResult != null && findResult.trim().length > 0;
         } catch (error) {
             AndroidSDKUtils.logger.debug(
@@ -841,7 +836,7 @@ export class AndroidSDKUtils {
         const emulatorDisplayName = emulatorName.replace(/[_-]/gi, ' ').trim(); // eg. Pixel_XL --> Pixel XL, tv-emulator --> tv emulator
 
         try {
-            const stdout = AndroidSDKUtils.executeCommand(
+            const stdout = CommonUtils.executeCommandSync(
                 AndroidSDKUtils.getEmulatorCommand() + ' ' + '-list-avds'
             );
             const listOfAVDs = stdout.toString().split(os.EOL);

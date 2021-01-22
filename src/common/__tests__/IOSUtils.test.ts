@@ -7,6 +7,7 @@
 import { ActionBase } from 'cli-ux';
 import 'jest-chain';
 import 'jest-extended';
+import { CommonUtils } from '../CommonUtils';
 import { IOSUtils } from '../IOSUtils';
 import { PreviewUtils } from '../PreviewUtils';
 import { IOSMockData } from './IOSMockData';
@@ -88,7 +89,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should attempt to invoke the xcrun for fetching sim runtimes', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             myCommandRouterBlock
         );
         await IOSUtils.getSimulatorRuntimes();
@@ -96,7 +97,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should attempt to invoke the xcrun for booting a device', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             launchCommandMock
         );
         const udid = 'MOCKUDID';
@@ -107,7 +108,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should attempt to invoke the xcrun but fail booting a device', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             launchCommandThrowsMock
         );
         const udid = 'MOCKUDID';
@@ -117,7 +118,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should attempt to create a new device', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             launchCommandMock
         );
         const simName = 'MOCKSIM';
@@ -130,7 +131,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should attempt to invoke xcrun to boot device but resolve if device is already Booted', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             launchCommandThrowsAlreadryBootedMock
         );
         const udid = 'MOCKUDID';
@@ -140,7 +141,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should wait for the device to boot', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             launchCommandMock
         );
         const udid = 'MOCKUDID';
@@ -150,7 +151,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should wait for the device to boot and fail if error is encountered', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             launchCommandThrowsMock
         );
         const udid = 'MOCKUDID';
@@ -160,7 +161,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should launch the simulator app', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             launchCommandMock
         );
         await IOSUtils.launchSimulatorApp();
@@ -168,7 +169,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should reject if launch of simulator app fails', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             launchCommandThrowsMock
         );
         return IOSUtils.launchSimulatorApp().catch((error) => {
@@ -177,7 +178,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should attempt to launch url in a booted simulator and resolve.', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             launchCommandMock
         );
         const url = 'mock.url';
@@ -189,7 +190,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should attempt to launch url in a booted simulator and reject if error is encountered.', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             launchCommandThrowsMock
         );
         const url = 'mock.url';
@@ -200,7 +201,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should attempt to launch native app in a booted simulator and resolve.', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             launchCommandMock
         );
 
@@ -242,7 +243,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should attempt to launch native app in a booted simulator and reject if error is encountered.', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             launchCommandThrowsMock
         );
         const udid = 'MOCK-UDID';
@@ -268,7 +269,7 @@ describe('IOS utils tests', () => {
     });
 
     test('SShould attempt to install native app then launch it.', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             launchCommandMock
         );
 
@@ -316,7 +317,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should attempt to invoke the xcrun for fetching sim runtimes and return an array of values', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             myCommandRouterBlock
         );
         return IOSUtils.getSimulatorRuntimes().then((returnedValues) => {
@@ -329,7 +330,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should attempt to invoke the xcrun for fetching sim runtimes and return white listed values', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             myCommandRouterBlock
         );
         return IOSUtils.getSupportedRuntimes().then((returnedValues) => {
@@ -340,7 +341,7 @@ describe('IOS utils tests', () => {
     });
 
     test('Should attempt to invoke the xcrun for fetching sim runtimes and return white listed values', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             myCommandRouterBlock
         );
         return IOSUtils.getSupportedDevices().then((returnedValues) => {
@@ -351,7 +352,9 @@ describe('IOS utils tests', () => {
     });
 
     test('Should handle Bad JSON', async () => {
-        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(badBlockMock);
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
+            badBlockMock
+        );
         return IOSUtils.getSimulatorRuntimes().catch((error) => {
             expect(error).toBeTruthy();
         });
