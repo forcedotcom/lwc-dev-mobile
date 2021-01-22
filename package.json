@@ -1,8 +1,29 @@
 {
   "name": "@salesforce/lwc-dev-mobile",
   "description": "Salesforce CLI plugin for mobile extensions to Local Development",
-  "version": "0.4.1",
-  "author": "Raj Rao @trooper2013",
+  "version": "1.0.0",
+  "author": {
+    "name": "Raj Rao",
+    "email": "rao.r@salesforce.com",
+    "url": "https://github.com/trooper2013"
+  },
+  "contributors": [
+    {
+      "name": "Kevin Hawkins",
+      "email": "khawkins@salesforce.com",
+      "url": "https://github.com/khawkins"
+    },
+    {
+      "name": "Meisam Seyed Aliroteh",
+      "email": "maliroteh@salesforce.com",
+      "url": "https://github.com/maliroteh-sf"
+    },
+    {
+      "name": "Takashi Arai",
+      "email": "t.arai@salesforce.com",
+      "url": "https://github.com/sfdctaka"
+    }
+  ],
   "bugs": "https://github.com/forcedotcom/lwc-dev-mobile/issues",
   "dependencies": {
     "@oclif/command": "^1.5.16",
@@ -81,9 +102,6 @@
   "oclif": {
     "commands": "./lib/cli/commands",
     "bin": "lwc-dev-mobile",
-    "hooks": {
-      "installserverplugin": "./lib/cli/hooks/InstallLwcServerPlugin"
-    },
     "topics": {
       "hello": {
         "description": "Sfdx Lightning local development for mobile platforms."

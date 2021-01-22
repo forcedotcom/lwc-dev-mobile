@@ -8,16 +8,17 @@ import { flags } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
 import fs from 'fs';
 import path from 'path';
+import util from 'util';
 import { AndroidLauncher } from '../../../../../common/AndroidLauncher';
 import { CommandLineUtils } from '../../../../../common/Common';
+import { CommonUtils } from '../../../../../common/CommonUtils';
 import { IOSLauncher } from '../../../../../common/IOSLauncher';
 import {
     AndroidAppPreviewConfig,
-    IOSAppPreviewConfig,
-    LaunchArgument
+    IOSAppPreviewConfig
 } from '../../../../../common/PreviewConfigFile';
 import { PreviewUtils } from '../../../../../common/PreviewUtils';
-import { SetupTestResult } from '../../../../../common/Requirements';
+import { Requirement } from '../../../../../common/Requirements';
 import androidConfig from '../../../../../config/androidconfig.json';
 import iOSConfig from '../../../../../config/iosconfig.json';
 import Setup from '../local/setup';
@@ -88,38 +89,87 @@ export default class Preview extends Setup {
         `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -n HellowWordComponent`
     ];
 
+    // NOTE: The following properties are just place holders to help with typescript compile.
+    protected title: string = '';
+    protected fulfilledMessage: string = '';
+    protected unfulfilledMessage: string = '';
+
+    private serverPort: string = '';
+    private deviceName: string = '';
+    private componentName: string = '';
+    private targetApp: string = '';
+    private projectDir: string = '';
+    private configFilePath: string = '';
+    private appConfig:
+        | IOSAppPreviewConfig
+        | AndroidAppPreviewConfig
+        | undefined;
+
     public async run(): Promise<any> {
-        const platform = this.flags.platform;
-        this.logger.info(`Preview command invoked for ${platform}`);
-        return Promise.all<void, SetupTestResult>([
-            this.validateAdditionalInputs(),
-            super.run()
-        ])
+        const logger = this.logger;
+        logger.info(`Preview command invoked for ${this.flags.platform}`);
+
+        return this.validateAdditionalInputs() // first validate input parameters
             .then((result) => {
-                this.logger.info(
-                    'Setup requirements met, continuing with preview'
-                );
+                // then validate setup requirements
+                if (
+                    PreviewUtils.isTargetingBrowser(this.targetApp) ||
+                    (this.appConfig &&
+                        this.appConfig.preview_server_enabled === true)
+                ) {
+                    const extraReqs: Requirement[] = [
+                        {
+                            checkFunction: this.isLwcServerRunning,
+                            fulfilledMessage: messages.getMessage(
+                                'reqs:server:fulfilledMessage'
+                            ),
+                            logger,
+                            title: messages.getMessage('reqs:server:title'),
+                            unfulfilledMessage: messages.getMessage(
+                                'reqs:server:unfulfilledMessage'
+                            )
+                        }
+                    ];
+                    this.addRequirements(extraReqs);
+                }
+                return super.run();
+            })
+            .then((result) => {
+                // then launch the preview if all validations have passed
+                logger.info('Setup requirements met, continuing with preview');
                 return this.launchPreview();
             })
             .catch((error) => {
-                this.logger.warn(
-                    `Preview failed for ${platform}. Setup requirements have not been met.`
-                );
+                logger.warn(`Preview failed for ${this.flags.platform}.`);
                 return Promise.reject(error);
             });
     }
 
     public async validateAdditionalInputs(): Promise<void> {
-        const platform = this.flags.platform;
+        const defaultDeviceName = CommandLineUtils.platformFlagIsIOS(
+            this.flags.platform
+        )
+            ? iOSConfig.defaultSimulatorName
+            : androidConfig.defaultEmulatorName;
 
-        const compName = CommandLineUtils.resolveFlag(
+        this.deviceName = CommandLineUtils.resolveFlag(
+            this.flags.target,
+            defaultDeviceName
+        );
+
+        this.componentName = CommandLineUtils.resolveFlag(
             this.flags.componentname,
             ''
         ).trim();
 
-        const targetApp = CommandLineUtils.resolveFlag(
+        this.targetApp = CommandLineUtils.resolveFlag(
             this.flags.targetapp,
             PreviewUtils.BROWSER_TARGET_APP
+        );
+
+        this.projectDir = CommandLineUtils.resolveFlag(
+            this.flags.projectdir,
+            process.cwd()
         );
 
         const configFileName = CommandLineUtils.resolveFlag(
@@ -127,14 +177,15 @@ export default class Preview extends Setup {
             ''
         ).trim();
 
-        const configFilePath = path.resolve(configFileName);
+        this.configFilePath = path.resolve(this.projectDir, configFileName);
 
         const hasConfigFile =
-            configFilePath.length > 0 && fs.existsSync(configFilePath);
+            this.configFilePath.length > 0 &&
+            fs.existsSync(this.configFilePath);
 
-        const isBrowserTargetApp = PreviewUtils.isTargetingBrowser(targetApp);
-
-        const isValidCompName = compName.length > 0;
+        const isBrowserTargetApp = PreviewUtils.isTargetingBrowser(
+            this.targetApp
+        );
 
         this.logger.debug('Validating Preview command inputs.');
 
@@ -146,7 +197,7 @@ export default class Preview extends Setup {
             );
         }
 
-        if (isValidCompName === false) {
+        if (this.componentName.length === 0) {
             return Promise.reject(
                 new SfdxError(
                     messages.getMessage(
@@ -163,7 +214,7 @@ export default class Preview extends Setup {
                 new SfdxError(
                     messages.getMessage(
                         'error:invalidConfigFile:missingDescription',
-                        [configFilePath]
+                        [this.configFilePath]
                     ),
                     'lwc-dev-mobile',
                     Preview.examples
@@ -174,7 +225,7 @@ export default class Preview extends Setup {
         if (isBrowserTargetApp === false && hasConfigFile === true) {
             // 1. validate config file against schema
             const validationResult = await PreviewUtils.validateConfigFileWithSchema(
-                configFilePath,
+                this.configFilePath,
                 configSchema
             );
             if (validationResult.passed === false) {
@@ -182,7 +233,7 @@ export default class Preview extends Setup {
                     new SfdxError(
                         messages.getMessage(
                             'error:invalidConfigFile:genericDescription',
-                            [configFilePath, validationResult.errorMessage]
+                            [this.configFilePath, validationResult.errorMessage]
                         ),
                         'lwc-dev-mobile'
                     )
@@ -190,18 +241,23 @@ export default class Preview extends Setup {
             }
 
             // 2. validate that a matching app configuration is included in the config file
-            const configFile = PreviewUtils.loadConfigFile(configFilePath);
-            const appConfig = configFile.getAppConfig(platform, targetApp);
-            if (appConfig === undefined) {
+            const configFileContent = PreviewUtils.loadConfigFile(
+                this.configFilePath
+            );
+            this.appConfig = configFileContent.getAppConfig(
+                this.flags.platform,
+                this.targetApp
+            );
+            if (this.appConfig === undefined) {
                 const errMsg = messages.getMessage(
                     'error:invalidConfigFile:missingAppConfigDescription',
-                    [targetApp, platform]
+                    [this.targetApp, this.flags.platform]
                 );
                 return Promise.reject(
                     new SfdxError(
                         messages.getMessage(
                             'error:invalidConfigFile:genericDescription',
-                            [configFilePath, errMsg]
+                            [this.configFilePath, errMsg]
                         ),
                         'lwc-dev-mobile'
                     )
@@ -209,69 +265,70 @@ export default class Preview extends Setup {
             }
         }
 
+        if (
+            PreviewUtils.useLwcServerForPreviewing(
+                this.targetApp,
+                this.appConfig
+            )
+        ) {
+            const port = CommonUtils.getLwcServerPort();
+            this.serverPort = port ? port : CommonUtils.DEFAULT_LWC_SERVER_PORT;
+        }
+
         return Promise.resolve();
     }
 
+    public async isLwcServerRunning(): Promise<string> {
+        const port = CommonUtils.getLwcServerPort();
+        if (!port) {
+            return Promise.reject(this.unfulfilledMessage);
+        } else {
+            return Promise.resolve(util.format(this.fulfilledMessage, port));
+        }
+    }
+
     public launchPreview(): Promise<boolean> {
-        const platform = this.flags.platform;
+        // At this point all of the inputs/parameters have been verified and parsed so we can just use them.
 
-        const defaultDeviceName = CommandLineUtils.platformFlagIsIOS(platform)
-            ? iOSConfig.defaultSimulatorName
-            : androidConfig.defaultEmulatorName;
-
-        const device = CommandLineUtils.resolveFlag(
-            this.flags.target,
-            defaultDeviceName
-        );
-
-        const targetApp = CommandLineUtils.resolveFlag(
-            this.flags.targetapp,
-            PreviewUtils.BROWSER_TARGET_APP
-        );
-
-        const projectDir = CommandLineUtils.resolveFlag(
-            this.flags.projectdir,
-            process.cwd()
-        );
-
-        const configFileName = CommandLineUtils.resolveFlag(
-            this.flags.configfile,
-            ''
-        );
-
-        const component = this.flags.componentname;
-
-        let appConfig:
-            | IOSAppPreviewConfig
-            | AndroidAppPreviewConfig
-            | undefined;
+        let appBundlePath: string | undefined;
 
         if (
-            PreviewUtils.isTargetingBrowser(targetApp) === false &&
-            configFileName.trim().length > 0
+            PreviewUtils.isTargetingBrowser(this.targetApp) === false &&
+            this.appConfig
         ) {
-            const configFilePath = path.resolve(configFileName);
-            const configFile = PreviewUtils.loadConfigFile(configFilePath);
-            appConfig = configFile.getAppConfig(platform, targetApp);
+            try {
+                appBundlePath = PreviewUtils.getAppBundlePath(
+                    path.dirname(this.configFilePath),
+                    this.appConfig
+                );
+            } catch (error) {
+                return Promise.reject(error);
+            }
         }
 
         if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
-            const config = appConfig && (appConfig as IOSAppPreviewConfig);
+            const config =
+                this.appConfig && (this.appConfig as IOSAppPreviewConfig);
             return this.launchIOS(
-                device,
-                component,
-                projectDir,
-                targetApp,
-                config
+                this.deviceName,
+                this.componentName,
+                this.projectDir,
+                appBundlePath,
+                this.targetApp,
+                config,
+                this.serverPort
             );
         } else {
-            const config = appConfig && (appConfig as AndroidAppPreviewConfig);
+            const config =
+                this.appConfig && (this.appConfig as AndroidAppPreviewConfig);
             return this.launchAndroid(
-                device,
-                component,
-                projectDir,
-                targetApp,
-                config
+                this.deviceName,
+                this.componentName,
+                this.projectDir,
+                appBundlePath,
+                this.targetApp,
+                config,
+                this.serverPort
             );
         }
     }
@@ -303,16 +360,20 @@ export default class Preview extends Setup {
         deviceName: string,
         componentName: string,
         projectDir: string,
+        appBundlePath: string | undefined,
         targetApp: string,
-        appConfig: IOSAppPreviewConfig | undefined
+        appConfig: IOSAppPreviewConfig | undefined,
+        serverPort: string
     ): Promise<boolean> {
         const launcher = new IOSLauncher(deviceName);
 
         return launcher.launchPreview(
             componentName,
             projectDir,
+            appBundlePath,
             targetApp,
-            appConfig
+            appConfig,
+            serverPort
         );
     }
 
@@ -320,16 +381,20 @@ export default class Preview extends Setup {
         deviceName: string,
         componentName: string,
         projectDir: string,
+        appBundlePath: string | undefined,
         targetApp: string,
-        appConfig: AndroidAppPreviewConfig | undefined
+        appConfig: AndroidAppPreviewConfig | undefined,
+        serverPort: string
     ): Promise<boolean> {
         const launcher = new AndroidLauncher(deviceName);
 
         return launcher.launchPreview(
             componentName,
             projectDir,
+            appBundlePath,
             targetApp,
-            appConfig
+            appConfig,
+            serverPort
         );
     }
 }

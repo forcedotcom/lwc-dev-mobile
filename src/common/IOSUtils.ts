@@ -6,7 +6,7 @@
  */
 import { Logger } from '@salesforce/core';
 import childProcess from 'child_process';
-import util from 'util';
+import { Version } from '../common/Common';
 import iOSConfig from '../config/iosconfig.json';
 import { IOSSimulatorDevice } from './IOSTypes';
 import { LaunchArgument } from './PreviewConfigFile';
@@ -47,7 +47,7 @@ export class IOSUtils {
         deviceType: string,
         runtime: string
     ): Promise<string> {
-        const command = `${XCRUN_CMD} simctl create ${simulatorName} ${DEVICE_TYPE_PREFIX}.${deviceType} ${RUNTIME_TYPE_PREFIX}.${runtime}`;
+        const command = `${XCRUN_CMD} simctl create '${simulatorName}' ${DEVICE_TYPE_PREFIX}.${deviceType} ${RUNTIME_TYPE_PREFIX}.${runtime}`;
         try {
             const { stdout } = await IOSUtils.executeCommand(command);
             return new Promise<string>((resolve, reject) => {
@@ -67,7 +67,7 @@ export class IOSUtils {
             try {
                 const devices = await IOSUtils.getSupportedSimulators();
                 for (const device of devices) {
-                    if (simulatorName.match(device.name)) {
+                    if (simulatorName === device.name) {
                         return resolve(device);
                     }
                 }
@@ -159,25 +159,32 @@ export class IOSUtils {
 
     public static async getSupportedRuntimes(): Promise<string[]> {
         const configuredRuntimes = await IOSUtils.getSimulatorRuntimes();
-        const supportedRuntimes: string[] = iOSConfig.supportedRuntimes;
+        const minSupportedRuntimeIOS = Version.from(
+            iOSConfig.minSupportedRuntimeIOS
+        );
+
         const rtIntersection = configuredRuntimes.filter(
             (configuredRuntime) => {
-                const responsiveRuntime = supportedRuntimes.find(
-                    (supportedRuntime) =>
-                        configuredRuntime.startsWith(supportedRuntime)
+                const configuredRuntimeVersion = Version.from(
+                    configuredRuntime.toLowerCase().replace('ios-', '')
                 );
-                return responsiveRuntime !== undefined;
+
+                return configuredRuntimeVersion.sameOrNewer(
+                    minSupportedRuntimeIOS
+                );
             }
         );
 
-        return new Promise<string[]>((resolve, reject) =>
-            resolve(rtIntersection)
-        );
+        if (rtIntersection.length > 0) {
+            return Promise.resolve(rtIntersection);
+        } else {
+            return Promise.reject();
+        }
     }
 
     public static async getSimulatorRuntimes(): Promise<string[]> {
         const runtimesCmd = `${XCRUN_CMD} simctl list --json runtimes available`;
-        const runtimeMatchRegex = /.*SimRuntime\.((iOS|watchOS|tvOS)-[\d\-]+)$/;
+        const runtimeMatchRegex = /.*SimRuntime\.((iOS)-[\d\-]+)$/;
         const RUNTIMES_KEY = 'runtimes';
         const ID_KEY = 'identifier';
 
@@ -260,12 +267,38 @@ export class IOSUtils {
         udid: string,
         compName: string,
         projectDir: string,
+        appBundlePath: string | undefined,
         targetApp: string,
-        targetAppArguments: LaunchArgument[]
+        targetAppArguments: LaunchArgument[],
+        serverAddress: string | undefined,
+        serverPort: string | undefined
     ): Promise<boolean> {
+        if (appBundlePath && appBundlePath.trim().length > 0) {
+            const installCommand = `${XCRUN_CMD} simctl install ${udid} '${appBundlePath.trim()}'`;
+
+            try {
+                IOSUtils.logger.info(
+                    `Installing app ${appBundlePath.trim()} to simulator`
+                );
+                await IOSUtils.executeCommand(installCommand);
+            } catch (error) {
+                return Promise.reject(
+                    `The command '${installCommand}' failed to execute: ${error}`
+                );
+            }
+        }
+
         let launchArgs =
             `${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}=${compName}` +
             ` ${PreviewUtils.PROJECT_DIR_ARG_PREFIX}=${projectDir}`;
+
+        if (serverAddress) {
+            launchArgs += ` ${PreviewUtils.SERVER_ADDRESS_PREFIX}=${serverAddress}`;
+        }
+
+        if (serverPort) {
+            launchArgs += ` ${PreviewUtils.SERVER_PORT_PREFIX}=${serverPort}`;
+        }
 
         targetAppArguments.forEach((arg) => {
             launchArgs += ` ${arg.name}=${arg.value}`;
@@ -277,22 +310,20 @@ export class IOSUtils {
         // attempt at terminating the app first (in case it is already running) and then try to launch it again with new arguments.
         // if we hit issues with terminating, just ignore and continue.
         try {
+            IOSUtils.logger.info(`Terminating app ${targetApp} in simulator`);
             await IOSUtils.executeCommand(terminateCommand);
         } catch {
             // ignore and continue
         }
 
         try {
-            const { stdout } = await IOSUtils.executeCommand(launchCommand);
-            return new Promise<boolean>((resolve, reject) => {
-                resolve(true);
-            });
+            IOSUtils.logger.info(`Launching app ${targetApp} in simulator`);
+            await IOSUtils.executeCommand(launchCommand);
+            return Promise.resolve(true);
         } catch (error) {
-            return new Promise<boolean>((resolve, reject) => {
-                reject(
-                    `The command '${launchCommand}' failed to execute: ${error}`
-                );
-            });
+            return Promise.reject(
+                `The command '${launchCommand}' failed to execute: ${error}`
+            );
         }
     }
 

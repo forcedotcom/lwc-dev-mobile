@@ -11,7 +11,7 @@
                 "-p",
                 "iOS",
                 "-n",
-                "HelloWorld",
+                "c/helloWorld",
                 "-t",
                 "sfdxdebug"
             ]
@@ -26,7 +26,7 @@
                 "-p",
                 "android",
                 "-n",
-                "HelloWorld",
+                "c/helloWorld",
                 "-t",
                 "emu2"
             ]

@@ -6,7 +6,12 @@
  */
 import Ajv from 'ajv';
 import fs from 'fs';
-import { PreviewConfigFile } from './PreviewConfigFile';
+import path from 'path';
+import {
+    AndroidAppPreviewConfig,
+    IOSAppPreviewConfig,
+    PreviewConfigFile
+} from './PreviewConfigFile';
 
 const NAMESPACE = 'com.salesforce.mobile-tooling';
 
@@ -19,10 +24,23 @@ export class PreviewUtils {
     public static BROWSER_TARGET_APP = 'browser';
     public static COMPONENT_NAME_ARG_PREFIX = `${NAMESPACE}.componentname`;
     public static PROJECT_DIR_ARG_PREFIX = `${NAMESPACE}.projectdir`;
+    public static SERVER_PORT_PREFIX = `${NAMESPACE}.serverport`;
+    public static SERVER_ADDRESS_PREFIX = `${NAMESPACE}.serveraddress`;
 
     public static isTargetingBrowser(targetApp: string): boolean {
         return (
             targetApp.trim().toLowerCase() === PreviewUtils.BROWSER_TARGET_APP
+        );
+    }
+
+    public static useLwcServerForPreviewing(
+        targetApp: string,
+        appConfig: IOSAppPreviewConfig | AndroidAppPreviewConfig | undefined
+    ): boolean {
+        return (
+            PreviewUtils.isTargetingBrowser(targetApp) ||
+            (appConfig !== undefined &&
+                appConfig.preview_server_enabled === true)
         );
     }
 
@@ -67,5 +85,20 @@ export class PreviewUtils {
         const json = PreviewUtils.getConfigFileAsJson(file);
         const configFile = Object.assign(new PreviewConfigFile(), json);
         return configFile;
+    }
+
+    public static getAppBundlePath(
+        basePath: string,
+        appConfig: IOSAppPreviewConfig | AndroidAppPreviewConfig
+    ): string | undefined {
+        if (appConfig.get_app_bundle) {
+            const module = require(path.resolve(
+                basePath,
+                appConfig.get_app_bundle
+            ));
+            return module.run();
+        } else {
+            return undefined;
+        }
     }
 }

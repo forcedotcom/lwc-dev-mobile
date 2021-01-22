@@ -125,7 +125,7 @@ describe('IOS utils tests', () => {
         const runtimeType = 'MOCK-SIM';
         await IOSUtils.createNewDevice(simName, deviceType, runtimeType);
         expect(launchCommandMock).toHaveBeenCalledWith(
-            `/usr/bin/xcrun simctl create ${simName} ${DEVICE_TYPE_PREFIX}.${deviceType} ${RUNTIME_TYPE_PREFIX}.${runtimeType}`
+            `/usr/bin/xcrun simctl create '${simName}' ${DEVICE_TYPE_PREFIX}.${deviceType} ${RUNTIME_TYPE_PREFIX}.${runtimeType}`
         );
     });
 
@@ -221,8 +221,11 @@ describe('IOS utils tests', () => {
             udid,
             compName,
             projectDir,
+            undefined,
             targetApp,
-            targetAppArgs
+            targetAppArgs,
+            undefined,
+            undefined
         );
 
         expect(launchCommandMock).toBeCalledTimes(2);
@@ -254,11 +257,62 @@ describe('IOS utils tests', () => {
             udid,
             compName,
             projectDir,
+            undefined,
             targetApp,
-            targetAppArgs
+            targetAppArgs,
+            undefined,
+            undefined
         ).catch((error) => {
             expect(error).toBeTruthy();
         });
+    });
+
+    test('SShould attempt to install native app then launch it.', async () => {
+        jest.spyOn(IOSUtils, 'executeCommand').mockImplementation(
+            launchCommandMock
+        );
+
+        const udid = 'MOCK-UDID';
+        const compName = 'mock.compName';
+        const projectDir = '/mock/path';
+        const appBundlePath = '/mock/path/MyTestApp.app';
+        const targetApp = 'com.mock.app';
+        const targetAppArgs = [
+            { name: 'arg1', value: 'val1' },
+            { name: 'arg2', value: 'val2' }
+        ];
+        const launchArgs =
+            `${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}=${compName}` +
+            ` ${PreviewUtils.PROJECT_DIR_ARG_PREFIX}=${projectDir}` +
+            ` arg1=val1 arg2=val2`;
+
+        await IOSUtils.launchAppInBootedSimulator(
+            udid,
+            compName,
+            projectDir,
+            appBundlePath,
+            targetApp,
+            targetAppArgs,
+            undefined,
+            undefined
+        );
+
+        expect(launchCommandMock).toBeCalledTimes(3);
+
+        expect(launchCommandMock).nthCalledWith(
+            1,
+            `/usr/bin/xcrun simctl install ${udid} '${appBundlePath.trim()}'`
+        );
+
+        expect(launchCommandMock).nthCalledWith(
+            2,
+            `/usr/bin/xcrun simctl terminate "${udid}" ${targetApp}`
+        );
+
+        expect(launchCommandMock).nthCalledWith(
+            3,
+            `/usr/bin/xcrun simctl launch "${udid}" ${targetApp} ${launchArgs}`
+        );
     });
 
     test('Should attempt to invoke the xcrun for fetching sim runtimes and return an array of values', async () => {

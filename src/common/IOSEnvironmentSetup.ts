@@ -91,21 +91,16 @@ export class IOSEnvironmentSetup extends BaseSetup {
     }
 
     public async isXcodeInstalled(): Promise<string> {
-        const xcodeSelectCommand: string = '/usr/bin/xcode-select -p';
+        const xcodeBuildCommand: string = 'xcodebuild -version';
         try {
             this.logger.info('Executing a check for Xcode environment');
             const { stdout, stderr } = await IOSEnvironmentSetup.executeCommand(
-                xcodeSelectCommand
+                xcodeBuildCommand
             );
             if (stdout) {
-                const developmentLibraryPath = `${stdout}`.trim();
+                const xcodeDetails = `${stdout}`.trim().replace(/\n/gi, ' ');
                 return new Promise<string>((resolve, reject) =>
-                    resolve(
-                        util.format(
-                            this.fulfilledMessage,
-                            developmentLibraryPath
-                        )
-                    )
+                    resolve(util.format(this.fulfilledMessage, xcodeDetails))
                 );
             } else {
                 return new Promise<string>((resolve, reject) =>
@@ -134,28 +129,22 @@ export class IOSEnvironmentSetup extends BaseSetup {
             this.logger.info('Executing a check for iOS runtimes');
             const supportedRuntimes = await IOSUtils.getSupportedRuntimes();
             if (supportedRuntimes.length > 0) {
-                return new Promise<string>((resolve, reject) =>
-                    resolve(
-                        util.format(this.fulfilledMessage, supportedRuntimes)
-                    )
+                return Promise.resolve(
+                    util.format(this.fulfilledMessage, supportedRuntimes)
                 );
             } else {
-                return new Promise<string>((resolve, reject) =>
-                    reject(
-                        util.format(
-                            this.unfulfilledMessage,
-                            `${iOSConfig.supportedRuntimes}`
-                        )
+                return Promise.reject(
+                    util.format(
+                        this.unfulfilledMessage,
+                        `iOS-${iOSConfig.minSupportedRuntimeIOS}`
                     )
                 );
             }
         } catch (supportedRuntimesError) {
-            return new Promise<string>((resolve, reject) =>
-                reject(
-                    util.format(
-                        this.unfulfilledMessage,
-                        `${iOSConfig.supportedRuntimes} error:${supportedRuntimesError}`
-                    )
+            return Promise.reject(
+                util.format(
+                    this.unfulfilledMessage,
+                    `iOS-${iOSConfig.minSupportedRuntimeIOS} error:${supportedRuntimesError}`
                 )
             );
         }

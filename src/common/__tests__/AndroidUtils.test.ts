@@ -4,14 +4,18 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-const ORIG_ANDROID_HOME = process.env.ANDROID_HOME;
-const MOCK_ANDROID_HOME = '/mock-android-home';
-process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 import fs from 'fs';
 import path from 'path';
-import { AndroidSDKUtils } from '../AndroidUtils';
+import { AndroidSDKRootSource, AndroidSDKUtils } from '../AndroidUtils';
 import { PreviewUtils } from '../PreviewUtils';
 import { AndroidMockData } from './AndroidMockData';
+
+const mockAndroidHome = '/mock-android-home';
+
+const mockAndroidSdkRoot = '/mock-android-sdk-root';
+
+const userHome =
+    process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
 
 const myGenericVersionsCommandBlockMock = jest.fn((): string => {
     return 'mock version 1.0';
@@ -22,11 +26,11 @@ const myGenericVersionsCommandBlockMockThrows = jest.fn((): string => {
 });
 
 const myCommandBlockMock = jest.fn((): string => {
-    return AndroidMockData.mockRawPacakgesString;
+    return AndroidMockData.mockRawPackagesString;
 });
 
 const badBlockMock = jest.fn((): string => {
-    return AndroidMockData.badMockRawPacakagesString;
+    return AndroidMockData.badMockRawPackagesString;
 });
 
 const throwMock = jest.fn((): void => {
@@ -41,14 +45,24 @@ const launchCommandThrowsMock = jest.fn((): string => {
     throw new Error(' Mock Error');
 });
 
-const sdkCommand = path.normalize(MOCK_ANDROID_HOME + '/tools/bin/sdkmanager');
-const adbCommand = path.normalize(MOCK_ANDROID_HOME + '/platform-tools/adb');
+const sdkCommand = path.normalize(
+    mockAndroidHome + '/cmdline-tools/sdkmanager'
+);
+const adbCommand = path.normalize(mockAndroidHome + '/platform-tools/adb');
 
 let readFileSpy: jest.SpyInstance<any>;
 let writeFileSpy: jest.SpyInstance<any>;
 
 describe('Android utils', () => {
     beforeEach(() => {
+        jest.spyOn(AndroidSDKUtils, 'getAndroidSdkRoot').mockImplementation(
+            () => {
+                return {
+                    rootLocation: mockAndroidHome,
+                    rootSource: AndroidSDKRootSource.androidHome
+                };
+            }
+        );
         myCommandBlockMock.mockClear();
         badBlockMock.mockClear();
         AndroidSDKUtils.clearCaches();
@@ -83,7 +97,7 @@ describe('Android utils', () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
             myGenericVersionsCommandBlockMock
         );
-        await AndroidSDKUtils.fetchAndroidSDKToolsLocation();
+        await AndroidSDKUtils.fetchAndroidCmdLineToolsLocation();
         expect(
             myGenericVersionsCommandBlockMock
         ).toHaveBeenCalledWith(`${sdkCommand} --version`, [
@@ -97,7 +111,7 @@ describe('Android utils', () => {
         jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
             myGenericVersionsCommandBlockMockThrows
         );
-        AndroidSDKUtils.fetchAndroidSDKToolsLocation().catch((error) => {
+        AndroidSDKUtils.fetchAndroidCmdLineToolsLocation().catch((error) => {
             expect(error).toBeTruthy();
         });
     });
@@ -136,7 +150,10 @@ describe('Android utils', () => {
             myCommandBlockMock
         );
         const packages = await AndroidSDKUtils.fetchInstalledPackages();
-        expect(packages.size === AndroidMockData.mockRawStringPackageLength);
+        expect(
+            packages.platforms.length + packages.systemImages.length ===
+                AndroidMockData.mockRawStringPackageLength
+        ).toBeTrue();
     });
 
     test('Should attempt to invoke the sdkmanager and retrieve an empty list for a bad sdkmanager list', async () => {
@@ -144,7 +161,7 @@ describe('Android utils', () => {
             badBlockMock
         );
         const packages = await AndroidSDKUtils.fetchInstalledPackages();
-        expect(packages.size !== 0);
+        expect(packages.isEmpty()).toBeTrue();
     });
 
     test('Should have no cache before first list packages call', async () => {
@@ -196,7 +213,9 @@ describe('Android utils', () => {
             myCommandBlockMock
         );
         const apiPackage = await AndroidSDKUtils.findRequiredAndroidAPIPackage();
-        expect(apiPackage !== null && apiPackage.description !== null);
+        expect(
+            apiPackage !== null && apiPackage.description !== null
+        ).toBeTrue();
     });
 
     test('Should not find a preferred Android package', async () => {
@@ -213,7 +232,9 @@ describe('Android utils', () => {
             myCommandBlockMock
         );
         const apiPackage = await AndroidSDKUtils.findRequiredEmulatorImages();
-        expect(apiPackage !== null && apiPackage.description !== null);
+        expect(
+            apiPackage !== null && apiPackage.description !== null
+        ).toBeTrue();
     });
 
     test('Should not find a preferred Android build tools package', async () => {
@@ -235,7 +256,7 @@ describe('Android utils', () => {
             'hw.gpu.mode=auto\n' +
             'hw.gpu.enabled=yes\n' +
             'skin.name=pixel_silver\n' +
-            `skin.path=${MOCK_ANDROID_HOME}/skins/pixel_silver\n` +
+            `skin.path=${mockAndroidHome}/skins/pixel_silver\n` +
             'skin.dynamic=yes\n' +
             'showDeviceFrame=yes\n';
 
@@ -244,8 +265,7 @@ describe('Android utils', () => {
 
         expect(readFileSpy).toHaveBeenCalled();
         expect(writeFileSpy).toHaveBeenCalledWith(
-            AndroidSDKUtils.USER_HOME +
-                `/.android/avd/${avdName}.avd/config.ini`,
+            userHome + `/.android/avd/${avdName}.avd/config.ini`,
             expectedConfig,
             'utf8'
         );
@@ -260,7 +280,7 @@ describe('Android utils', () => {
             'hw.gpu.mode=auto\n' +
             'hw.gpu.enabled=yes\n' +
             'skin.name=pixel_3\n' +
-            `skin.path=${MOCK_ANDROID_HOME}/skins/pixel_3\n` +
+            `skin.path=${mockAndroidHome}/skins/pixel_3\n` +
             'skin.dynamic=yes\n' +
             'showDeviceFrame=yes\n';
 
@@ -269,8 +289,7 @@ describe('Android utils', () => {
 
         expect(readFileSpy).toHaveBeenCalled();
         expect(writeFileSpy).toHaveBeenCalledWith(
-            AndroidSDKUtils.USER_HOME +
-                `/.android/avd/${avdName}.avd/config.ini`,
+            userHome + `/.android/avd/${avdName}.avd/config.ini`,
             expectedConfig,
             'utf8'
         );
@@ -290,8 +309,7 @@ describe('Android utils', () => {
 
         expect(readFileSpy).toHaveBeenCalled();
         expect(writeFileSpy).toHaveBeenCalledWith(
-            AndroidSDKUtils.USER_HOME +
-                `/.android/avd/${avdName}.avd/config.ini`,
+            userHome + `/.android/avd/${avdName}.avd/config.ini`,
             expectedConfig,
             'utf8'
         );
@@ -324,7 +342,7 @@ describe('Android utils', () => {
         );
         const url = 'mock.url';
         const port = 1234;
-        const expectedCommand = `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${port} shell am start -a android.intent.action.VIEW -d ${url}`;
+        const expectedCommand = `${adbCommand} -s emulator-${port} shell am start -a android.intent.action.VIEW -d ${url}`;
         await AndroidSDKUtils.launchURLIntent(url, port);
         expect(launchCommandMock).toHaveBeenCalledWith(expectedCommand);
     });
@@ -366,16 +384,19 @@ describe('Android utils', () => {
         await AndroidSDKUtils.launchNativeApp(
             compName,
             projectDir,
+            undefined,
             targetApp,
             targetAppArgs,
             targetActivity,
-            port
+            port,
+            undefined,
+            undefined
         );
 
         expect(mockCmd).toBeCalledTimes(1);
         expect(mockCmd).nthCalledWith(
             1,
-            `${AndroidSDKUtils.ADB_SHELL_COMMAND} -s emulator-${port}` +
+            `${adbCommand} -s emulator-${port}` +
                 ` shell am start -S -n "${targetApp}/${targetActivity}"` +
                 ' -a android.intent.action.MAIN' +
                 ' -c android.intent.category.LAUNCHER' +
@@ -399,12 +420,98 @@ describe('Android utils', () => {
         return AndroidSDKUtils.launchNativeApp(
             compName,
             projectDir,
+            undefined,
             targetApp,
             targetAppArgs,
             targetActivity,
-            port
+            port,
+            undefined,
+            undefined
         ).catch((error) => {
             expect(error).toBeTruthy();
         });
+    });
+
+    test('Should attempt to install native app then launch it.', async () => {
+        const compName = 'mock.compName';
+        const projectDir = '/mock/path';
+        const appBundlePath = '/mock/path/MyTestApp.apk';
+        const targetApp = 'com.mock.app';
+        const targetActivity = '.MainActivity';
+        const targetAppArgs = [
+            { name: 'arg1', value: 'val1' },
+            { name: 'arg2', value: 'val2' }
+        ];
+        const port = 1234;
+        const launchArgs =
+            `--es "${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}" "${compName}"` +
+            ` --es "${PreviewUtils.PROJECT_DIR_ARG_PREFIX}" "${projectDir}"` +
+            ` --es "arg1" "val1" --es "arg2" "val2"`;
+
+        const mockCmd = jest.fn((): string => {
+            return `${targetApp}/.MainActivity`;
+        });
+
+        jest.spyOn(AndroidSDKUtils, 'executeCommand').mockImplementation(
+            mockCmd
+        );
+
+        await AndroidSDKUtils.launchNativeApp(
+            compName,
+            projectDir,
+            appBundlePath,
+            targetApp,
+            targetAppArgs,
+            targetActivity,
+            port,
+            undefined,
+            undefined
+        );
+
+        const pathQuote = process.platform === 'win32' ? '"' : "'";
+
+        expect(mockCmd).toBeCalledTimes(2);
+        expect(mockCmd).nthCalledWith(
+            1,
+            `${adbCommand} -s emulator-${port} install -r -t ${pathQuote}${appBundlePath.trim()}${pathQuote}`
+        );
+        expect(mockCmd).nthCalledWith(
+            2,
+            `${adbCommand} -s emulator-${port}` +
+                ` shell am start -S -n "${targetApp}/${targetActivity}"` +
+                ' -a android.intent.action.MAIN' +
+                ' -c android.intent.category.LAUNCHER' +
+                ` ${launchArgs}`
+        );
+    });
+
+    test('Should resolve ANDROID_HOME as SDK root', async () => {
+        process.env.ANDROID_HOME = mockAndroidHome;
+        delete process.env.ANDROID_SDK_ROOT; // set it to undefined
+        jest.restoreAllMocks();
+        jest.spyOn(fs, 'existsSync').mockImplementation(() => true);
+        const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
+        const rootPath = (sdkRoot && sdkRoot.rootLocation) || '';
+        expect(rootPath).toBe(mockAndroidHome);
+    });
+
+    test('Should resolve ANDROID_SDK_ROOT as SDK root', async () => {
+        delete process.env.ANDROID_HOME; // set it to undefined
+        process.env.ANDROID_SDK_ROOT = mockAndroidSdkRoot;
+        jest.restoreAllMocks();
+        jest.spyOn(fs, 'existsSync').mockImplementation(() => true);
+        const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
+        const rootPath = (sdkRoot && sdkRoot.rootLocation) || '';
+        expect(rootPath).toBe(mockAndroidSdkRoot);
+    });
+
+    test('Should resolve ANDROID_HOME as SDK root if both ANDROID_HOME and ANDROID_SDK_ROOT are set', async () => {
+        process.env.ANDROID_HOME = mockAndroidHome;
+        process.env.ANDROID_SDK_ROOT = mockAndroidSdkRoot;
+        jest.restoreAllMocks();
+        jest.spyOn(fs, 'existsSync').mockImplementation(() => true);
+        const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
+        const rootPath = (sdkRoot && sdkRoot.rootLocation) || '';
+        expect(rootPath).toBe(mockAndroidHome);
     });
 });

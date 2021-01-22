@@ -11,15 +11,15 @@ process.env.ANDROID_HOME = MOCK_ANDROID_HOME;
 
 import { Logger, Messages } from '@salesforce/core';
 import { AndroidEnvironmentSetup } from '../AndroidEnvironmentSetup';
-import { AndroidSDKUtils } from '../AndroidUtils';
+import { AndroidSDKRootSource, AndroidSDKUtils } from '../AndroidUtils';
 import { AndroidMockData } from './AndroidMockData';
 
 const myCommandBlockMock = jest.fn((): string => {
-    return AndroidMockData.mockRawPacakgesString;
+    return AndroidMockData.mockRawPackagesString;
 });
 
 const badBlockMock = jest.fn((): string => {
-    return AndroidMockData.badMockRawPacakagesString;
+    return AndroidMockData.badMockRawPackagesString;
 });
 
 Messages.importMessagesDirectory(__dirname);
@@ -37,22 +37,27 @@ describe('Android enviroment setup tests', () => {
         badBlockMock.mockClear();
     });
 
-    test('Should resolve when ANDROID_HOME is set', async () => {
-        jest.spyOn(AndroidSDKUtils, 'isAndroidHomeSet').mockImplementation(
-            () => true
+    test('Should resolve when Android SDK root is set', async () => {
+        jest.spyOn(AndroidSDKUtils, 'getAndroidSdkRoot').mockImplementation(
+            () => {
+                return {
+                    rootLocation: '/mock-android-home',
+                    rootSource: AndroidSDKRootSource.androidHome
+                };
+            }
         );
         const aPromise = andrEnvironment
-            .isAndroidHomeSet()
+            .isAndroidSdkRootSet()
             .catch(() => undefined);
         expect(aPromise).resolves;
     });
 
-    test('Should reject when ANDROID_HOME is not set', async () => {
-        jest.spyOn(AndroidSDKUtils, 'isAndroidHomeSet').mockImplementation(
-            () => false
+    test('Should reject when Android SDK root is not set', async () => {
+        jest.spyOn(AndroidSDKUtils, 'getAndroidSdkRoot').mockImplementation(
+            () => undefined
         );
         const aPromise = andrEnvironment
-            .isAndroidHomeSet()
+            .isAndroidSdkRootSet()
             .catch(() => undefined);
         expect(aPromise).rejects;
     });

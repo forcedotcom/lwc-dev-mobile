@@ -94,9 +94,7 @@ describe('IOS Environment Setup tests', () => {
         );
         const setup = new IOSEnvironmentSetup(logger);
         await setup.isXcodeInstalled();
-        expect(myXcodeSelectMock).toHaveBeenCalledWith(
-            '/usr/bin/xcode-select -p'
-        );
+        expect(myXcodeSelectMock).toHaveBeenCalledWith('xcodebuild -version');
     });
 
     it('Should throw an error for unsupported Xcode Env', async () => {

@@ -27,13 +27,6 @@ const passedSetupMock = jest.fn(() => {
     return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
 });
 
-const failedSetupMock = jest.fn(() => {
-    return Promise.resolve({
-        hasMetAllRequirements: false,
-        tests: ['Mock Failure in tests!']
-    });
-});
-
 describe('List Tests', () => {
     let list: List;
 

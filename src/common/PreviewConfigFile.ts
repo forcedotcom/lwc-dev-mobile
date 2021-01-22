@@ -42,6 +42,8 @@ class BaseAppPreviewConfig {
     public get_app_bundle?: string;
     // tslint:disable-next-line: variable-name
     public launch_arguments?: LaunchArgument[];
+    // tslint:disable-next-line: variable-name
+    public preview_server_enabled?: boolean;
 }
 
 // tslint:disable-next-line: max-classes-per-file
