@@ -28,7 +28,7 @@
                 "-n",
                 "c/helloWorld",
                 "-t",
-                "emu2"
+                "sfdxdebug"
             ]
         },
         {
@@ -85,7 +85,7 @@
                 "-p",
                 "iOS",
                 "-n",
-                "MyNewVirtualDevice",
+                "sfdxdebug",
                 "-d",
                 "iPhone-8"
             ]
@@ -100,7 +100,7 @@
                 "-p",
                 "android",
                 "-n",
-                "MyNewVirtualDevice",
+                "sfdxdebug",
                 "-d",
                 "pixel_xl"
             ]

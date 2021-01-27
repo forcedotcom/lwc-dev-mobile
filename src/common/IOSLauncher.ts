@@ -4,13 +4,10 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import childProcess from 'child_process';
 import cli from 'cli-ux';
-import util from 'util';
 import { IOSUtils } from './IOSUtils';
 import { IOSAppPreviewConfig, LaunchArgument } from './PreviewConfigFile';
 import { PreviewUtils } from './PreviewUtils';
-const exec = util.promisify(childProcess.exec);
 
 export class IOSLauncher {
     private simulatorName: string;
@@ -112,13 +109,3 @@ export class IOSLauncher {
             });
     }
 }
-
-// let launcher = new IOSLauncher('sfdxdevmobile-101');
-// launcher
-//     .launchNativeBrowser('http://salesforce.com')
-//     .then((result) => {
-//         console.log('Done!');
-//     })
-//     .catch((error) => {
-//         console.log('Error!' + error);
-//     });

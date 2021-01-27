@@ -118,11 +118,16 @@ describe('Preview Tests', () => {
         setupAndroidFlags();
         const logger = new Logger('test-preview');
         setupLogger(logger);
-        const cmdMock = jest.fn((): string => {
-            return 'path/to/bin/node /path/to/bin/sfdx.js force:lightning:lwc:start';
-        });
+        const cmdMock = jest.fn(
+            (): Promise<{ stdout: string; stderr: string }> =>
+                Promise.resolve({
+                    stderr: '',
+                    stdout:
+                        'path/to/bin/node /path/to/bin/sfdx.js force:lightning:lwc:start'
+                })
+        );
 
-        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             cmdMock
         );
         const requirement = new LwcServerIsRunningRequirement(logger);
@@ -136,11 +141,15 @@ describe('Preview Tests', () => {
         const logger = new Logger('test-preview');
         setupLogger(logger);
         const specifiedPort = '3456';
-        const cmdMock = jest.fn((): string => {
-            return `path/to/bin/node /path/to/bin/sfdx.js force:lightning:lwc:start -p ${specifiedPort}`;
-        });
+        const cmdMock = jest.fn(
+            (): Promise<{ stdout: string; stderr: string }> =>
+                Promise.resolve({
+                    stderr: '',
+                    stdout: `path/to/bin/node /path/to/bin/sfdx.js force:lightning:lwc:start -p ${specifiedPort}`
+                })
+        );
 
-        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             cmdMock
         );
         const requirement = new LwcServerIsRunningRequirement(logger);

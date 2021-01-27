@@ -258,14 +258,14 @@ export class Preview extends Setup {
                 this.appConfig
             )
         ) {
-            const port = CommonUtils.getLwcServerPort();
+            const port = await CommonUtils.getLwcServerPort();
             this.serverPort = port ? port : CommonUtils.DEFAULT_LWC_SERVER_PORT;
         }
 
         return Promise.resolve();
     }
 
-    public launchPreview(): Promise<boolean> {
+    public async launchPreview(): Promise<boolean> {
         // At this point all of the inputs/parameters have been verified and parsed so we can just use them.
 
         let appBundlePath: string | undefined;
@@ -334,7 +334,7 @@ export class Preview extends Setup {
         return this.exit(0);
     }
 
-    private launchIOS(
+    private async launchIOS(
         deviceName: string,
         componentName: string,
         projectDir: string,
@@ -355,7 +355,7 @@ export class Preview extends Setup {
         );
     }
 
-    private launchAndroid(
+    private async launchAndroid(
         deviceName: string,
         componentName: string,
         projectDir: string,
@@ -393,11 +393,14 @@ export class LwcServerIsRunningRequirement implements Requirement {
     }
 
     public async checkFunction(): Promise<string> {
-        const port = CommonUtils.getLwcServerPort();
-        if (!port) {
-            return Promise.reject(this.unfulfilledMessage);
-        } else {
-            return Promise.resolve(util.format(this.fulfilledMessage, port));
-        }
+        return CommonUtils.getLwcServerPort().then((port) => {
+            if (!port) {
+                return Promise.reject(this.unfulfilledMessage);
+            } else {
+                return Promise.resolve(
+                    util.format(this.fulfilledMessage, port)
+                );
+            }
+        });
     }
 }

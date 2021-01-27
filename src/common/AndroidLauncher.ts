@@ -30,13 +30,8 @@ export class AndroidLauncher {
         const androidApi = preferredPack.platformAPI;
         const abi = preferredPack.abi;
         const device = androidConfig.supportedDevices[0];
-        let requestedPort = await AndroidSDKUtils.getNextAndroidAdbPort();
+        const requestedPort = await AndroidSDKUtils.getNextAndroidAdbPort();
         const spinner = cli.action;
-        // need to incr by 2, one for console port and next for adb
-        requestedPort =
-            requestedPort < androidConfig.defaultAdbPort
-                ? androidConfig.defaultAdbPort
-                : requestedPort + 2;
         const emuName = this.emulatorName;
         spinner.start(`Launching`, `Searching for ${emuName}`, {
             stdout: true

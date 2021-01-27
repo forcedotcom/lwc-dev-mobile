@@ -150,27 +150,30 @@ export class Create extends Setup {
     }
 
     private async executeAndroidDeviceCreate(): Promise<any> {
-        const preferredPack = await AndroidSDKUtils.findRequiredEmulatorImages();
-        const emuImage = preferredPack.platformEmulatorImage || 'default';
-        const androidApi = preferredPack.platformAPI;
-        const abi = preferredPack.abi;
-
-        return AndroidSDKUtils.createNewVirtualDevice(
-            this.deviceName,
-            emuImage,
-            androidApi,
-            this.deviceType,
-            abi
+        return AndroidSDKUtils.findRequiredEmulatorImages().then(
+            (preferredPack) => {
+                const emuImage =
+                    preferredPack.platformEmulatorImage || 'default';
+                const androidApi = preferredPack.platformAPI;
+                const abi = preferredPack.abi;
+                return AndroidSDKUtils.createNewVirtualDevice(
+                    this.deviceName,
+                    emuImage,
+                    androidApi,
+                    this.deviceType,
+                    abi
+                );
+            }
         );
     }
 
     private async executeIOSDeviceCreate(): Promise<any> {
-        const supportedRuntimes: string[] = await IOSUtils.getSupportedRuntimes();
-
-        return IOSUtils.createNewDevice(
-            this.deviceName,
-            this.deviceType,
-            supportedRuntimes[0]
+        return IOSUtils.getSupportedRuntimes().then((supportedRuntimes) =>
+            IOSUtils.createNewDevice(
+                this.deviceName,
+                this.deviceType,
+                supportedRuntimes[0]
+            )
         );
     }
 }

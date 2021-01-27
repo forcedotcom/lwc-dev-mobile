@@ -56,24 +56,29 @@ export default class Setup extends SfdxCommand {
             );
         }
         this.logger.info(`Setup Command called for ${this.flags.platform}`);
-        const setup = this.setup();
-        const result = await this.executeSetup(setup);
-        if (!result.hasMetAllRequirements) {
-            return Promise.reject(
-                new SfdxError(
-                    util.format(
-                        messages.getMessage('error:setupFailed'),
-                        this.flags.platform
-                    ),
-                    'lwc-dev-mobile',
-                    [messages.getMessage('error:setupFailed:recommendation')]
-                )
-            );
-        }
-        return Promise.resolve(result);
+        return this.executeSetup(this.setup()).then((result) => {
+            if (!result.hasMetAllRequirements) {
+                return Promise.reject(
+                    new SfdxError(
+                        util.format(
+                            messages.getMessage('error:setupFailed'),
+                            this.flags.platform
+                        ),
+                        'lwc-dev-mobile',
+                        [
+                            messages.getMessage(
+                                'error:setupFailed:recommendation'
+                            )
+                        ]
+                    )
+                );
+            } else {
+                return Promise.resolve(result);
+            }
+        });
     }
 
-    public executeSetup(setup: BaseSetup): Promise<SetupTestResult> {
+    public async executeSetup(setup: BaseSetup): Promise<SetupTestResult> {
         return setup.executeSetup();
     }
 
