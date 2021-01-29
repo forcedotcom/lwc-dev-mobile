@@ -220,13 +220,14 @@ export class LWCServerPluginInstalledRequirement implements Requirement {
     }
 
     public async checkFunction(): Promise<string> {
-        return new Promise<string>(async (resolve, reject) => {
-            try {
-                await CommonUtils.isLwcServerPluginInstalled();
+        return CommonUtils.isLwcServerPluginInstalled()
+            .then(() => {
                 this.logger.info('sfdx server plugin detected.');
-                resolve(this.fulfilledMessage);
-            } catch {
+                return Promise.resolve(this.fulfilledMessage);
+            })
+            .catch((error) => {
                 this.logger.info('sfdx server plugin was not detected.');
+
                 try {
                     const command =
                         'sfdx plugins:install @salesforce/lwc-dev-server';
@@ -239,14 +240,13 @@ export class LWCServerPluginInstalledRequirement implements Requirement {
                         'inherit'
                     ]);
                     this.logger.info('sfdx server plugin installed.');
-                    resolve(this.fulfilledMessage);
+                    return Promise.resolve(this.fulfilledMessage);
                 } catch (error) {
                     this.logger.error(
                         `sfdx server plugin installion failed. ${error}`
                     );
-                    reject(new Error(this.unfulfilledMessage));
+                    return Promise.reject(new Error(this.unfulfilledMessage));
                 }
-            }
-        });
+            });
     }
 }

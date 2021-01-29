@@ -50,22 +50,20 @@ export class AndroidSDKRootSetRequirement implements Requirement {
     }
 
     public async checkFunction(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            const root = AndroidSDKUtils.getAndroidSdkRoot();
-            if (root) {
-                resolve(
-                    AndroidSDKUtils.convertToUnixPath(
-                        util.format(
-                            this.fulfilledMessage,
-                            root.rootSource,
-                            root.rootLocation
-                        )
+        const root = AndroidSDKUtils.getAndroidSdkRoot();
+        if (root) {
+            return Promise.resolve(
+                AndroidSDKUtils.convertToUnixPath(
+                    util.format(
+                        this.fulfilledMessage,
+                        root.rootSource,
+                        root.rootLocation
                     )
-                );
-            } else {
-                reject(this.unfulfilledMessage);
-            }
-        });
+                )
+            );
+        } else {
+            return Promise.reject(this.unfulfilledMessage);
+        }
     }
 }
 

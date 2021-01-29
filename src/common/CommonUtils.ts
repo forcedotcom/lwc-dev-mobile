@@ -20,6 +20,10 @@ export class CommonUtils {
         return Promise.resolve();
     }
 
+    public static delay(ms: number): Promise<void> {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
     public static resolvePath(inputPath: string): string {
         let newPath = inputPath.trim();
         if (newPath.startsWith('~')) {

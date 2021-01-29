@@ -385,39 +385,29 @@ export class AndroidSDKUtils {
     public static async pollDeviceStatus(portNumber: number): Promise<void> {
         const command = `${AndroidSDKUtils.getAdbShellCommand()} -s emulator-${portNumber} wait-for-device shell getprop sys.boot_completed`;
         const timeout = androidConfig.deviceBootReadinessWaitTime;
-        const numberOfRetries = androidConfig.deviceBootStatusPollRetries;
-        return new Promise<void>((resolve, reject) => {
-            const timeoutFunc = (commandStr: string, noOfRetries: number) => {
-                try {
-                    const stdout = CommonUtils.executeCommandSync(commandStr);
-                    if (stdout && stdout.trim() === '1') {
-                        resolve();
-                    } else {
-                        if (noOfRetries === 0) {
-                            reject(
-                                new Error(
-                                    `Timeout waiting for emulator-${portNumber} to boot.`
-                                )
-                            );
-                        } else {
-                            setTimeout(
-                                timeoutFunc,
-                                timeout,
-                                commandStr,
-                                noOfRetries - 1
-                            );
-                        }
-                    }
-                } catch (error) {
-                    reject(
-                        new Error(
-                            `Unable to communicate with emulator via ADB.`
-                        )
-                    );
+        let numberOfRetries = androidConfig.deviceBootStatusPollRetries;
+
+        while (numberOfRetries > 0) {
+            try {
+                const stdout = CommonUtils.executeCommandSync(command);
+                if (stdout && stdout.trim() === '1') {
+                    return Promise.resolve();
+                } else {
+                    await CommonUtils.delay(timeout);
+                    numberOfRetries--;
                 }
-            };
-            setTimeout(timeoutFunc, 1000, command, numberOfRetries);
-        });
+            } catch (error) {
+                return Promise.reject(
+                    new Error(
+                        `Unable to communicate with emulator via ADB: ${error}`
+                    )
+                );
+            }
+        }
+
+        return Promise.reject(
+            new Error(`Timeout waiting for emulator-${portNumber} to boot.`)
+        );
     }
 
     public static async launchURLIntent(
@@ -536,45 +526,43 @@ export class AndroidSDKUtils {
     public static async updateEmulatorConfig(
         emulatorName: string
     ): Promise<void> {
-        return new Promise(async (resolve, reject) => {
-            const config = await AndroidSDKUtils.readEmulatorConfig(
-                emulatorName
-            );
-            if (config.size === 0) {
-                // If we cannot edit the AVD config, fail silently.
-                // This will be a degraded experience but should still work.
-                resolve();
-                return;
-            }
-
-            // Utilize hardware.
-            config.set('hw.keyboard', 'yes');
-            config.set('hw.gpu.mode', 'auto');
-            config.set('hw.gpu.enabled', 'yes');
-
-            // Give emulator the appropriate skin.
-            let skinName = config.get('hw.device.name') || '';
-            if (skinName) {
-                if (skinName === 'pixel') {
-                    skinName = 'pixel_silver';
-                } else if (skinName === 'pixel_xl') {
-                    skinName = 'pixel_xl_silver';
+        return AndroidSDKUtils.readEmulatorConfig(emulatorName).then(
+            (config) => {
+                if (config.size === 0) {
+                    // If we cannot edit the AVD config, fail silently.
+                    // This will be a degraded experience but should still work.
+                    return Promise.resolve();
                 }
-                const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
-                config.set('skin.name', skinName);
-                config.set(
-                    'skin.path',
-                    `${
-                        (sdkRoot && sdkRoot.rootLocation) || ''
-                    }/skins/${skinName}`
-                );
-                config.set('skin.dynamic', 'yes');
-                config.set('showDeviceFrame', 'yes');
-            }
 
-            AndroidSDKUtils.writeEmulatorConfig(emulatorName, config);
-            resolve();
-        });
+                // Utilize hardware.
+                config.set('hw.keyboard', 'yes');
+                config.set('hw.gpu.mode', 'auto');
+                config.set('hw.gpu.enabled', 'yes');
+
+                // Give emulator the appropriate skin.
+                let skinName = config.get('hw.device.name') || '';
+                if (skinName) {
+                    if (skinName === 'pixel') {
+                        skinName = 'pixel_silver';
+                    } else if (skinName === 'pixel_xl') {
+                        skinName = 'pixel_xl_silver';
+                    }
+                    const sdkRoot = AndroidSDKUtils.getAndroidSdkRoot();
+                    config.set('skin.name', skinName);
+                    config.set(
+                        'skin.path',
+                        `${
+                            (sdkRoot && sdkRoot.rootLocation) || ''
+                        }/skins/${skinName}`
+                    );
+                    config.set('skin.dynamic', 'yes');
+                    config.set('showDeviceFrame', 'yes');
+                }
+
+                AndroidSDKUtils.writeEmulatorConfig(emulatorName, config);
+                return Promise.resolve();
+            }
+        );
     }
 
     public static getAndroidPlatformTools(): string {
