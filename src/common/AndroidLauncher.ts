@@ -24,7 +24,7 @@ export class AndroidLauncher {
         targetApp: string,
         appConfig: AndroidAppPreviewConfig | undefined,
         serverPort: string
-    ): Promise<boolean> {
+    ): Promise<void> {
         const preferredPack = await AndroidSDKUtils.findRequiredEmulatorImages();
         const emuImage = preferredPack.platformEmulatorImage || 'default';
         const androidApi = preferredPack.platformAPI;
@@ -48,14 +48,14 @@ export class AndroidLauncher {
                         androidApi,
                         device,
                         abi
-                    ).then((resolve) => true);
+                    );
                 }
                 spinner.start(`Launching`, `Found device ${emuName}`, {
                     stdout: true
                 });
-                return true;
+                return Promise.resolve();
             })
-            .then((resolve) => {
+            .then(() => {
                 spinner.start(`Launching`, `Starting device ${emuName}`, {
                     stdout: true
                 });

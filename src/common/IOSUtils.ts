@@ -23,10 +23,10 @@ export class IOSUtils {
         return Promise.resolve();
     }
 
-    public static async bootDevice(udid: string): Promise<boolean> {
+    public static async bootDevice(udid: string): Promise<void> {
         const command = `${XCRUN_CMD} simctl boot ${udid}`;
         return CommonUtils.executeCommandAsync(command)
-            .then((result) => Promise.resolve(true))
+            .then(() => Promise.resolve())
             .catch((error) => {
                 if (!IOSUtils.isDeviceAlreadyBootedError(error)) {
                     return Promise.reject(
@@ -35,7 +35,7 @@ export class IOSUtils {
                         )
                     );
                 } else {
-                    return Promise.resolve(true);
+                    return Promise.resolve();
                 }
             });
     }
@@ -209,10 +209,10 @@ export class IOSUtils {
             });
     }
 
-    public static async waitUntilDeviceIsReady(udid: string): Promise<boolean> {
+    public static async waitUntilDeviceIsReady(udid: string): Promise<void> {
         const command = `${XCRUN_CMD} simctl bootstatus "${udid}"`;
         return CommonUtils.executeCommandAsync(command)
-            .then((result) => Promise.resolve(true))
+            .then(() => Promise.resolve())
             .catch((error) =>
                 Promise.reject(
                     new Error(
@@ -222,10 +222,10 @@ export class IOSUtils {
             );
     }
 
-    public static async launchSimulatorApp(): Promise<boolean> {
+    public static async launchSimulatorApp(): Promise<void> {
         const command = `open -a Simulator`;
         return CommonUtils.executeCommandAsync(command)
-            .then((result) => Promise.resolve(true))
+            .then(() => Promise.resolve())
             .catch((error) =>
                 Promise.reject(
                     new Error(
@@ -238,10 +238,10 @@ export class IOSUtils {
     public static async launchURLInBootedSimulator(
         udid: string,
         url: string
-    ): Promise<boolean> {
+    ): Promise<void> {
         const command = `${XCRUN_CMD} simctl openurl "${udid}" ${url}`;
         return CommonUtils.executeCommandAsync(command)
-            .then((result) => Promise.resolve(true))
+            .then(() => Promise.resolve())
             .catch((error) =>
                 Promise.reject(
                     new Error(
@@ -260,7 +260,7 @@ export class IOSUtils {
         targetAppArguments: LaunchArgument[],
         serverAddress: string | undefined,
         serverPort: string | undefined
-    ): Promise<boolean> {
+    ): Promise<void> {
         let thePromise: Promise<{ stdout: string; stderr: string }>;
         if (appBundlePath && appBundlePath.trim().length > 0) {
             IOSUtils.logger.info(
@@ -273,7 +273,7 @@ export class IOSUtils {
         }
 
         return thePromise
-            .then(async (result) => {
+            .then(async () => {
                 let launchArgs =
                     `${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}=${compName}` +
                     ` ${PreviewUtils.PROJECT_DIR_ARG_PREFIX}=${projectDir}`;
@@ -307,7 +307,7 @@ export class IOSUtils {
                 IOSUtils.logger.info(`Launching app ${targetApp} in simulator`);
                 return CommonUtils.executeCommandAsync(launchCommand);
             })
-            .then((result) => Promise.resolve(true))
+            .then(() => Promise.resolve())
             .catch((error) => Promise.reject(error));
     }
 

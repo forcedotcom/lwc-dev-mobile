@@ -57,7 +57,7 @@ describe('List Tests', () => {
             return Promise.resolve(0);
         });
         const createNewVirtualDeviceMock = jest.fn(() => {
-            return Promise.resolve(true);
+            return Promise.resolve();
         });
         jest.spyOn(
             AndroidSDKUtils,

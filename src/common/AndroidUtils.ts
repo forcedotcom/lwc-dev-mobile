@@ -138,23 +138,23 @@ export class AndroidSDKUtils {
             return Promise.reject(new Error('Android SDK root is not set.'));
         }
 
-        if (!AndroidSDKUtils.isCached()) {
-            return CommonUtils.executeCommandAsync(
-                `${AndroidSDKUtils.getSdkManagerCommand()} --list`
-            )
-                .then((result) => {
-                    if (result.stdout && result.stdout.length > 0) {
-                        const packages = AndroidPackages.parseRawPackagesString(
-                            result.stdout
-                        );
-                        AndroidSDKUtils.packageCache = packages;
-                    }
-                    return Promise.resolve(AndroidSDKUtils.packageCache);
-                })
-                .catch((error) => Promise.reject(error));
-        } else {
+        if (AndroidSDKUtils.isCached()) {
             return Promise.resolve(AndroidSDKUtils.packageCache);
         }
+
+        return CommonUtils.executeCommandAsync(
+            `${AndroidSDKUtils.getSdkManagerCommand()} --list`
+        )
+            .then((result) => {
+                if (result.stdout && result.stdout.length > 0) {
+                    const packages = AndroidPackages.parseRawPackagesString(
+                        result.stdout
+                    );
+                    AndroidSDKUtils.packageCache = packages;
+                }
+                return Promise.resolve(AndroidSDKUtils.packageCache);
+            })
+            .catch((error) => Promise.reject(error));
     }
 
     public static async fetchEmulators(): Promise<AndroidVirtualDevice[]> {
@@ -170,8 +170,8 @@ export class AndroidSDKUtils {
                 }
                 return Promise.resolve(devices);
             })
-            .catch((exception) => {
-                AndroidSDKUtils.logger.warn(exception);
+            .catch((error) => {
+                AndroidSDKUtils.logger.warn(error);
                 return Promise.resolve(devices);
             });
     }
@@ -183,8 +183,8 @@ export class AndroidSDKUtils {
             androidConfig.minSupportedRuntimeAndroid
         );
 
-        return AndroidSDKUtils.fetchInstalledPackages()
-            .then(async (packages) => {
+        return AndroidSDKUtils.fetchInstalledPackages().then(
+            async (packages) => {
                 if (packages.isEmpty()) {
                     return Promise.reject(
                         new Error(
@@ -209,30 +209,32 @@ export class AndroidSDKUtils {
                     (a, b) => a.version.compare(b.version) * -1
                 );
 
-                // Return the latest package that also has matching emulator images
-                for (const platform of matchingPlatforms) {
-                    const emulatorImage = await AndroidSDKUtils.packageWithRequiredEmulatorImages(
-                        platform
-                    );
+                try {
+                    // Return the latest package that also has matching emulator images
+                    for (const platform of matchingPlatforms) {
+                        const emulatorImage = await AndroidSDKUtils.packageWithRequiredEmulatorImages(
+                            platform
+                        );
 
-                    if (emulatorImage) {
-                        return Promise.resolve(platform);
+                        if (emulatorImage) {
+                            return Promise.resolve(platform);
+                        }
                     }
-                }
 
-                // If we got here then it means that we don't have any Android API packages with emulator images.
-                // So we will go ahead and return the latest one anyway. This is b/c the setup command will error
-                // out stating that no packages with matching emulator images have been found so the user would
-                // then know that they should install emulator images for the latest API package.
-                return Promise.resolve(matchingPlatforms[0]);
-            })
-            .catch((error) =>
-                Promise.reject(
-                    new Error(
-                        `Could not find android api packages. ${error.errorMessage}`
-                    )
-                )
-            );
+                    // If we got here then it means that we don't have any Android API packages with emulator images.
+                    // So we will go ahead and return the latest one anyway. This is b/c the setup command will error
+                    // out stating that no packages with matching emulator images have been found so the user would
+                    // then know that they should install emulator images for the latest API package.
+                    return Promise.resolve(matchingPlatforms[0]);
+                } catch (error) {
+                    return Promise.reject(
+                        new Error(
+                            `Could not find android api packages. ${error.errorMessage}`
+                        )
+                    );
+                }
+            }
+        );
     }
 
     public static async findRequiredEmulatorImages(): Promise<AndroidPackage> {
@@ -288,7 +290,7 @@ export class AndroidSDKUtils {
         platformAPI: string,
         device: string,
         abi: string
-    ): Promise<boolean> {
+    ): Promise<void> {
         // Just like Android Studio AVD Manager GUI interface, replace blank spaces with _ so that the ID of this AVD
         // doesn't have blanks (since that's not allowed). AVD Manager will automatially replace _ back with blank
         // to generate user friendly display names.
@@ -380,16 +382,16 @@ export class AndroidSDKUtils {
         );
     }
 
-    public static async pollDeviceStatus(portNumber: number): Promise<boolean> {
+    public static async pollDeviceStatus(portNumber: number): Promise<void> {
         const command = `${AndroidSDKUtils.getAdbShellCommand()} -s emulator-${portNumber} wait-for-device shell getprop sys.boot_completed`;
         const timeout = androidConfig.deviceBootReadinessWaitTime;
         const numberOfRetries = androidConfig.deviceBootStatusPollRetries;
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             const timeoutFunc = (commandStr: string, noOfRetries: number) => {
                 try {
                     const stdout = CommonUtils.executeCommandSync(commandStr);
                     if (stdout && stdout.trim() === '1') {
-                        resolve(true);
+                        resolve();
                     } else {
                         if (noOfRetries === 0) {
                             reject(
@@ -421,10 +423,10 @@ export class AndroidSDKUtils {
     public static async launchURLIntent(
         url: string,
         emulatorPort: number
-    ): Promise<boolean> {
+    ): Promise<void> {
         const openUrlCommand = `${AndroidSDKUtils.getAdbShellCommand()} -s emulator-${emulatorPort} shell am start -a android.intent.action.VIEW -d ${url}`;
         return CommonUtils.executeCommandAsync(openUrlCommand)
-            .then((result) => Promise.resolve(true))
+            .then(() => Promise.resolve())
             .catch((error) => Promise.reject(error));
     }
 
@@ -438,7 +440,7 @@ export class AndroidSDKUtils {
         emulatorPort: number,
         serverAddress: string | undefined,
         serverPort: string | undefined
-    ): Promise<boolean> {
+    ): Promise<void> {
         let thePromise: Promise<{ stdout: string; stderr: string }>;
         if (appBundlePath && appBundlePath.trim().length > 0) {
             AndroidSDKUtils.logger.info(
@@ -452,7 +454,7 @@ export class AndroidSDKUtils {
         }
 
         return thePromise
-            .then((result) => {
+            .then(() => {
                 let launchArgs =
                     `--es "${PreviewUtils.COMPONENT_NAME_ARG_PREFIX}" "${compName}"` +
                     ` --es "${PreviewUtils.PROJECT_DIR_ARG_PREFIX}" "${projectDir}"`;
@@ -482,7 +484,7 @@ export class AndroidSDKUtils {
 
                 return CommonUtils.executeCommandAsync(launchCommand);
             })
-            .then((result) => Promise.resolve(true))
+            .then(() => Promise.resolve())
             .catch((error) => Promise.reject(error));
     }
 
@@ -533,7 +535,7 @@ export class AndroidSDKUtils {
     // This method is public for testing purposes.
     public static async updateEmulatorConfig(
         emulatorName: string
-    ): Promise<boolean> {
+    ): Promise<void> {
         return new Promise(async (resolve, reject) => {
             const config = await AndroidSDKUtils.readEmulatorConfig(
                 emulatorName
@@ -541,7 +543,7 @@ export class AndroidSDKUtils {
             if (config.size === 0) {
                 // If we cannot edit the AVD config, fail silently.
                 // This will be a degraded experience but should still work.
-                resolve(true);
+                resolve();
                 return;
             }
 
@@ -571,7 +573,7 @@ export class AndroidSDKUtils {
             }
 
             AndroidSDKUtils.writeEmulatorConfig(emulatorName, config);
-            resolve(true);
+            resolve();
         });
     }
 
@@ -729,8 +731,8 @@ export class AndroidSDKUtils {
                 }
                 return Promise.resolve(adbPort);
             })
-            .catch((exception) => {
-                AndroidSDKUtils.logger.error(exception);
+            .catch((error) => {
+                AndroidSDKUtils.logger.error(error);
                 return Promise.resolve(adbPort);
             });
     }

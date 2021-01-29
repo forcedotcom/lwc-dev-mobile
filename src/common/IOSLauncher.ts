@@ -23,7 +23,7 @@ export class IOSLauncher {
         targetApp: string,
         appConfig: IOSAppPreviewConfig | undefined,
         serverPort: string
-    ): Promise<boolean> {
+    ): Promise<void> {
         const availableDevices: string[] = await IOSUtils.getSupportedDevices();
         const supportedRuntimes: string[] = await IOSUtils.getSupportedRuntimes();
         const currentSimulator = await IOSUtils.getSimulator(

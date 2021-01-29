@@ -10,11 +10,7 @@ import { CommonUtils } from '../../../../../../common/CommonUtils';
 import Setup from '../../local/setup';
 import { LwcServerIsRunningRequirement, Preview } from '../preview';
 
-const myPreviewCommandBlockMock = jest.fn(
-    (): Promise<boolean> => {
-        return Promise.resolve(true);
-    }
-);
+const myPreviewCommandBlockMock = jest.fn(() => Promise.resolve());
 
 const passedSetupMock = jest.fn(() => {
     return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
@@ -52,9 +48,7 @@ describe('Preview Tests', () => {
         setupAndroidFlags();
         const logger = new Logger('test-preview');
         setupLogger(logger);
-        const targetAndroidCallMock = jest.fn(() => {
-            return Promise.resolve(true);
-        });
+        const targetAndroidCallMock = jest.fn(() => Promise.resolve());
         preview.launchPreview = targetAndroidCallMock;
         await preview.run();
         expect(targetAndroidCallMock).toHaveBeenCalled();
@@ -64,9 +58,7 @@ describe('Preview Tests', () => {
         setupIOSFlags();
         const logger = new Logger('test-preview');
         setupLogger(logger);
-        const targetIOSCallMock = jest.fn(() => {
-            return Promise.resolve(true);
-        });
+        const targetIOSCallMock = jest.fn(() => Promise.resolve());
         preview.launchPreview = targetIOSCallMock;
         await preview.run();
         expect(targetIOSCallMock).toHaveBeenCalled();

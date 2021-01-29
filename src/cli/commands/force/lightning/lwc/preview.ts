@@ -265,7 +265,7 @@ export class Preview extends Setup {
         return Promise.resolve();
     }
 
-    public async launchPreview(): Promise<boolean> {
+    public async launchPreview(): Promise<void> {
         // At this point all of the inputs/parameters have been verified and parsed so we can just use them.
 
         let appBundlePath: string | undefined;
@@ -342,7 +342,7 @@ export class Preview extends Setup {
         targetApp: string,
         appConfig: IOSAppPreviewConfig | undefined,
         serverPort: string
-    ): Promise<boolean> {
+    ): Promise<void> {
         const launcher = new IOSLauncher(deviceName);
 
         return launcher.launchPreview(
@@ -363,7 +363,7 @@ export class Preview extends Setup {
         targetApp: string,
         appConfig: AndroidAppPreviewConfig | undefined,
         serverPort: string
-    ): Promise<boolean> {
+    ): Promise<void> {
         const launcher = new AndroidLauncher(deviceName);
 
         return launcher.launchPreview(

@@ -149,7 +149,7 @@ export class Create extends Setup {
             : this.executeIOSDeviceCreate();
     }
 
-    private async executeAndroidDeviceCreate(): Promise<any> {
+    private async executeAndroidDeviceCreate(): Promise<void> {
         return AndroidSDKUtils.findRequiredEmulatorImages().then(
             (preferredPack) => {
                 const emuImage =
@@ -167,7 +167,7 @@ export class Create extends Setup {
         );
     }
 
-    private async executeIOSDeviceCreate(): Promise<any> {
+    private async executeIOSDeviceCreate(): Promise<string> {
         return IOSUtils.getSupportedRuntimes().then((supportedRuntimes) =>
             IOSUtils.createNewDevice(
                 this.deviceName,
