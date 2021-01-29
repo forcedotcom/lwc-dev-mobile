@@ -57,9 +57,10 @@ const launchCommandThrowsMock = jest.fn((): string => {
     throw new Error(' Mock Error');
 });
 
-const sdkCommand = path.normalize(
-    mockAndroidHome + '/cmdline-tools/sdkmanager'
+const mockCmdLineToolsBin = path.normalize(
+    path.join(mockAndroidHome, 'cmdline-tools', 'latest', 'bin')
 );
+const sdkCommand = path.normalize(path.join(mockCmdLineToolsBin, 'sdkmanager'));
 const adbCommand = path.normalize(mockAndroidHome + '/platform-tools/adb');
 
 let readFileSpy: jest.SpyInstance<any>;
@@ -75,6 +76,10 @@ describe('Android utils', () => {
                 };
             }
         );
+        jest.spyOn(
+            AndroidSDKUtils,
+            'getAndroidCmdLineToolsBin'
+        ).mockReturnValue(mockCmdLineToolsBin);
         myCommandBlockMock.mockClear();
         badBlockMock.mockClear();
         AndroidSDKUtils.clearCaches();
