@@ -167,7 +167,3 @@ export class SupportedSimulatorRuntimeRequirement implements Requirement {
             });
     }
 }
-
-// Test!
-// let envSetup = new IOSEnvironmentSetup();
-// envSetup.executeSetup();

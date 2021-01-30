@@ -110,11 +110,9 @@ export class AndroidSDKUtils {
 
         return CommonUtils.executeCommandAsync(
             `${AndroidSDKUtils.getSdkManagerCommand()} --version`
-        )
-            .then((result) =>
-                Promise.resolve(AndroidSDKUtils.getAndroidCmdLineToolsBin())
-            )
-            .catch((error) => Promise.reject(error));
+        ).then((result) =>
+            Promise.resolve(AndroidSDKUtils.getAndroidCmdLineToolsBin())
+        );
     }
 
     public static async fetchAndroidSDKPlatformToolsLocation(): Promise<
@@ -126,11 +124,9 @@ export class AndroidSDKUtils {
 
         return CommonUtils.executeCommandAsync(
             `${AndroidSDKUtils.getAdbShellCommand()} --version`
-        )
-            .then((result) =>
-                Promise.resolve(AndroidSDKUtils.getAndroidPlatformTools())
-            )
-            .catch((error) => Promise.reject(error));
+        ).then((result) =>
+            Promise.resolve(AndroidSDKUtils.getAndroidPlatformTools())
+        );
     }
 
     public static async fetchInstalledPackages(): Promise<AndroidPackages> {
@@ -144,17 +140,15 @@ export class AndroidSDKUtils {
 
         return CommonUtils.executeCommandAsync(
             `${AndroidSDKUtils.getSdkManagerCommand()} --list`
-        )
-            .then((result) => {
-                if (result.stdout && result.stdout.length > 0) {
-                    const packages = AndroidPackages.parseRawPackagesString(
-                        result.stdout
-                    );
-                    AndroidSDKUtils.packageCache = packages;
-                }
-                return Promise.resolve(AndroidSDKUtils.packageCache);
-            })
-            .catch((error) => Promise.reject(error));
+        ).then((result) => {
+            if (result.stdout && result.stdout.length > 0) {
+                const packages = AndroidPackages.parseRawPackagesString(
+                    result.stdout
+                );
+                AndroidSDKUtils.packageCache = packages;
+            }
+            return Promise.resolve(AndroidSDKUtils.packageCache);
+        });
     }
 
     public static async fetchEmulators(): Promise<AndroidVirtualDevice[]> {
@@ -415,9 +409,9 @@ export class AndroidSDKUtils {
         emulatorPort: number
     ): Promise<void> {
         const openUrlCommand = `${AndroidSDKUtils.getAdbShellCommand()} -s emulator-${emulatorPort} shell am start -a android.intent.action.VIEW -d ${url}`;
-        return CommonUtils.executeCommandAsync(openUrlCommand)
-            .then(() => Promise.resolve())
-            .catch((error) => Promise.reject(error));
+        return CommonUtils.executeCommandAsync(openUrlCommand).then(() =>
+            Promise.resolve()
+        );
     }
 
     public static async launchNativeApp(
@@ -474,8 +468,7 @@ export class AndroidSDKUtils {
 
                 return CommonUtils.executeCommandAsync(launchCommand);
             })
-            .then(() => Promise.resolve())
-            .catch((error) => Promise.reject(error));
+            .then(() => Promise.resolve());
     }
 
     public static getEmulatorPort(
@@ -484,7 +477,7 @@ export class AndroidSDKUtils {
     ): number {
         // if config file does not exist, its created but not launched so use the requestedPortNumber
         // else we will read it from emu-launch-params.txt file.
-        const launchFileName = CommonUtils.resolvePath(
+        const launchFileName = CommonUtils.resolveUserHomePath(
             path.join(
                 `~`,
                 '.android',
@@ -777,7 +770,7 @@ export class AndroidSDKUtils {
                 : `ps -ax | grep qemu-system-x86_64 | grep ${emulatorName} | grep -v grep`;
 
         // ram.img.dirty is a one byte file created when avd is started and removed when avd is stopped.
-        const launchFileName = CommonUtils.resolvePath(
+        const launchFileName = CommonUtils.resolveUserHomePath(
             path.join(
                 `~`,
                 '.android',
@@ -856,7 +849,7 @@ export class AndroidSDKUtils {
     private static async readEmulatorConfig(
         emulatorName: string
     ): Promise<Map<string, string>> {
-        const filePath = CommonUtils.resolvePath(
+        const filePath = CommonUtils.resolveUserHomePath(
             path.join(
                 `~`,
                 '.android',
@@ -893,7 +886,7 @@ export class AndroidSDKUtils {
         config.forEach((value, key) => {
             configString += key + '=' + value + '\n';
         });
-        const filePath = CommonUtils.resolvePath(
+        const filePath = CommonUtils.resolveUserHomePath(
             path.join(
                 `~`,
                 '.android',

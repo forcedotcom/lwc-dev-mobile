@@ -24,17 +24,16 @@ export class CommonUtils {
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
-    public static resolvePath(inputPath: string): string {
+    public static resolveUserHomePath(inputPath: string): string {
         let newPath = inputPath.trim();
         if (newPath.startsWith('~')) {
-            const USER_HOME =
+            const userHome =
                 process.env.HOME ||
                 process.env.HOMEPATH ||
                 process.env.USERPROFILE ||
                 '';
-            newPath = newPath.replace('~', USER_HOME);
+            newPath = newPath.replace('~', userHome);
         }
-        newPath = path.normalize(path.resolve(newPath));
         return newPath;
     }
 
@@ -67,17 +66,18 @@ export class CommonUtils {
                         CommonUtils.logger.error(
                             `Error executing command '${command}':`
                         );
-                        CommonUtils.logger.error(`${error}`);
 
                         // also include stderr & stdout for more detailed error
                         let msg = error.message;
                         if (stderr && stderr.length > 0) {
-                            msg = `${msg}\n${stderr}`;
+                            msg = `${msg}\nstderr:\n${stderr}`;
                         }
                         if (stdout && stdout.length > 0) {
-                            msg = `${msg}\n${stdout}`;
+                            msg = `${msg}\nstdout:\n${stdout}`;
                         }
-                        reject(new Error(msg));
+
+                        CommonUtils.logger.error(msg);
+                        reject(error);
                     } else {
                         resolve({ stdout, stderr });
                     }
@@ -88,9 +88,9 @@ export class CommonUtils {
 
     public static async isLwcServerPluginInstalled(): Promise<void> {
         const command = 'sfdx force:lightning:lwc:start --help';
-        return CommonUtils.executeCommandAsync(command)
-            .then((result) => Promise.resolve())
-            .catch((error) => Promise.reject(error));
+        return CommonUtils.executeCommandAsync(command).then(() =>
+            Promise.resolve()
+        );
     }
 
     public static async getLwcServerPort(): Promise<string | undefined> {

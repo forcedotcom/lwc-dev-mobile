@@ -106,13 +106,3 @@ export class AndroidLauncher {
             });
     }
 }
-
-// let launcher = new AndroidLauncher('testemu7');
-// launcher
-//     .launchNativeBrowser('http://salesforce.com/')
-//     .then((result) => {
-//         console.log('Its all cool!');
-//     })
-//     .catch((error) => {
-//         console.log(`uh oh! ${error}`);
-//     });

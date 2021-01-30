@@ -307,8 +307,7 @@ export class IOSUtils {
                 IOSUtils.logger.info(`Launching app ${targetApp} in simulator`);
                 return CommonUtils.executeCommandAsync(launchCommand);
             })
-            .then(() => Promise.resolve())
-            .catch((error) => Promise.reject(error));
+            .then(() => Promise.resolve());
     }
 
     private static logger: Logger = new Logger(LOGGER_NAME);
