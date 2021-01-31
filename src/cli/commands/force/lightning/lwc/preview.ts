@@ -154,17 +154,17 @@ export class Preview extends Setup {
             PreviewUtils.BROWSER_TARGET_APP
         );
 
-        this.projectDir = CommandLineUtils.resolveFlag(
-            this.flags.projectdir,
-            process.cwd()
+        this.projectDir = CommonUtils.resolveUserHomePath(
+            CommandLineUtils.resolveFlag(this.flags.projectdir, process.cwd())
         );
 
-        const configFileName = CommandLineUtils.resolveFlag(
-            this.flags.configfile,
-            ''
-        ).trim();
+        const configFileName = CommonUtils.resolveUserHomePath(
+            CommandLineUtils.resolveFlag(this.flags.configfile, '')
+        );
 
-        this.configFilePath = path.resolve(this.projectDir, configFileName);
+        this.configFilePath = path.normalize(
+            path.resolve(this.projectDir, configFileName)
+        );
 
         const hasConfigFile =
             this.configFilePath.length > 0 &&
