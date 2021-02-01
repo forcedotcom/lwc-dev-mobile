@@ -50,22 +50,20 @@ export class AndroidSDKRootSetRequirement implements Requirement {
     }
 
     public async checkFunction(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            const root = AndroidSDKUtils.getAndroidSdkRoot();
-            if (root) {
-                resolve(
-                    AndroidSDKUtils.convertToUnixPath(
-                        util.format(
-                            this.fulfilledMessage,
-                            root.rootSource,
-                            root.rootLocation
-                        )
+        const root = AndroidSDKUtils.getAndroidSdkRoot();
+        if (root) {
+            return Promise.resolve(
+                AndroidSDKUtils.convertToUnixPath(
+                    util.format(
+                        this.fulfilledMessage,
+                        root.rootSource,
+                        root.rootLocation
                     )
-                );
-            } else {
-                reject(this.unfulfilledMessage);
-            }
-        });
+                )
+            );
+        } else {
+            return Promise.reject(this.unfulfilledMessage);
+        }
     }
 }
 
@@ -90,15 +88,13 @@ export class Java8AvailableRequirement implements Requirement {
     }
 
     public async checkFunction(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            AndroidSDKUtils.androidSDKPrerequisitesCheck()
-                .then((result) => {
-                    resolve(this.fulfilledMessage);
-                })
-                .catch((error) => {
-                    reject(util.format(this.unfulfilledMessage, error.message));
-                });
-        });
+        return AndroidSDKUtils.androidSDKPrerequisitesCheck()
+            .then((result) => Promise.resolve(this.fulfilledMessage))
+            .catch((error) =>
+                Promise.reject(
+                    util.format(this.unfulfilledMessage, error.message)
+                )
+            );
     }
 }
 
@@ -121,17 +117,15 @@ export class AndroidSDKToolsInstalledRequirement implements Requirement {
     }
 
     public async checkFunction(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            AndroidSDKUtils.fetchAndroidCmdLineToolsLocation()
-                .then((result) =>
-                    resolve(
-                        AndroidSDKUtils.convertToUnixPath(
-                            util.format(this.fulfilledMessage, result)
-                        )
+        return AndroidSDKUtils.fetchAndroidCmdLineToolsLocation()
+            .then((result) =>
+                Promise.resolve(
+                    AndroidSDKUtils.convertToUnixPath(
+                        util.format(this.fulfilledMessage, result)
                     )
                 )
-                .catch((error) => reject(this.unfulfilledMessage));
-        });
+            )
+            .catch((error) => Promise.reject(this.unfulfilledMessage));
     }
 }
 
@@ -155,33 +149,32 @@ export class AndroidSDKPlatformToolsInstalledRequirement
     }
 
     public async checkFunction(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            AndroidSDKUtils.fetchAndroidSDKPlatformToolsLocation()
-                .then((result) => {
-                    resolve(
-                        AndroidSDKUtils.convertToUnixPath(
-                            util.format(this.fulfilledMessage, result)
+        return AndroidSDKUtils.fetchAndroidSDKPlatformToolsLocation()
+            .then((result) =>
+                Promise.resolve(
+                    AndroidSDKUtils.convertToUnixPath(
+                        util.format(this.fulfilledMessage, result)
+                    )
+                )
+            )
+            .catch((error) => {
+                if (error.status === 127) {
+                    return Promise.reject(
+                        new Error(
+                            'Platform tools not found. Expected at ' +
+                                AndroidSDKUtils.getAndroidPlatformTools() +
+                                '.'
                         )
                     );
-                })
-                .catch((error) => {
-                    if (error.status === 127) {
-                        reject(
-                            new Error(
-                                'Platform tools not found. Expected at ' +
-                                    AndroidSDKUtils.getAndroidPlatformTools() +
-                                    '.'
-                            )
-                        );
-                    }
-                    reject(
+                } else {
+                    return Promise.reject(
                         util.format(
                             this.unfulfilledMessage,
                             androidConfig.minSupportedRuntimeAndroid
                         )
                     );
-                });
-        });
+                }
+            });
     }
 }
 
@@ -204,22 +197,20 @@ export class PlatformAPIPackageRequirement implements Requirement {
     }
 
     public async checkFunction(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            AndroidSDKUtils.findRequiredAndroidAPIPackage()
-                .then((result) =>
-                    resolve(
-                        util.format(this.fulfilledMessage, result.platformAPI)
+        return AndroidSDKUtils.findRequiredAndroidAPIPackage()
+            .then((result) =>
+                Promise.resolve(
+                    util.format(this.fulfilledMessage, result.platformAPI)
+                )
+            )
+            .catch((error) =>
+                Promise.reject(
+                    util.format(
+                        this.unfulfilledMessage,
+                        androidConfig.minSupportedRuntimeAndroid
                     )
                 )
-                .catch((error) =>
-                    reject(
-                        util.format(
-                            this.unfulfilledMessage,
-                            androidConfig.minSupportedRuntimeAndroid
-                        )
-                    )
-                );
-        });
+            );
     }
 }
 
@@ -242,28 +233,17 @@ export class EmulatorImagesRequirement implements Requirement {
     }
 
     public async checkFunction(): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            AndroidSDKUtils.findRequiredEmulatorImages()
-                .then((result) =>
-                    resolve(util.format(this.fulfilledMessage, result.path))
-                )
-                .catch((error) =>
-                    reject(
-                        util.format(
-                            this.unfulfilledMessage,
-                            androidConfig.supportedImages.join(',')
-                        )
+        return AndroidSDKUtils.findRequiredEmulatorImages()
+            .then((result) =>
+                Promise.resolve(util.format(this.fulfilledMessage, result.path))
+            )
+            .catch((error) =>
+                Promise.reject(
+                    util.format(
+                        this.unfulfilledMessage,
+                        androidConfig.supportedImages.join(',')
                     )
-                );
-        });
+                )
+            );
     }
 }
-
-// test!
-// Messages.importMessagesDirectory(__dirname);
-// let envSetup = new AndroidEnvironmentSetup(new Logger('test'));
-// envSetup.executeSetup().then( (result) => {
-//     console.log(result)
-// }).catch( error => {
-//     console.log(error)
-// });

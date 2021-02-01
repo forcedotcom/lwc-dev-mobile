@@ -62,13 +62,9 @@ export default class List extends SfdxCommand {
             );
         }
 
-        return new Promise<any>((resolve, reject) => {
-            const deviceList = CommandLineUtils.platformFlagIsIOS(platform)
-                ? this.iOSDeviceList()
-                : this.androidDeviceList();
-
-            resolve(deviceList);
-        });
+        return CommandLineUtils.platformFlagIsIOS(platform)
+            ? this.iOSDeviceList()
+            : this.androidDeviceList();
     }
 
     public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
@@ -76,7 +72,7 @@ export default class List extends SfdxCommand {
         const result = await IOSUtils.getSupportedSimulators();
         performance.mark(this.perfMarker.endMarkName);
         this.showDeviceList(result);
-        return result;
+        return Promise.resolve(result);
     }
 
     public async androidDeviceList(): Promise<AndroidVirtualDevice[]> {
@@ -84,7 +80,7 @@ export default class List extends SfdxCommand {
         const result = await AndroidSDKUtils.fetchEmulators();
         performance.mark(this.perfMarker.endMarkName);
         this.showDeviceList(result);
-        return result;
+        return Promise.resolve(result);
     }
 
     protected async init(): Promise<void> {

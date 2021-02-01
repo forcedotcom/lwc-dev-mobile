@@ -154,17 +154,17 @@ export class Preview extends Setup {
             PreviewUtils.BROWSER_TARGET_APP
         );
 
-        this.projectDir = CommandLineUtils.resolveFlag(
-            this.flags.projectdir,
-            process.cwd()
+        this.projectDir = CommonUtils.resolveUserHomePath(
+            CommandLineUtils.resolveFlag(this.flags.projectdir, process.cwd())
         );
 
-        const configFileName = CommandLineUtils.resolveFlag(
-            this.flags.configfile,
-            ''
-        ).trim();
+        const configFileName = CommonUtils.resolveUserHomePath(
+            CommandLineUtils.resolveFlag(this.flags.configfile, '')
+        );
 
-        this.configFilePath = path.resolve(this.projectDir, configFileName);
+        this.configFilePath = path.normalize(
+            path.resolve(this.projectDir, configFileName)
+        );
 
         const hasConfigFile =
             this.configFilePath.length > 0 &&
@@ -258,14 +258,14 @@ export class Preview extends Setup {
                 this.appConfig
             )
         ) {
-            const port = CommonUtils.getLwcServerPort();
+            const port = await CommonUtils.getLwcServerPort();
             this.serverPort = port ? port : CommonUtils.DEFAULT_LWC_SERVER_PORT;
         }
 
         return Promise.resolve();
     }
 
-    public launchPreview(): Promise<boolean> {
+    public async launchPreview(): Promise<void> {
         // At this point all of the inputs/parameters have been verified and parsed so we can just use them.
 
         let appBundlePath: string | undefined;
@@ -334,7 +334,7 @@ export class Preview extends Setup {
         return this.exit(0);
     }
 
-    private launchIOS(
+    private async launchIOS(
         deviceName: string,
         componentName: string,
         projectDir: string,
@@ -342,7 +342,7 @@ export class Preview extends Setup {
         targetApp: string,
         appConfig: IOSAppPreviewConfig | undefined,
         serverPort: string
-    ): Promise<boolean> {
+    ): Promise<void> {
         const launcher = new IOSLauncher(deviceName);
 
         return launcher.launchPreview(
@@ -355,7 +355,7 @@ export class Preview extends Setup {
         );
     }
 
-    private launchAndroid(
+    private async launchAndroid(
         deviceName: string,
         componentName: string,
         projectDir: string,
@@ -363,7 +363,7 @@ export class Preview extends Setup {
         targetApp: string,
         appConfig: AndroidAppPreviewConfig | undefined,
         serverPort: string
-    ): Promise<boolean> {
+    ): Promise<void> {
         const launcher = new AndroidLauncher(deviceName);
 
         return launcher.launchPreview(
@@ -393,11 +393,14 @@ export class LwcServerIsRunningRequirement implements Requirement {
     }
 
     public async checkFunction(): Promise<string> {
-        const port = CommonUtils.getLwcServerPort();
-        if (!port) {
-            return Promise.reject(this.unfulfilledMessage);
-        } else {
-            return Promise.resolve(util.format(this.fulfilledMessage, port));
-        }
+        return CommonUtils.getLwcServerPort().then((port) => {
+            if (!port) {
+                return Promise.reject(this.unfulfilledMessage);
+            } else {
+                return Promise.resolve(
+                    util.format(this.fulfilledMessage, port)
+                );
+            }
+        });
     }
 }

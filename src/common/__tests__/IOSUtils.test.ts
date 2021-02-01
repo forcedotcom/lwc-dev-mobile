@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
+// tslint:disable: no-unused-expression
 import { ActionBase } from 'cli-ux';
 import 'jest-chain';
 import 'jest-extended';
@@ -135,9 +136,8 @@ describe('IOS utils tests', () => {
             launchCommandThrowsAlreadryBootedMock
         );
         const udid = 'MOCKUDID';
-        return IOSUtils.bootDevice(udid).then((result) =>
-            expect(result).toBeTruthy()
-        );
+        const aPromise = IOSUtils.bootDevice(udid);
+        expect(aPromise).resolves;
     });
 
     test('Should wait for the device to boot', async () => {
@@ -145,9 +145,8 @@ describe('IOS utils tests', () => {
             launchCommandMock
         );
         const udid = 'MOCKUDID';
-        return IOSUtils.waitUntilDeviceIsReady(udid).then((result) =>
-            expect(result).toBeTruthy()
-        );
+        const aPromise = IOSUtils.waitUntilDeviceIsReady(udid);
+        expect(aPromise).resolves;
     });
 
     test('Should wait for the device to boot and fail if error is encountered', async () => {

@@ -24,19 +24,14 @@ export class AndroidLauncher {
         targetApp: string,
         appConfig: AndroidAppPreviewConfig | undefined,
         serverPort: string
-    ): Promise<boolean> {
+    ): Promise<void> {
         const preferredPack = await AndroidSDKUtils.findRequiredEmulatorImages();
         const emuImage = preferredPack.platformEmulatorImage || 'default';
         const androidApi = preferredPack.platformAPI;
         const abi = preferredPack.abi;
         const device = androidConfig.supportedDevices[0];
-        let requestedPort = await AndroidSDKUtils.getNextAndroidAdbPort();
+        const requestedPort = await AndroidSDKUtils.getNextAndroidAdbPort();
         const spinner = cli.action;
-        // need to incr by 2, one for console port and next for adb
-        requestedPort =
-            requestedPort < androidConfig.defaultAdbPort
-                ? androidConfig.defaultAdbPort
-                : requestedPort + 2;
         const emuName = this.emulatorName;
         spinner.start(`Launching`, `Searching for ${emuName}`, {
             stdout: true
@@ -53,14 +48,14 @@ export class AndroidLauncher {
                         androidApi,
                         device,
                         abi
-                    ).then((resolve) => true);
+                    );
                 }
                 spinner.start(`Launching`, `Found device ${emuName}`, {
                     stdout: true
                 });
-                return true;
+                return Promise.resolve();
             })
-            .then((resolve) => {
+            .then(() => {
                 spinner.start(`Launching`, `Starting device ${emuName}`, {
                     stdout: true
                 });
@@ -111,13 +106,3 @@ export class AndroidLauncher {
             });
     }
 }
-
-// let launcher = new AndroidLauncher('testemu7');
-// launcher
-//     .launchNativeBrowser('http://salesforce.com/')
-//     .then((result) => {
-//         console.log('Its all cool!');
-//     })
-//     .catch((error) => {
-//         console.log(`uh oh! ${error}`);
-//     });
