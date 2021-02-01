@@ -6,6 +6,7 @@
  */
 import { flags } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
+import cli from 'cli-ux';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';
@@ -275,11 +276,15 @@ export class Preview extends Setup {
             this.appConfig
         ) {
             try {
+                cli.action.start('Preview', 'Fetching app bundle path', {
+                    stdout: true
+                });
                 appBundlePath = PreviewUtils.getAppBundlePath(
                     path.dirname(this.configFilePath),
                     this.appConfig
                 );
             } catch (error) {
+                cli.action.stop('Error encountered during preview');
                 return Promise.reject(error);
             }
         }

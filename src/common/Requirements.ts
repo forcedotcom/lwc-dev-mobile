@@ -6,12 +6,11 @@
  */
 import { Logger, Messages } from '@salesforce/core';
 import chalk from 'chalk';
-import cli from 'cli-ux';
+import { Listr } from 'listr2';
 import { performance, PerformanceObserver } from 'perf_hooks';
 import { CommonUtils } from './CommonUtils';
 import { PerformanceMarkers } from './PerformanceMarkers';
 export type CheckRequirementsFunc = () => Promise<string | undefined>;
-
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
 
@@ -24,34 +23,21 @@ export interface Requirement {
     logger: Logger;
 }
 
-export interface SetupTestCase {
-    title: string;
-    testResult: string;
-    message: string;
-    hasPassed: boolean;
-    supplementalMessage?: string;
+export interface RequirementResult {
     duration: number;
+    hasPassed: boolean;
+    message: string;
+    title: string;
 }
 
 export interface SetupTestResult {
     hasMetAllRequirements: boolean;
-    tests: SetupTestCase[];
+    tests: RequirementResult[];
 }
 
 export interface RequirementList {
     requirements: Requirement[];
     executeSetup(): Promise<SetupTestResult>;
-}
-
-export interface Launcher {
-    launchNativeBrowser(url: string): Promise<void>;
-}
-
-export interface WrappedPromiseResult {
-    message: string | undefined;
-    status: string;
-    duration: number;
-    requirement: Requirement;
 }
 
 // This function wraps existing promises with the intention to allow the collection of promises
@@ -61,7 +47,7 @@ export interface WrappedPromiseResult {
 // See https://github.com/tc39/proposal-promise-allSettled
 export function WrappedPromise(
     requirement: Requirement
-): Promise<WrappedPromiseResult> {
+): Promise<RequirementResult> {
     const promise = requirement.checkFunction();
     const perfMarker = PerformanceMarkers.getByName(
         PerformanceMarkers.REQUIREMENTS_MARKER_KEY
@@ -79,24 +65,34 @@ export function WrappedPromise(
 
     performance.mark(start);
     return promise
-        .then((v) => {
+        .then((fulfilledMessage) => {
             performance.mark(end);
             performance.measure(step, start, end);
+            const msg = `${fulfilledMessage ? fulfilledMessage : ''} ${
+                requirement.supplementalMessage
+                    ? requirement.supplementalMessage
+                    : ''
+            }`;
             return {
                 duration: stepDuration,
-                message: v,
-                requirement,
-                status: 'fulfilled'
+                hasPassed: true,
+                message: msg.trim(),
+                title: requirement.title
             };
         })
-        .catch((e) => {
+        .catch((unfulfilledMessage) => {
             performance.mark(end);
             performance.measure(step, start, end);
+            const msg = `${unfulfilledMessage ? unfulfilledMessage : ''} ${
+                requirement.supplementalMessage
+                    ? requirement.supplementalMessage
+                    : ''
+            }`;
             return {
                 duration: stepDuration,
-                message: e,
-                requirement,
-                status: 'rejected'
+                hasPassed: false,
+                message: msg.trim(),
+                title: requirement.title
             };
         })
         .finally(() => {
@@ -123,81 +119,86 @@ export abstract class BaseSetup implements RequirementList {
     }
 
     public async executeSetup(): Promise<SetupTestResult> {
-        const allPromises: Array<Promise<any>> = [];
-        this.requirements.forEach((requirement) =>
-            allPromises.push(WrappedPromise(requirement))
+        const testResult: SetupTestResult = {
+            hasMetAllRequirements: true,
+            tests: []
+        };
+
+        let totalDuration = 0;
+        const setupTasks = new Listr(
+            [
+                {
+                    task: (rootCtx, rootTask): Listr => {
+                        const subTasks = new Listr([], {
+                            concurrent: true,
+                            rendererOptions: { collapse: false }
+                        });
+                        for (const requirement of this.requirements) {
+                            subTasks.add({
+                                options: { persistentOutput: true },
+                                task: (subCtx, subTask): Promise<void> =>
+                                    WrappedPromise(requirement).then(
+                                        (result) => {
+                                            testResult.tests.push(result);
+                                            if (!result.hasPassed) {
+                                                testResult.hasMetAllRequirements = false;
+                                            }
+
+                                            subTask.title = this.getFormattedTitle(
+                                                result
+                                            );
+                                            subTask.output = result.message;
+
+                                            totalDuration += result.duration;
+                                            rootTask.title = `Setup (${this.formatDurationAsSeconds(
+                                                totalDuration
+                                            )})`;
+                                        }
+                                    ),
+                                title: requirement.title
+                            });
+                        }
+
+                        return subTasks;
+                    },
+                    title: 'Setup'
+                }
+            ],
+            { concurrent: true, rendererOptions: { collapse: false } }
         );
 
-        return Promise.all(allPromises).then((results) => {
-            const testResult: SetupTestResult = {
-                hasMetAllRequirements: true,
-                tests: []
-            };
-            let totalDuration: number = 0;
-            results.forEach((result) => {
-                totalDuration += result.duration;
+        try {
+            await setupTasks.run();
+        } catch (error) {
+            this.logger.error(error);
+            testResult.hasMetAllRequirements = false;
+        }
 
-                if (result.status === 'fulfilled') {
-                    testResult.tests.push({
-                        duration: result.duration,
-                        hasPassed: true,
-                        message: result.message,
-                        supplementalMessage:
-                            result.requirement.supplementalMessage,
-                        testResult: this.setupMessages.getMessage('passed'),
-                        title: result.requirement.title
-                    });
-                } else if (result.status === 'rejected') {
-                    testResult.hasMetAllRequirements = false;
-                    testResult.tests.push({
-                        duration: result.duration,
-                        hasPassed: false,
-                        message: result.message,
-                        supplementalMessage:
-                            result.requirement.supplementalMessage,
-                        testResult: this.setupMessages.getMessage('failed'),
-                        title: result.requirement.title
-                    });
-                }
-            });
-
-            const setupMessage = `Setup (${totalDuration.toFixed(3)} sec)`;
-            const tree = cli.tree();
-            tree.insert(setupMessage);
-            const rootNode = tree.nodes[setupMessage];
-            testResult.tests.forEach((test) => {
-                let lineItem = `${test.testResult}: ${
-                    test.title
-                } (${test.duration.toFixed(3)} sec)`;
-
-                lineItem = test.hasPassed
-                    ? chalk.bold.green(lineItem)
-                    : chalk.bold.red(lineItem);
-
-                rootNode.insert(lineItem);
-
-                const message =
-                    test.message && test.message.length > 0 ? test.message : '';
-                const supplementalMessage =
-                    test.supplementalMessage &&
-                    test.supplementalMessage.length > 0
-                        ? test.supplementalMessage
-                        : '';
-                const detailedMessage = `${message} ${supplementalMessage}`;
-
-                if (detailedMessage.trim().length > 0) {
-                    rootNode.nodes[lineItem].insert(detailedMessage);
-                }
-            });
-            tree.display();
-            return Promise.resolve(testResult);
-        });
+        return Promise.resolve(testResult);
     }
 
     public addRequirements(reqs: Requirement[]) {
         if (reqs) {
             this.requirements = this.requirements.concat(reqs);
         }
+    }
+
+    private getFormattedTitle(testCaseResult: RequirementResult): string {
+        const statusMsg = testCaseResult.hasPassed
+            ? this.setupMessages.getMessage('passed')
+            : this.setupMessages.getMessage('failed');
+
+        const title = `${statusMsg}: ${
+            testCaseResult.title
+        } (${this.formatDurationAsSeconds(testCaseResult.duration)})`;
+
+        return testCaseResult.hasPassed
+            ? chalk.bold.green(title)
+            : chalk.bold.red(title);
+    }
+
+    private formatDurationAsSeconds(duration: number): string {
+        return `${duration.toFixed(3)} sec`;
     }
 }
 

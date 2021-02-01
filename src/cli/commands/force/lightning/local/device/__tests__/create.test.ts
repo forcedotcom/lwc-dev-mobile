@@ -71,7 +71,8 @@ describe('List Tests', () => {
             'createNewVirtualDevice'
         ).mockImplementation(createNewVirtualDeviceMock);
 
-        await create.run();
+        create.validateInputParameters();
+        await create.executeDeviceCreate();
         expect(createNewVirtualDeviceMock).toHaveBeenCalledWith(
             deviceName,
             androidImage,
@@ -97,19 +98,13 @@ describe('List Tests', () => {
             createNewDeviceMock
         );
 
-        await create.run();
+        create.validateInputParameters();
+        await create.executeDeviceCreate();
         expect(createNewDeviceMock).toHaveBeenCalledWith(
             deviceName,
             iOSDeviceType,
             iOSSupportedRuntimes[0]
         );
-    });
-
-    test('Logger must be initialized and invoked', async () => {
-        setupFlags('android', deviceName, androidDeviceType);
-        const loggerSpy = jest.spyOn(logger, 'info');
-        await create.run();
-        expect(loggerSpy).toHaveBeenCalled();
     });
 
     test('Messages folder should be loaded', async () => {

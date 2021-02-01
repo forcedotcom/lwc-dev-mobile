@@ -5,6 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 import { Logger } from '@salesforce/core';
+import { ActionBase } from 'cli-ux';
 import { Version } from '../common/Common';
 import iOSConfig from '../config/iosconfig.json';
 import { CommonUtils } from './CommonUtils';
@@ -237,9 +238,15 @@ export class IOSUtils {
 
     public static async launchURLInBootedSimulator(
         udid: string,
-        url: string
+        url: string,
+        spinner?: ActionBase | undefined
     ): Promise<void> {
         const command = `${XCRUN_CMD} simctl openurl "${udid}" ${url}`;
+        IOSUtils.updateSpinner(
+            spinner,
+            'Launching',
+            `Opening browser with url ${url}`
+        );
         return CommonUtils.executeCommandAsync(command)
             .then(() => Promise.resolve())
             .catch((error) =>
@@ -259,13 +266,14 @@ export class IOSUtils {
         targetApp: string,
         targetAppArguments: LaunchArgument[],
         serverAddress: string | undefined,
-        serverPort: string | undefined
+        serverPort: string | undefined,
+        spinner?: ActionBase | undefined
     ): Promise<void> {
         let thePromise: Promise<{ stdout: string; stderr: string }>;
         if (appBundlePath && appBundlePath.trim().length > 0) {
-            IOSUtils.logger.info(
-                `Installing app ${appBundlePath.trim()} to simulator`
-            );
+            const installMsg = `Installing app ${appBundlePath.trim()} to simulator`;
+            IOSUtils.logger.info(installMsg);
+            IOSUtils.updateSpinner(spinner, 'Launching', installMsg);
             const installCommand = `${XCRUN_CMD} simctl install ${udid} '${appBundlePath.trim()}'`;
             thePromise = CommonUtils.executeCommandAsync(installCommand);
         } else {
@@ -296,15 +304,17 @@ export class IOSUtils {
                 // attempt at terminating the app first (in case it is already running) and then try to launch it again with new arguments.
                 // if we hit issues with terminating, just ignore and continue.
                 try {
-                    IOSUtils.logger.info(
-                        `Terminating app ${targetApp} in simulator`
-                    );
+                    const terminateMsg = `Terminating app ${targetApp} in simulator`;
+                    IOSUtils.logger.info(terminateMsg);
+                    IOSUtils.updateSpinner(spinner, 'Launching', terminateMsg);
                     await CommonUtils.executeCommandAsync(terminateCommand);
                 } catch {
                     // ignore and continue
                 }
 
-                IOSUtils.logger.info(`Launching app ${targetApp} in simulator`);
+                const launchMsg = `Launching app ${targetApp} in simulator`;
+                IOSUtils.logger.info(launchMsg);
+                IOSUtils.updateSpinner(spinner, 'Launching', launchMsg);
                 return CommonUtils.executeCommandAsync(launchCommand);
             })
             .then(() => Promise.resolve());
@@ -316,5 +326,15 @@ export class IOSUtils {
         return error.message
             ? error.message.toLowerCase().match('state: booted') !== null
             : false;
+    }
+
+    private static updateSpinner(
+        spinner: ActionBase | undefined,
+        action: string,
+        status?: string | undefined
+    ) {
+        if (spinner) {
+            spinner.start(action, status, { stdout: true });
+        }
     }
 }

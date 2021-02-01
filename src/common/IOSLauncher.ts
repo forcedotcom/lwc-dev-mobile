@@ -99,9 +99,14 @@ export class IOSLauncher {
                         targetApp,
                         targetAppArguments,
                         address,
-                        port
+                        port,
+                        spinner
                     );
                 }
+            })
+            .then(() => {
+                spinner.stop();
+                return Promise.resolve();
             })
             .catch((error) => {
                 spinner.stop('Error encountered during launch');

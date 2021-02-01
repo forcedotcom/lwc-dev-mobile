@@ -73,9 +73,13 @@ export class Create extends Setup {
                 this.logger.info(
                     'Setup requirements met, continuing with Device Create'
                 );
+                cli.action.start('Device Create', 'Creating new device', {
+                    stdout: true
+                });
                 return this.executeDeviceCreate();
             })
             .then(() => {
+                cli.action.stop();
                 const tree = cli.tree();
                 const message = util.format(
                     messages.getMessage('success'),
@@ -86,6 +90,7 @@ export class Create extends Setup {
                 tree.display();
             })
             .catch((error) => {
+                cli.action.stop('Error encountered during device create');
                 this.logger.warn(
                     `Device Create failed for ${this.flags.platform}.`
                 );
@@ -142,7 +147,7 @@ export class Create extends Setup {
         return Promise.resolve();
     }
 
-    private async executeDeviceCreate(): Promise<any> {
+    public async executeDeviceCreate(): Promise<any> {
         const isAndroid = CommandLineUtils.platformFlagIsAndroid(this.platform);
         return isAndroid
             ? this.executeAndroidDeviceCreate()

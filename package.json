@@ -33,13 +33,12 @@
     "@salesforce/core": "^2.0.1",
     "@salesforce/telemetry": "^1.2.2",
     "@salesforce/ts-types": "^1.1.4",
-    "@types/shelljs": "^0.8.8",
     "ajv": "^6.12.4",
     "chalk": "^4.0.0",
     "cli-ux": "^5.4.5",
     "colors": "^1.4.0",
-    "listr": "^0.14.3",
-    "shelljs": "^0.8.3",
+    "enquirer": "^2.3.6",
+    "listr2": "^3.3.1",
     "tslib": "^1"
   },
   "devDependencies": {

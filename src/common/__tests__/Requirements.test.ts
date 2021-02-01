@@ -173,18 +173,13 @@ describe('Requirements Processing', () => {
         ).mockImplementation(passedBaseRequirementsMock);
         const extension = new FalsyExtension();
         const setupResult = await extension.executeSetup();
-        const testsResultWithSupplementalMessages = setupResult.tests.filter(
-            (test) => {
-                return (
-                    test.supplementalMessage !== undefined &&
-                    test.supplementalMessage.length > 0
-                );
-            }
+        const testsResultWithMessages = setupResult.tests.filter(
+            (test) => test.hasPassed === false && test.message.length > 0
         );
-        expect(testsResultWithSupplementalMessages.length).toBe(1);
+        expect(testsResultWithMessages.length).toBe(2);
         expect(
-            testsResultWithSupplementalMessages[0].supplementalMessage ===
-                'Get Android platform tools!'
+            testsResultWithMessages[1].message ===
+                'Failed. Get Android platform tools!'
         ).toBeTruthy();
     });
 
@@ -196,12 +191,9 @@ describe('Requirements Processing', () => {
         ).mockImplementation(passedBaseRequirementsMock);
         const extension = new FalsyExtension();
         const setupResult = await extension.executeSetup();
-        const testsResultWithoutMessages = setupResult.tests.filter((test) => {
-            return (
-                test.supplementalMessage === undefined &&
-                test.message === undefined
-            );
-        });
+        const testsResultWithoutMessages = setupResult.tests.filter(
+            (test) => test.message.length === 0
+        );
         expect(testsResultWithoutMessages.length).toBe(1);
         expect(testsResultWithoutMessages[0].title).toBe('Checking SDK Tools');
     });

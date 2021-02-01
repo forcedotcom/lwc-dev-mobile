@@ -30,7 +30,7 @@ export class AndroidLauncher {
         const androidApi = preferredPack.platformAPI;
         const abi = preferredPack.abi;
         const device = androidConfig.supportedDevices[0];
-        const requestedPort = await AndroidSDKUtils.getNextAndroidAdbPort();
+        let emulatorPort = await AndroidSDKUtils.getNextAndroidAdbPort();
         const spinner = cli.action;
         const emuName = this.emulatorName;
         spinner.start(`Launching`, `Searching for ${emuName}`, {
@@ -59,14 +59,18 @@ export class AndroidLauncher {
                 spinner.start(`Launching`, `Starting device ${emuName}`, {
                     stdout: true
                 });
-                return AndroidSDKUtils.startEmulator(emuName, requestedPort);
+                return AndroidSDKUtils.startEmulator(emuName, emulatorPort);
             })
-            .then(async (actualPort) => {
-                spinner.start(`Launching`, `Waiting for ${emuName} to boot`, {
-                    stdout: true
-                });
-                await AndroidSDKUtils.pollDeviceStatus(actualPort);
-
+            .then((actualPort) => {
+                emulatorPort = actualPort;
+                spinner.start(
+                    `Launching`,
+                    `Waiting for device ${emuName} to boot`,
+                    { stdout: true }
+                );
+                return AndroidSDKUtils.pollDeviceStatus(emulatorPort);
+            })
+            .then(() => {
                 const useServer = PreviewUtils.useLwcServerForPreviewing(
                     targetApp,
                     appConfig
@@ -77,8 +81,11 @@ export class AndroidLauncher {
                 if (PreviewUtils.isTargetingBrowser(targetApp)) {
                     const compPath = PreviewUtils.prefixRouteIfNeeded(compName);
                     const url = `${address}:${port}/lwc/preview/${compPath}`;
-                    spinner.stop(`Opening Browser with url ${url}`);
-                    return AndroidSDKUtils.launchURLIntent(url, actualPort);
+                    return AndroidSDKUtils.launchURLIntent(
+                        url,
+                        emulatorPort,
+                        spinner
+                    );
                 } else {
                     spinner.stop(`Launching App ${targetApp}`);
 
@@ -94,11 +101,16 @@ export class AndroidLauncher {
                         targetApp,
                         targetAppArguments,
                         launchActivity,
-                        actualPort,
+                        emulatorPort,
                         address,
-                        port
+                        port,
+                        spinner
                     );
                 }
+            })
+            .then(() => {
+                spinner.stop();
+                return Promise.resolve();
             })
             .catch((error) => {
                 spinner.stop('Error encountered during launch');

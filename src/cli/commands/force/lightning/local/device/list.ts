@@ -68,17 +68,29 @@ export default class List extends SfdxCommand {
     }
 
     public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
+        cli.action.start(
+            'Device List',
+            'Generating list of supported simulators',
+            { stdout: true }
+        );
         performance.mark(this.perfMarker.startMarkName);
         const result = await IOSUtils.getSupportedSimulators();
         performance.mark(this.perfMarker.endMarkName);
+        cli.action.stop();
         this.showDeviceList(result);
         return Promise.resolve(result);
     }
 
     public async androidDeviceList(): Promise<AndroidVirtualDevice[]> {
+        cli.action.start(
+            'Device List',
+            'Generating list of supported emulators',
+            { stdout: true }
+        );
         performance.mark(this.perfMarker.startMarkName);
         const result = await AndroidSDKUtils.fetchEmulators();
         performance.mark(this.perfMarker.endMarkName);
+        cli.action.stop();
         this.showDeviceList(result);
         return Promise.resolve(result);
     }
