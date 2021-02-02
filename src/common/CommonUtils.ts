@@ -20,7 +20,7 @@ export class CommonUtils {
         return Promise.resolve();
     }
 
-    public static delay(ms: number): Promise<void> {
+    public static async delay(ms: number): Promise<void> {
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
 

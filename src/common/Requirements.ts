@@ -126,45 +126,52 @@ export abstract class BaseSetup implements RequirementList {
 
         let totalDuration = 0;
         const setupTasks = new Listr(
-            [
-                {
-                    task: (rootCtx, rootTask): Listr => {
-                        const subTasks = new Listr([], {
-                            concurrent: true,
-                            rendererOptions: { collapse: false }
-                        });
-                        for (const requirement of this.requirements) {
-                            subTasks.add({
-                                options: { persistentOutput: true },
-                                task: (subCtx, subTask): Promise<void> =>
-                                    WrappedPromise(requirement).then(
-                                        (result) => {
-                                            testResult.tests.push(result);
-                                            if (!result.hasPassed) {
-                                                testResult.hasMetAllRequirements = false;
-                                            }
-
-                                            subTask.title = this.getFormattedTitle(
-                                                result
-                                            );
-                                            subTask.output = result.message;
-
-                                            totalDuration += result.duration;
-                                            rootTask.title = `Setup (${this.formatDurationAsSeconds(
-                                                totalDuration
-                                            )})`;
-                                        }
-                                    ),
-                                title: requirement.title
-                            });
+            {
+                task: (rootCtx, rootTask): Listr => {
+                    const subTasks = new Listr([], {
+                        concurrent: true,
+                        exitOnError: false,
+                        rendererOptions: {
+                            collapse: false,
+                            collapseErrors: false
                         }
+                    });
+                    for (const requirement of this.requirements) {
+                        subTasks.add({
+                            options: { persistentOutput: true },
+                            task: (subCtx, subTask): Promise<void> =>
+                                WrappedPromise(requirement).then((result) => {
+                                    testResult.tests.push(result);
+                                    if (!result.hasPassed) {
+                                        testResult.hasMetAllRequirements = false;
+                                    }
 
-                        return subTasks;
-                    },
-                    title: 'Setup'
-                }
-            ],
-            { concurrent: true, rendererOptions: { collapse: false } }
+                                    subTask.title = this.getFormattedTitle(
+                                        result
+                                    );
+                                    subTask.output = result.message;
+
+                                    totalDuration += result.duration;
+                                    rootTask.title = `Setup (${this.formatDurationAsSeconds(
+                                        totalDuration
+                                    )})`;
+
+                                    // Manually resolve/reject a task so that it would be marked with ✓ or 𐄂
+                                    // For the failure cases we just reject with an empty error. This is not ideal
+                                    // but that's what we need to hand back to Listr.
+                                    return result.hasPassed
+                                        ? Promise.resolve()
+                                        : Promise.reject(new Error());
+                                }),
+                            title: requirement.title
+                        });
+                    }
+
+                    return subTasks;
+                },
+                title: 'Setup'
+            },
+            { concurrent: true, exitOnError: false }
         );
 
         try {
