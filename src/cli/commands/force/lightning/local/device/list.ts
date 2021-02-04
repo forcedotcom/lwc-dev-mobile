@@ -4,18 +4,21 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
+
+// tslint:disable: no-submodule-imports
+
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
+import { AndroidVirtualDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
+import { AndroidSDKUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
+import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSTypes';
+import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
+import { LoggerSetup } from '@salesforce/lwc-dev-mobile-core/lib/common/LoggerSetup';
+import { PerformanceMarkers } from '@salesforce/lwc-dev-mobile-core/lib/common/PerformanceMarkers';
 import chalk from 'chalk';
 import cli from 'cli-ux';
 import { performance, PerformanceObserver } from 'perf_hooks';
-import { AndroidVirtualDevice } from '../../../../../../common/AndroidTypes';
-import { AndroidSDKUtils } from '../../../../../../common/AndroidUtils';
-import { CommandLineUtils } from '../../../../../../common/Common';
-import { IOSSimulatorDevice } from '../../../../../../common/IOSTypes';
-import { IOSUtils } from '../../../../../../common/IOSUtils';
-import { LoggerSetup } from '../../../../../../common/LoggerSetup';
-import { PerformanceMarkers } from '../../../../../../common/PerformanceMarkers';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);

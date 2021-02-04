@@ -4,10 +4,13 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
+
+// tslint:disable: no-submodule-imports
+
 import * as Config from '@oclif/config';
 import { Logger, SfdxError } from '@salesforce/core';
-import { CommonUtils } from '../../../../../../common/CommonUtils';
-import Setup from '../../local/setup';
+import Setup from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
+import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { LwcServerIsRunningRequirement, Preview } from '../preview';
 
 const myPreviewCommandBlockMock = jest.fn(() => Promise.resolve());
@@ -125,7 +128,7 @@ describe('Preview Tests', () => {
         const requirement = new LwcServerIsRunningRequirement(logger);
         const portMessage = (await requirement.checkFunction()).trim();
         const port = portMessage.match(/\d+/);
-        expect(port !== null && port[0] === '3333').toBeTrue();
+        expect(port !== null && port[0] === '3333').toBe(true);
     });
 
     test('Preview should use specified server port', async () => {
@@ -147,7 +150,7 @@ describe('Preview Tests', () => {
         const requirement = new LwcServerIsRunningRequirement(logger);
         const portMessage = (await requirement.checkFunction()).trim();
         const port = portMessage.match(/\d+/);
-        expect(port !== null && port[0] === specifiedPort).toBeTrue();
+        expect(port !== null && port[0] === specifiedPort).toBe(true);
     });
 
     test('Logger must be initialized and invoked', async () => {

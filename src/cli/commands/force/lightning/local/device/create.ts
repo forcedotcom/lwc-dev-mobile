@@ -4,16 +4,19 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
+
+// tslint:disable: no-submodule-imports
+
 import { flags, FlagsConfig } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
+import Setup from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
+import { AndroidSDKUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
+import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
+import { Requirement } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+import androidConfig from '@salesforce/lwc-dev-mobile-core/lib/config/androidconfig.json';
 import cli from 'cli-ux';
 import util from 'util';
-import { AndroidSDKUtils } from '../../../../../../common/AndroidUtils';
-import { CommandLineUtils } from '../../../../../../common/Common';
-import { IOSUtils } from '../../../../../../common/IOSUtils';
-import { Requirement } from '../../../../../../common/Requirements';
-import androidConfig from '../../../../../../config/androidconfig.json';
-import Setup from '../setup';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
