@@ -705,9 +705,9 @@
     "@salesforce/ts-types" "^1.5.0"
     tslib "^1.10.0"
 
-"@salesforce/lwc-dev-mobile-core@../salesforce-lwc-dev-mobile-core-1.0.0.tgz":
+"@salesforce/lwc-dev-mobile-core@https://github.com/forcedotcom/lwc-dev-mobile/releases/download/core-dep-1.0.0-beta1/salesforce-lwc-dev-mobile-core-1.0.0.tgz":
   version "1.0.0"
-  resolved "../salesforce-lwc-dev-mobile-core-1.0.0.tgz#2fd1c980eb64770742fcf8cf2449bcd37791c2dc"
+  resolved "https://github.com/forcedotcom/lwc-dev-mobile/releases/download/core-dep-1.0.0-beta1/salesforce-lwc-dev-mobile-core-1.0.0.tgz#2fd1c980eb64770742fcf8cf2449bcd37791c2dc"
   dependencies:
     "@oclif/config" "^1.17.0"
     "@salesforce/command" "^3.1.0"
