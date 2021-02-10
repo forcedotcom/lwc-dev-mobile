@@ -276,11 +276,18 @@ export class Preview extends Setup {
             this.appConfig
         ) {
             try {
+                CommonUtils.startCliAction(
+                    'Preview',
+                    'Fetching app bundle path'
+                );
                 appBundlePath = PreviewUtils.getAppBundlePath(
                     path.dirname(this.configFilePath),
                     this.appConfig
                 );
             } catch (error) {
+                CommonUtils.stopCliAction(
+                    'Error encountered while fetching app bundle path'
+                );
                 return Promise.reject(error);
             }
         }

@@ -10,6 +10,7 @@ import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { AndroidVirtualDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
 import { AndroidSDKUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSTypes';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { LoggerSetup } from '@salesforce/lwc-dev-mobile-core/lib/common/LoggerSetup';
@@ -69,17 +70,27 @@ export class List extends SfdxCommand {
     }
 
     public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
+        CommonUtils.startCliAction(
+            'Device List',
+            'Generating list of supported simulators'
+        );
         performance.mark(this.perfMarker.startMarkName);
         const result = await IOSUtils.getSupportedSimulators();
         performance.mark(this.perfMarker.endMarkName);
+        CommonUtils.stopCliAction();
         this.showDeviceList(result);
         return Promise.resolve(result);
     }
 
     public async androidDeviceList(): Promise<AndroidVirtualDevice[]> {
+        CommonUtils.startCliAction(
+            'Device List',
+            'Generating list of supported simulators'
+        );
         performance.mark(this.perfMarker.startMarkName);
         const result = await AndroidSDKUtils.fetchEmulators();
         performance.mark(this.perfMarker.endMarkName);
+        CommonUtils.stopCliAction();
         this.showDeviceList(result);
         return Promise.resolve(result);
     }

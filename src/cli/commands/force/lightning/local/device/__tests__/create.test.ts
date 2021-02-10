@@ -10,6 +10,7 @@ import { Logger } from '@salesforce/core';
 import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 import { AndroidPackage } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
 import { AndroidSDKUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
+import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { Version } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { Create } from '../create';
@@ -31,6 +32,9 @@ describe('List Tests', () => {
     let create: Create;
 
     beforeEach(() => {
+        // tslint:disable-next-line: no-empty
+        jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
+
         create = new Create(
             [],
             new Config.Config(({} as any) as Config.Options)

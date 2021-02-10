@@ -10,10 +10,10 @@ import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 import { AndroidSDKUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { Requirement } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import androidConfig from '@salesforce/lwc-dev-mobile-core/lib/config/androidconfig.json';
-import cli from 'cli-ux';
 import util from 'util';
 
 // Initialize Messages with the current plugin directory
@@ -74,19 +74,24 @@ export class Create extends Setup {
                 this.logger.info(
                     'Setup requirements met, continuing with Device Create'
                 );
+                CommonUtils.startCliAction(
+                    'Device Create',
+                    'Creating new device'
+                );
                 return this.executeDeviceCreate();
             })
             .then(() => {
-                const tree = cli.tree();
                 const message = util.format(
                     messages.getMessage('success'),
                     this.deviceName,
                     this.deviceType
                 );
-                tree.insert(message);
-                tree.display();
+                CommonUtils.stopCliAction(message);
             })
             .catch((error) => {
+                CommonUtils.stopCliAction(
+                    'Error encountered during device create'
+                );
                 this.logger.warn(
                     `Device Create failed for ${this.flags.platform}.`
                 );
