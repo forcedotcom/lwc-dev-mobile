@@ -4,13 +4,14 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
+
 import * as Config from '@oclif/config';
 import { Logger } from '@salesforce/core';
-import { AndroidPackage } from '../../../../../../../common/AndroidTypes';
-import { AndroidSDKUtils } from '../../../../../../../common/AndroidUtils';
-import { Version } from '../../../../../../../common/Common';
-import { IOSUtils } from '../../../../../../../common/IOSUtils';
-import Setup from '../../setup';
+import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
+import { AndroidPackage } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
+import { AndroidSDKUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
+import { Version } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { Create } from '../create';
 
 const passedSetupMock = jest.fn(() => {

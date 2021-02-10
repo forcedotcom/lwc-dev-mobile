@@ -4,24 +4,25 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
+
 import { flags } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
-import fs from 'fs';
-import path from 'path';
-import util from 'util';
-import { AndroidLauncher } from '../../../../../common/AndroidLauncher';
-import { CommandLineUtils } from '../../../../../common/Common';
-import { CommonUtils } from '../../../../../common/CommonUtils';
-import { IOSLauncher } from '../../../../../common/IOSLauncher';
+import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
+import { AndroidLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidLauncher';
+import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
+import { IOSLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSLauncher';
 import {
     AndroidAppPreviewConfig,
     IOSAppPreviewConfig
-} from '../../../../../common/PreviewConfigFile';
-import { PreviewUtils } from '../../../../../common/PreviewUtils';
-import { Requirement } from '../../../../../common/Requirements';
-import androidConfig from '../../../../../config/androidconfig.json';
-import iOSConfig from '../../../../../config/iosconfig.json';
-import Setup from '../local/setup';
+} from '@salesforce/lwc-dev-mobile-core/lib/common/PreviewConfigFile';
+import { PreviewUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/PreviewUtils';
+import { Requirement } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+import androidConfig from '@salesforce/lwc-dev-mobile-core/lib/config/androidconfig.json';
+import iOSConfig from '@salesforce/lwc-dev-mobile-core/lib/config/iosconfig.json';
+import fs from 'fs';
+import path from 'path';
+import util from 'util';
 import * as configSchema from './previewConfigurationSchema.json';
 
 // Initialize Messages with the current plugin directory

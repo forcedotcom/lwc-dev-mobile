@@ -4,12 +4,13 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
+
 import * as Config from '@oclif/config';
 import { Logger } from '@salesforce/core';
-import { AndroidVirtualDevice } from '../../../../../../../common/AndroidTypes';
-import { IOSSimulatorDevice } from '../../../../../../../common/IOSTypes';
-import Setup from '../../setup';
-import List from '../list';
+import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
+import { AndroidVirtualDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
+import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSTypes';
+import { List } from '../list';
 
 const iOSListCommandBlockMock = jest.fn(
     (): Promise<IOSSimulatorDevice[]> => {
