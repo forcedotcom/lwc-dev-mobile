@@ -5,14 +5,12 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-// tslint:disable: no-submodule-imports
-
 import * as Config from '@oclif/config';
 import { Logger } from '@salesforce/core';
-import Setup from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
+import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 import { AndroidVirtualDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
 import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSTypes';
-import List from '../list';
+import { List } from '../list';
 
 const iOSListCommandBlockMock = jest.fn(
     (): Promise<IOSSimulatorDevice[]> => {

@@ -5,11 +5,9 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-// tslint:disable: no-submodule-imports
+import { Setup as CoreSetup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 
-import coreSetup from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
-
-export default class Setup extends coreSetup {
+export class Setup extends CoreSetup {
     public async run(): Promise<any> {
         return super.run();
     }

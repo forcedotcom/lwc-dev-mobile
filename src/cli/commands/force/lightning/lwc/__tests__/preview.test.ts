@@ -5,11 +5,9 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-// tslint:disable: no-submodule-imports
-
 import * as Config from '@oclif/config';
 import { Logger, SfdxError } from '@salesforce/core';
-import Setup from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
+import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { LwcServerIsRunningRequirement, Preview } from '../preview';
 

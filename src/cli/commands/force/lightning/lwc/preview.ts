@@ -5,11 +5,9 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-// tslint:disable: no-submodule-imports
-
 import { flags } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
-import Setup from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
+import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 import { AndroidLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidLauncher';
 import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
@@ -22,7 +20,6 @@ import { PreviewUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Preview
 import { Requirement } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import androidConfig from '@salesforce/lwc-dev-mobile-core/lib/config/androidconfig.json';
 import iOSConfig from '@salesforce/lwc-dev-mobile-core/lib/config/iosconfig.json';
-import cli from 'cli-ux';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';
