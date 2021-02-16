@@ -102,11 +102,14 @@ export class Preview extends Setup {
         | undefined;
 
     public async run(): Promise<any> {
-        this.logger.info(`Preview command invoked for ${this.flags.platform}`);
-
-        return this.validateAdditionalInputs() // first validate input parameters
+        return this.init() // ensure init first
             .then(() => {
-                // then validate setup requirements
+                this.logger.info(
+                    `Preview command invoked for ${this.flags.platform}`
+                );
+                return this.validateInputParameters(); // validate input
+            })
+            .then(() => {
                 if (
                     PreviewUtils.useLwcServerForPreviewing(
                         this.targetApp,
@@ -116,9 +119,9 @@ export class Preview extends Setup {
                     const extraReqs: Requirement[] = [
                         new LwcServerIsRunningRequirement(this.logger)
                     ];
-                    this.addRequirements(extraReqs);
+                    this.addAdditionalRequirements(extraReqs);
                 }
-                return super.run();
+                return super.run(); // verify requirements
             })
             .then(() => {
                 // then launch the preview if all validations have passed
@@ -133,7 +136,7 @@ export class Preview extends Setup {
             });
     }
 
-    public async validateAdditionalInputs(): Promise<void> {
+    public async validateInputParameters(): Promise<void> {
         const defaultDeviceName = CommandLineUtils.platformFlagIsIOS(
             this.flags.platform
         )
@@ -320,9 +323,18 @@ export class Preview extends Setup {
     }
 
     protected async init(): Promise<void> {
-        await super.init();
-        const logger = await Logger.child('mobile:preview', {});
-        this.logger = logger;
+        if (this.logger) {
+            // already initialized
+            return Promise.resolve();
+        }
+
+        return super
+            .init()
+            .then(() => Logger.child('mobile:preview', {}))
+            .then((logger) => {
+                this.logger = logger;
+                return Promise.resolve();
+            });
     }
 
     protected _help(): never {

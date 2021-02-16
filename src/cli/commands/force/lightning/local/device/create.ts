@@ -13,7 +13,6 @@ import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Com
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { Requirement } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
-import androidConfig from '@salesforce/lwc-dev-mobile-core/lib/config/androidconfig.json';
 import util from 'util';
 
 // Initialize Messages with the current plugin directory
@@ -57,20 +56,22 @@ export class Create extends Setup {
     public deviceType: string = '';
 
     public async run(): Promise<any> {
-        this.logger.info(
-            `Device Create command invoked for ${this.flags.platform}`
-        );
-
-        const extraReqs: Requirement[] = [
-            new DeviceNameAvailableRequirement(this, this.logger),
-            new ValidDeviceTypeRequirement(this, this.logger)
-        ];
-        this.addRequirements(extraReqs);
-
-        return this.validateInputParameters() // first validate input parameters
-            .then(() => super.run()) // then validate setup requirements
+        return this.init() // ensure init first
             .then(() => {
-                // then execute the create command
+                this.logger.info(
+                    `Device Create command invoked for ${this.flags.platform}`
+                );
+
+                const extraReqs: Requirement[] = [
+                    new DeviceNameAvailableRequirement(this, this.logger),
+                    new ValidDeviceTypeRequirement(this, this.logger)
+                ];
+                this.addAdditionalRequirements(extraReqs);
+
+                return super.run(); // validate input parameters + setup requirements
+            })
+            .then(() => {
+                // execute the create command
                 this.logger.info(
                     'Setup requirements met, continuing with Device Create'
                 );
@@ -99,7 +100,7 @@ export class Create extends Setup {
             });
     }
 
-    public async validateInputParameters(): Promise<void> {
+    protected async validateInputParameters(): Promise<void> {
         const deviceName = this.flags.devicename as string;
         const deviceType = this.flags.devicetype as string;
 
@@ -146,6 +147,21 @@ export class Create extends Setup {
         this.deviceName = deviceName;
         this.deviceType = deviceType;
         return Promise.resolve();
+    }
+
+    protected async init(): Promise<void> {
+        if (this.logger) {
+            // already initialized
+            return Promise.resolve();
+        }
+
+        return super
+            .init()
+            .then(() => Logger.child('mobile:device:create', {}))
+            .then((logger) => {
+                this.logger = logger;
+                return Promise.resolve();
+            });
     }
 
     private async executeDeviceCreate(): Promise<any> {
@@ -243,7 +259,7 @@ class ValidDeviceTypeRequirement implements Requirement {
         const deviceType = this.owner.deviceType;
 
         const supportedDevices = isAndroid
-            ? androidConfig.supportedDevices
+            ? await AndroidSDKUtils.getSupportedDevices()
             : await IOSUtils.getSupportedDevices();
 
         const match = supportedDevices.find((device) => device === deviceType);

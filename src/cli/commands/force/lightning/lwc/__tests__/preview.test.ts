@@ -22,43 +22,34 @@ const failedSetupMock = jest.fn(() => {
 });
 
 describe('Preview Tests', () => {
-    let preview: Preview;
-
     beforeEach(() => {
-        preview = new Preview(
-            [],
-            new Config.Config(({} as any) as Config.Options)
-        );
-        preview.launchPreview = myPreviewCommandBlockMock;
         jest.spyOn(Setup.prototype, 'run').mockImplementation(passedSetupMock);
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     test('Checks that Comp Name flag is received', async () => {
-        setupAndroidFlags();
-        const logger = new Logger('test-preview');
-        setupLogger(logger);
-        const compPathCalValidationlMock = jest.fn(() => {
+        const compPathCallValidationlMock = jest.fn(() => {
             return Promise.resolve();
         });
-        preview.validateAdditionalInputs = compPathCalValidationlMock;
+        const preview = makePreview('compname', 'android', 'sfdxdebug');
+        preview.validateInputParameters = compPathCallValidationlMock;
         await preview.run();
-        expect(compPathCalValidationlMock).toHaveBeenCalled();
+        expect(compPathCallValidationlMock).toHaveBeenCalled();
     });
 
     test('Checks that launch for target platform  for Android is invoked', async () => {
-        setupAndroidFlags();
-        const logger = new Logger('test-preview');
-        setupLogger(logger);
         const targetAndroidCallMock = jest.fn(() => Promise.resolve());
+        const preview = makePreview('compname', 'android', 'sfdxdebug');
         preview.launchPreview = targetAndroidCallMock;
         await preview.run();
         expect(targetAndroidCallMock).toHaveBeenCalled();
     });
 
     test('Checks that launch for target platform  for iOS is invoked', async () => {
-        setupIOSFlags();
-        const logger = new Logger('test-preview');
-        setupLogger(logger);
+        const preview = makePreview('compname', 'ios', 'sfdxdebug');
         const targetIOSCallMock = jest.fn(() => Promise.resolve());
         preview.launchPreview = targetIOSCallMock;
         await preview.run();
@@ -66,17 +57,13 @@ describe('Preview Tests', () => {
     });
 
     test('Checks that setup is invoked', async () => {
-        setupAndroidFlags();
-        const logger = new Logger('test-preview');
-        setupLogger(logger);
+        const preview = makePreview('compname', 'android', 'sfdxdebug');
         await preview.run();
         expect(passedSetupMock);
     });
 
     test('Preview should throw an error if setup fails', async () => {
-        setupAndroidFlags();
-        const logger = new Logger('test-preview');
-        setupLogger(logger);
+        const preview = makePreview('compname', 'android', 'sfdxdebug');
         jest.spyOn(Setup.prototype, 'run').mockImplementation(failedSetupMock);
 
         try {
@@ -89,9 +76,7 @@ describe('Preview Tests', () => {
     });
 
     test('Preview should throw an error if server is not running', async () => {
-        setupAndroidFlags();
         const logger = new Logger('test-preview');
-        setupLogger(logger);
         const cmdMock = jest.fn((): string => {
             throw new Error('test error');
         });
@@ -108,9 +93,7 @@ describe('Preview Tests', () => {
     });
 
     test('Preview should default to use server port 3333', async () => {
-        setupAndroidFlags();
         const logger = new Logger('test-preview');
-        setupLogger(logger);
         const cmdMock = jest.fn(
             (): Promise<{ stdout: string; stderr: string }> =>
                 Promise.resolve({
@@ -130,9 +113,7 @@ describe('Preview Tests', () => {
     });
 
     test('Preview should use specified server port', async () => {
-        setupAndroidFlags();
         const logger = new Logger('test-preview');
-        setupLogger(logger);
         const specifiedPort = '3456';
         const cmdMock = jest.fn(
             (): Promise<{ stdout: string; stderr: string }> =>
@@ -153,9 +134,9 @@ describe('Preview Tests', () => {
 
     test('Logger must be initialized and invoked', async () => {
         const logger = new Logger('test-preview');
-        setupLogger(logger);
-        setupAndroidFlags();
         const loggerSpy = jest.spyOn(logger, 'info');
+        jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
+        const preview = makePreview('compname', 'android', 'sfdxdebug');
         await preview.run();
         expect(loggerSpy).toHaveBeenCalled();
     });
@@ -165,37 +146,17 @@ describe('Preview Tests', () => {
         expect(Preview.description !== null).toBeTruthy();
     });
 
-    function setupAndroidFlags() {
-        Object.defineProperty(preview, 'flags', {
-            get: () => {
-                return {
-                    componentname: 'mockcomponentname',
-                    platform: 'android',
-                    target: 'sfdxemu'
-                };
-            }
-        });
-    }
+    function makePreview(
+        componentname: string,
+        platform: string,
+        target: string
+    ): Preview {
+        const preview = new Preview(
+            ['-n', componentname, '-p', platform, '-t', target],
+            new Config.Config(({} as any) as Config.Options)
+        );
+        preview.launchPreview = myPreviewCommandBlockMock;
 
-    function setupIOSFlags() {
-        Object.defineProperty(preview, 'flags', {
-            get: () => {
-                return {
-                    componentname: 'mockcomponentname',
-                    platform: 'iOS',
-                    target: 'sfdxsimulator'
-                };
-            }
-        });
-    }
-
-    function setupLogger(logger: Logger) {
-        Object.defineProperty(preview, 'logger', {
-            configurable: true,
-            enumerable: false,
-            get: () => {
-                return logger;
-            }
-        });
+        return preview;
     }
 });
