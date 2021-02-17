@@ -13,7 +13,6 @@ import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Com
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { Requirement } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
-import androidConfig from '@salesforce/lwc-dev-mobile-core/lib/config/androidconfig.json';
 import util from 'util';
 
 // Initialize Messages with the current plugin directory
@@ -30,6 +29,12 @@ export class Create extends Setup {
     public static description = messages.getMessage('commandDescription');
 
     public static readonly flagsConfig: FlagsConfig = {
+        apilevel: flags.string({
+            char: 'a',
+            description: messages.getMessage('apiLevelFlagDescription'),
+            longDescription: messages.getMessage('apiLevelFlagDescription'),
+            required: false
+        }),
         devicename: flags.string({
             char: 'n',
             description: messages.getMessage('deviceNameFlagDescription'),
@@ -56,7 +61,11 @@ export class Create extends Setup {
     public deviceName: string = '';
     public deviceType: string = '';
 
-    public async run(): Promise<any> {
+    public async run(direct: boolean = false): Promise<any> {
+        if (direct) {
+            await this.init(); // ensure init first
+        }
+
         this.logger.info(
             `Device Create command invoked for ${this.flags.platform}`
         );
@@ -65,12 +74,12 @@ export class Create extends Setup {
             new DeviceNameAvailableRequirement(this, this.logger),
             new ValidDeviceTypeRequirement(this, this.logger)
         ];
-        this.addRequirements(extraReqs);
+        this.addAdditionalRequirements(extraReqs);
 
-        return this.validateInputParameters() // first validate input parameters
-            .then(() => super.run()) // then validate setup requirements
+        return super
+            .run(direct) // validate input parameters + setup requirements
             .then(() => {
-                // then execute the create command
+                // execute the create command
                 this.logger.info(
                     'Setup requirements met, continuing with Device Create'
                 );
@@ -99,53 +108,57 @@ export class Create extends Setup {
             });
     }
 
-    public async validateInputParameters(): Promise<void> {
-        const deviceName = this.flags.devicename as string;
-        const deviceType = this.flags.devicetype as string;
+    protected async validateInputParameters(): Promise<void> {
+        return super.validateInputParameters().then(() => {
+            const deviceName = this.flags.devicename as string;
+            const deviceType = this.flags.devicetype as string;
 
-        // ensure that the platform flag value is valid
-        if (!CommandLineUtils.platformFlagIsValid(this.flags.platform)) {
-            return Promise.reject(
-                new SfdxError(
-                    messages.getMessage(
-                        'error:invalidPlatformFlagsDescription'
-                    ),
-                    'lwc-dev-mobile',
-                    this.examples
-                )
-            );
+            // ensure that the device name flag value is valid
+            if (deviceName == null || deviceName.trim() === '') {
+                return Promise.reject(
+                    new SfdxError(
+                        messages.getMessage(
+                            'error:invalidDeviceNameFlagsDescription'
+                        ),
+                        'lwc-dev-mobile',
+                        this.examples
+                    )
+                );
+            }
+
+            // ensure that the device type flag value is valid
+            if (deviceType == null || deviceType.trim() === '') {
+                return Promise.reject(
+                    new SfdxError(
+                        messages.getMessage(
+                            'error:invalidDeviceTypeFlagsDescription'
+                        ),
+                        'lwc-dev-mobile',
+                        this.examples
+                    )
+                );
+            }
+
+            this.platform = this.flags.platform;
+            this.deviceName = deviceName;
+            this.deviceType = deviceType;
+            return Promise.resolve();
+        });
+    }
+
+    protected async init(): Promise<void> {
+        if (this.logger) {
+            // already initialized
+            return Promise.resolve();
         }
 
-        // ensure that the device name flag value is valid
-        if (deviceName == null || deviceName.trim() === '') {
-            return Promise.reject(
-                new SfdxError(
-                    messages.getMessage(
-                        'error:invalidDeviceNameFlagsDescription'
-                    ),
-                    'lwc-dev-mobile',
-                    this.examples
-                )
-            );
-        }
-
-        // ensure that the device type flag value is valid
-        if (deviceType == null || deviceType.trim() === '') {
-            return Promise.reject(
-                new SfdxError(
-                    messages.getMessage(
-                        'error:invalidDeviceTypeFlagsDescription'
-                    ),
-                    'lwc-dev-mobile',
-                    this.examples
-                )
-            );
-        }
-
-        this.platform = this.flags.platform;
-        this.deviceName = deviceName;
-        this.deviceType = deviceType;
-        return Promise.resolve();
+        return super
+            .init()
+            .then(() => Logger.child('force:lightning:local:device:create', {}))
+            .then((logger) => {
+                this.logger = logger;
+                return Promise.resolve();
+            });
     }
 
     private async executeDeviceCreate(): Promise<any> {
@@ -156,21 +169,20 @@ export class Create extends Setup {
     }
 
     private async executeAndroidDeviceCreate(): Promise<void> {
-        return AndroidSDKUtils.findRequiredEmulatorImages().then(
-            (preferredPack) => {
-                const emuImage =
-                    preferredPack.platformEmulatorImage || 'default';
-                const androidApi = preferredPack.platformAPI;
-                const abi = preferredPack.abi;
-                return AndroidSDKUtils.createNewVirtualDevice(
-                    this.deviceName,
-                    emuImage,
-                    androidApi,
-                    this.deviceType,
-                    abi
-                );
-            }
-        );
+        return AndroidSDKUtils.findRequiredEmulatorImages(
+            this.flags.apilevel
+        ).then((preferredPack) => {
+            const emuImage = preferredPack.platformEmulatorImage || 'default';
+            const androidApi = preferredPack.platformAPI;
+            const abi = preferredPack.abi;
+            return AndroidSDKUtils.createNewVirtualDevice(
+                this.deviceName,
+                emuImage,
+                androidApi,
+                this.deviceType,
+                abi
+            );
+        });
     }
 
     private async executeIOSDeviceCreate(): Promise<string> {
@@ -243,7 +255,7 @@ class ValidDeviceTypeRequirement implements Requirement {
         const deviceType = this.owner.deviceType;
 
         const supportedDevices = isAndroid
-            ? androidConfig.supportedDevices
+            ? await AndroidSDKUtils.getSupportedDevices()
             : await IOSUtils.getSupportedDevices();
 
         const match = supportedDevices.find((device) => device === deviceType);

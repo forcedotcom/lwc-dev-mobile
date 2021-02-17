@@ -29,33 +29,32 @@ const passedSetupMock = jest.fn(() => {
 });
 
 describe('List Tests', () => {
-    const logger = new Logger('test-list');
-    let list: List;
-
     beforeEach(() => {
-        list = new List([], new Config.Config(({} as any) as Config.Options));
-        list.iOSDeviceList = iOSListCommandBlockMock;
-        list.androidDeviceList = androidListCommandBlockMock;
-        setupLogger();
         jest.spyOn(Setup.prototype, 'run').mockImplementation(passedSetupMock);
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     test('Checks that launch for target platform for Android is invoked', async () => {
-        setupPlatformFlag('android');
-        await list.run();
+        const list = makeList('android');
+        await list.run(true);
         expect(androidListCommandBlockMock).toHaveBeenCalled();
     });
 
     test('Checks that launch for target platform for iOS is invoked', async () => {
-        setupPlatformFlag('iOS');
-        await list.run();
+        const list = makeList('ios');
+        await list.run(true);
         expect(iOSListCommandBlockMock).toHaveBeenCalled();
     });
 
     test('Logger must be initialized and invoked', async () => {
-        setupPlatformFlag('android');
+        const logger = new Logger('test-logger');
         const loggerSpy = jest.spyOn(logger, 'info');
-        await list.run();
+        jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
+        const list = makeList('android');
+        await list.run(true);
         expect(loggerSpy).toHaveBeenCalled();
     });
 
@@ -64,23 +63,13 @@ describe('List Tests', () => {
         expect(List.description !== null).toBeTruthy();
     });
 
-    function setupPlatformFlag(platformFlag: string) {
-        Object.defineProperty(list, 'flags', {
-            get: () => {
-                return {
-                    platform: platformFlag
-                };
-            }
-        });
-    }
-
-    function setupLogger() {
-        Object.defineProperty(list, 'logger', {
-            configurable: true,
-            enumerable: false,
-            get: () => {
-                return logger;
-            }
-        });
+    function makeList(platform: string): List {
+        const list = new List(
+            ['-p', platform],
+            new Config.Config(({} as any) as Config.Options)
+        );
+        list.iOSDeviceList = iOSListCommandBlockMock;
+        list.androidDeviceList = androidListCommandBlockMock;
+        return list;
     }
 });

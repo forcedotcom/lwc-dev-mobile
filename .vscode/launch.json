@@ -5,6 +5,7 @@
             "type": "node",
             "request": "launch",
             "name": "iOS - Preview",
+            "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
                 "force:lightning:lwc:preview",
@@ -20,6 +21,7 @@
             "type": "node",
             "request": "launch",
             "name": "Android - Preview",
+            "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
                 "force:lightning:lwc:preview",
@@ -35,6 +37,7 @@
             "type": "node",
             "request": "launch",
             "name": "iOS - Setup",
+            "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
                 "force:lightning:local:setup",
@@ -46,6 +49,7 @@
             "type": "node",
             "request": "launch",
             "name": "Android - Setup",
+            "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
                 "force:lightning:local:setup",
@@ -57,6 +61,7 @@
             "type": "node",
             "request": "launch",
             "name": "iOS - Device List",
+            "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
                 "force:lightning:local:device:list",
@@ -68,6 +73,7 @@
             "type": "node",
             "request": "launch",
             "name": "Android - Device List",
+            "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
                 "force:lightning:local:device:list",
@@ -79,6 +85,7 @@
             "type": "node",
             "request": "launch",
             "name": "iOS - Device Create",
+            "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
                 "force:lightning:local:device:create",
@@ -94,6 +101,7 @@
             "type": "node",
             "request": "launch",
             "name": "Android - Device Create",
+            "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
                 "force:lightning:local:device:create",

@@ -7,12 +7,12 @@
 
 import * as Config from '@oclif/config';
 import { Logger } from '@salesforce/core';
-import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 import { AndroidPackage } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
 import { AndroidSDKUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { Version } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
+import { BaseSetup } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import { Create } from '../create';
 
 const passedSetupMock = jest.fn(() => {
@@ -27,37 +27,31 @@ const androidApi = 'android-29';
 const androidImage = 'google_apis';
 const androidABI = 'x86_64';
 
-describe('List Tests', () => {
-    const logger = new Logger('test-create');
-    let create: Create;
+const findEmulatorImagesMock = jest.fn(() => {
+    return Promise.resolve(
+        new AndroidPackage(
+            `${androidApi};${androidImage};${androidABI}`,
+            new Version(29, 0, 0),
+            'Google APIs Intel x86 Atom_64 System Image',
+            `system-images/${androidApi}/${androidImage}/${androidABI}/`
+        )
+    );
+});
 
+describe('Create Tests', () => {
     beforeEach(() => {
         // tslint:disable-next-line: no-empty
         jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
-
-        create = new Create(
-            [],
-            new Config.Config(({} as any) as Config.Options)
+        jest.spyOn(BaseSetup.prototype, 'executeSetup').mockImplementation(
+            passedSetupMock
         );
+    });
 
-        setupLogger();
-
-        jest.spyOn(Setup.prototype, 'run').mockImplementation(passedSetupMock);
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     test('Checks that launch for target platform for Android is invoked', async () => {
-        setupFlags('android', deviceName, androidDeviceType);
-
-        const findEmulatorImagesMock = jest.fn(() => {
-            return Promise.resolve(
-                new AndroidPackage(
-                    `${androidApi};${androidImage};${androidABI}`,
-                    new Version(29, 0, 0),
-                    'Google APIs Intel x86 Atom_64 System Image',
-                    `system-images/${androidApi}/${androidImage}/${androidABI}/`
-                )
-            );
-        });
         const nextAdbPortMock = jest.fn(() => {
             return Promise.resolve(0);
         });
@@ -68,6 +62,7 @@ describe('List Tests', () => {
             AndroidSDKUtils,
             'findRequiredEmulatorImages'
         ).mockImplementation(findEmulatorImagesMock);
+
         jest.spyOn(AndroidSDKUtils, 'getNextAndroidAdbPort').mockImplementation(
             nextAdbPortMock
         );
@@ -76,7 +71,8 @@ describe('List Tests', () => {
             'createNewVirtualDevice'
         ).mockImplementation(createNewVirtualDeviceMock);
 
-        await create.run();
+        const create = makeCreate(deviceName, androidDeviceType, 'android');
+        await create.run(true);
         expect(createNewVirtualDeviceMock).toHaveBeenCalledWith(
             deviceName,
             androidImage,
@@ -87,8 +83,6 @@ describe('List Tests', () => {
     });
 
     test('Checks that launch for target platform for iOS is invoked', async () => {
-        setupFlags('iOS', deviceName, iOSDeviceType);
-
         const getSupportedRuntimesMock = jest.fn(() => {
             return Promise.resolve(iOSSupportedRuntimes);
         });
@@ -102,7 +96,8 @@ describe('List Tests', () => {
             createNewDeviceMock
         );
 
-        await create.run();
+        const create = makeCreate(deviceName, iOSDeviceType, 'ios');
+        await create.run(true);
         expect(createNewDeviceMock).toHaveBeenCalledWith(
             deviceName,
             iOSDeviceType,
@@ -111,9 +106,18 @@ describe('List Tests', () => {
     });
 
     test('Logger must be initialized and invoked', async () => {
-        setupFlags('android', deviceName, androidDeviceType);
+        const logger = new Logger('test-logger');
         const loggerSpy = jest.spyOn(logger, 'info');
-        await create.run();
+        jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
+        jest.spyOn(
+            AndroidSDKUtils,
+            'findRequiredEmulatorImages'
+        ).mockImplementation(findEmulatorImagesMock);
+        jest.spyOn(AndroidSDKUtils, 'createNewVirtualDevice').mockReturnValue(
+            Promise.resolve()
+        );
+        const create = makeCreate(deviceName, androidDeviceType, 'android');
+        await create.run(true);
         expect(loggerSpy).toHaveBeenCalled();
     });
 
@@ -122,25 +126,11 @@ describe('List Tests', () => {
         expect(Create.description !== null).toBeTruthy();
     });
 
-    function setupFlags(platformFlag: string, name: string, type: string) {
-        Object.defineProperty(create, 'flags', {
-            get: () => {
-                return {
-                    devicename: name,
-                    devicetype: type,
-                    platform: platformFlag
-                };
-            }
-        });
-    }
-
-    function setupLogger() {
-        Object.defineProperty(create, 'logger', {
-            configurable: true,
-            enumerable: false,
-            get: () => {
-                return logger;
-            }
-        });
+    function makeCreate(name: string, type: string, platform: string): Create {
+        const create = new Create(
+            ['-n', name, '-d', type, '-p', platform],
+            new Config.Config(({} as any) as Config.Options)
+        );
+        return create;
     }
 });

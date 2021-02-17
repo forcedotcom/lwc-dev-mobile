@@ -5,15 +5,13 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
-import { Logger, Messages, SfdxError } from '@salesforce/core';
-import { AndroidVirtualDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
+import { flags, FlagsConfig } from '@salesforce/command';
+import { Logger, Messages } from '@salesforce/core';
+import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 import { AndroidSDKUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
-import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSTypes';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
-import { LoggerSetup } from '@salesforce/lwc-dev-mobile-core/lib/common/LoggerSetup';
 import { PerformanceMarkers } from '@salesforce/lwc-dev-mobile-core/lib/common/PerformanceMarkers';
 import chalk from 'chalk';
 import cli from 'cli-ux';
@@ -29,7 +27,7 @@ const messages = Messages.loadMessages(
     'device-list'
 );
 
-export class List extends SfdxCommand {
+export class List extends Setup {
     public static description = messages.getMessage('commandDescription');
 
     public static readonly flagsConfig: FlagsConfig = {
@@ -50,26 +48,24 @@ export class List extends SfdxCommand {
         PerformanceMarkers.FETCH_DEVICES_MARKER_KEY
     )!;
 
-    public async run(): Promise<any> {
-        const platform = this.flags.platform;
-        this.logger.info(`Device List command invoked for ${platform}`);
-
-        if (!CommandLineUtils.platformFlagIsValid(platform)) {
-            return Promise.reject(
-                new SfdxError(
-                    messages.getMessage('error:invalidInputFlagsDescription'),
-                    'lwc-dev-mobile',
-                    this.examples
-                )
-            );
+    public async run(direct: boolean = false): Promise<any> {
+        if (direct) {
+            await this.init(); // ensure init first
         }
 
-        return CommandLineUtils.platformFlagIsIOS(platform)
-            ? this.iOSDeviceList()
-            : this.androidDeviceList();
+        this.logger.info(
+            `Device List command invoked for ${this.flags.platform}`
+        );
+
+        return this.validateInputParameters() // validate input
+            .then(() =>
+                CommandLineUtils.platformFlagIsIOS(this.flags.platform)
+                    ? this.iOSDeviceList()
+                    : this.androidDeviceList()
+            );
     }
 
-    public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
+    public async iOSDeviceList(): Promise<any> {
         CommonUtils.startCliAction(
             'Device List',
             'Generating list of supported simulators'
@@ -82,7 +78,7 @@ export class List extends SfdxCommand {
         return Promise.resolve(result);
     }
 
-    public async androidDeviceList(): Promise<AndroidVirtualDevice[]> {
+    public async androidDeviceList(): Promise<any> {
         CommonUtils.startCliAction(
             'Device List',
             'Generating list of supported simulators'
@@ -96,10 +92,18 @@ export class List extends SfdxCommand {
     }
 
     protected async init(): Promise<void> {
-        await super.init();
-        const logger = await Logger.child('mobile:device:list', {});
-        this.logger = logger;
-        await LoggerSetup.initializePluginLoggers();
+        if (this.logger) {
+            // already initialized
+            return Promise.resolve();
+        }
+
+        return super
+            .init()
+            .then(() => Logger.child('force:lightning:local:device:list', {}))
+            .then((logger) => {
+                this.logger = logger;
+                return Promise.resolve();
+            });
     }
 
     private showDeviceList(list: any[]) {

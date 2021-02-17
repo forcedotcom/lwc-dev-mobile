@@ -1,6 +1,7 @@
 {
     "commandDescription": "Create a virtual mobile device",
     "platformFlagDescription": "Specify platform ('iOS' or 'Android').",
+    "apiLevelFlagDescription": "Specify Android API level. Defaults to the latest API level installed.",
     "deviceNameFlagDescription": "Virtual device name.",
     "deviceTypeFlagDescription": "Virtual device type.",
     "error:invalidPlatformFlagsDescription": "Invalid input value for platform.",
