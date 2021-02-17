@@ -39,13 +39,13 @@ describe('List Tests', () => {
 
     test('Checks that launch for target platform for Android is invoked', async () => {
         const list = makeList('android');
-        await list.run();
+        await list.run(true);
         expect(androidListCommandBlockMock).toHaveBeenCalled();
     });
 
     test('Checks that launch for target platform for iOS is invoked', async () => {
         const list = makeList('ios');
-        await list.run();
+        await list.run(true);
         expect(iOSListCommandBlockMock).toHaveBeenCalled();
     });
 
@@ -54,7 +54,7 @@ describe('List Tests', () => {
         const loggerSpy = jest.spyOn(logger, 'info');
         jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
         const list = makeList('android');
-        await list.run();
+        await list.run(true);
         expect(loggerSpy).toHaveBeenCalled();
     });
 

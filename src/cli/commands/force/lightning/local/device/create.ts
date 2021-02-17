@@ -61,21 +61,23 @@ export class Create extends Setup {
     public deviceName: string = '';
     public deviceType: string = '';
 
-    public async run(): Promise<any> {
-        return this.init() // ensure init first
-            .then(() => {
-                this.logger.info(
-                    `Device Create command invoked for ${this.flags.platform}`
-                );
+    public async run(direct: boolean = false): Promise<any> {
+        if (direct) {
+            await this.init(); // ensure init first
+        }
 
-                const extraReqs: Requirement[] = [
-                    new DeviceNameAvailableRequirement(this, this.logger),
-                    new ValidDeviceTypeRequirement(this, this.logger)
-                ];
-                this.addAdditionalRequirements(extraReqs);
+        this.logger.info(
+            `Device Create command invoked for ${this.flags.platform}`
+        );
 
-                return super.run(); // validate input parameters + setup requirements
-            })
+        const extraReqs: Requirement[] = [
+            new DeviceNameAvailableRequirement(this, this.logger),
+            new ValidDeviceTypeRequirement(this, this.logger)
+        ];
+        this.addAdditionalRequirements(extraReqs);
+
+        return super
+            .run(direct) // validate input parameters + setup requirements
             .then(() => {
                 // execute the create command
                 this.logger.info(
@@ -152,7 +154,7 @@ export class Create extends Setup {
 
         return super
             .init()
-            .then(() => Logger.child('mobile:device:create', {}))
+            .then(() => Logger.child('force:lightning:local:device:create', {}))
             .then((logger) => {
                 this.logger = logger;
                 return Promise.resolve();

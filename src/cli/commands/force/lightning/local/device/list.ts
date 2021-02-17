@@ -48,14 +48,16 @@ export class List extends Setup {
         PerformanceMarkers.FETCH_DEVICES_MARKER_KEY
     )!;
 
-    public async run(): Promise<any> {
-        return this.init() // ensure init first
-            .then(() => {
-                this.logger.info(
-                    `Device List command invoked for ${this.flags.platform}`
-                );
-                return this.validateInputParameters(); // validate input
-            })
+    public async run(direct: boolean = false): Promise<any> {
+        if (direct) {
+            await this.init(); // ensure init first
+        }
+
+        this.logger.info(
+            `Device List command invoked for ${this.flags.platform}`
+        );
+
+        return this.validateInputParameters() // validate input
             .then(() =>
                 CommandLineUtils.platformFlagIsIOS(this.flags.platform)
                     ? this.iOSDeviceList()
@@ -97,7 +99,7 @@ export class List extends Setup {
 
         return super
             .init()
-            .then(() => Logger.child('mobile:device:list', {}))
+            .then(() => Logger.child('force:lightning:local:device:list', {}))
             .then((logger) => {
                 this.logger = logger;
                 return Promise.resolve();

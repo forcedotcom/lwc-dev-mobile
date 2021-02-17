@@ -72,7 +72,7 @@ describe('Create Tests', () => {
         ).mockImplementation(createNewVirtualDeviceMock);
 
         const create = makeCreate(deviceName, androidDeviceType, 'android');
-        await create.run();
+        await create.run(true);
         expect(createNewVirtualDeviceMock).toHaveBeenCalledWith(
             deviceName,
             androidImage,
@@ -97,7 +97,7 @@ describe('Create Tests', () => {
         );
 
         const create = makeCreate(deviceName, iOSDeviceType, 'ios');
-        await create.run();
+        await create.run(true);
         expect(createNewDeviceMock).toHaveBeenCalledWith(
             deviceName,
             iOSDeviceType,
@@ -117,7 +117,7 @@ describe('Create Tests', () => {
             Promise.resolve()
         );
         const create = makeCreate(deviceName, androidDeviceType, 'android');
-        await create.run();
+        await create.run(true);
         expect(loggerSpy).toHaveBeenCalled();
     });
 

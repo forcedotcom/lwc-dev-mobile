@@ -36,7 +36,7 @@ describe('Preview Tests', () => {
         });
         const preview = makePreview('compname', 'android', 'sfdxdebug');
         preview.validateInputParameters = compPathCallValidationlMock;
-        await preview.run();
+        await preview.run(true);
         expect(compPathCallValidationlMock).toHaveBeenCalled();
     });
 
@@ -44,7 +44,7 @@ describe('Preview Tests', () => {
         const targetAndroidCallMock = jest.fn(() => Promise.resolve());
         const preview = makePreview('compname', 'android', 'sfdxdebug');
         preview.launchPreview = targetAndroidCallMock;
-        await preview.run();
+        await preview.run(true);
         expect(targetAndroidCallMock).toHaveBeenCalled();
     });
 
@@ -52,13 +52,13 @@ describe('Preview Tests', () => {
         const preview = makePreview('compname', 'ios', 'sfdxdebug');
         const targetIOSCallMock = jest.fn(() => Promise.resolve());
         preview.launchPreview = targetIOSCallMock;
-        await preview.run();
+        await preview.run(true);
         expect(targetIOSCallMock).toHaveBeenCalled();
     });
 
     test('Checks that setup is invoked', async () => {
         const preview = makePreview('compname', 'android', 'sfdxdebug');
-        await preview.run();
+        await preview.run(true);
         expect(passedSetupMock);
     });
 
@@ -67,7 +67,7 @@ describe('Preview Tests', () => {
         jest.spyOn(Setup.prototype, 'run').mockImplementation(failedSetupMock);
 
         try {
-            await preview.run();
+            await preview.run(true);
         } catch (error) {
             expect(error instanceof SfdxError).toBeTruthy();
         }
@@ -137,7 +137,7 @@ describe('Preview Tests', () => {
         const loggerSpy = jest.spyOn(logger, 'info');
         jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
         const preview = makePreview('compname', 'android', 'sfdxdebug');
-        await preview.run();
+        await preview.run(true);
         expect(loggerSpy).toHaveBeenCalled();
     });
 

@@ -101,14 +101,14 @@ export class Preview extends Setup {
         | AndroidAppPreviewConfig
         | undefined;
 
-    public async run(): Promise<any> {
-        return this.init() // ensure init first
-            .then(() => {
-                this.logger.info(
-                    `Preview command invoked for ${this.flags.platform}`
-                );
-                return this.validateInputParameters(); // validate input
-            })
+    public async run(direct: boolean = false): Promise<any> {
+        if (direct) {
+            await this.init(); // ensure init first
+        }
+
+        this.logger.info(`Preview command invoked for ${this.flags.platform}`);
+
+        return this.validateInputParameters() // validate input
             .then(() => {
                 if (
                     PreviewUtils.useLwcServerForPreviewing(
@@ -121,7 +121,7 @@ export class Preview extends Setup {
                     ];
                     this.addAdditionalRequirements(extraReqs);
                 }
-                return super.run(); // verify requirements
+                return super.run(direct); // verify requirements
             })
             .then(() => {
                 // then launch the preview if all validations have passed
@@ -340,7 +340,7 @@ export class Preview extends Setup {
 
         return super
             .init()
-            .then(() => Logger.child('mobile:preview', {}))
+            .then(() => Logger.child('force:lightning:lwc:preview', {}))
             .then((logger) => {
                 this.logger = logger;
                 return Promise.resolve();
