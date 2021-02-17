@@ -29,6 +29,12 @@ export class Create extends Setup {
     public static description = messages.getMessage('commandDescription');
 
     public static readonly flagsConfig: FlagsConfig = {
+        apilevel: flags.string({
+            char: 'a',
+            description: messages.getMessage('apiLevelFlagDescription'),
+            longDescription: messages.getMessage('apiLevelFlagDescription'),
+            required: false
+        }),
         devicename: flags.string({
             char: 'n',
             description: messages.getMessage('deviceNameFlagDescription'),
@@ -101,52 +107,41 @@ export class Create extends Setup {
     }
 
     protected async validateInputParameters(): Promise<void> {
-        const deviceName = this.flags.devicename as string;
-        const deviceType = this.flags.devicetype as string;
+        return super.validateInputParameters().then(() => {
+            const deviceName = this.flags.devicename as string;
+            const deviceType = this.flags.devicetype as string;
 
-        // ensure that the platform flag value is valid
-        if (!CommandLineUtils.platformFlagIsValid(this.flags.platform)) {
-            return Promise.reject(
-                new SfdxError(
-                    messages.getMessage(
-                        'error:invalidPlatformFlagsDescription'
-                    ),
-                    'lwc-dev-mobile',
-                    this.examples
-                )
-            );
-        }
+            // ensure that the device name flag value is valid
+            if (deviceName == null || deviceName.trim() === '') {
+                return Promise.reject(
+                    new SfdxError(
+                        messages.getMessage(
+                            'error:invalidDeviceNameFlagsDescription'
+                        ),
+                        'lwc-dev-mobile',
+                        this.examples
+                    )
+                );
+            }
 
-        // ensure that the device name flag value is valid
-        if (deviceName == null || deviceName.trim() === '') {
-            return Promise.reject(
-                new SfdxError(
-                    messages.getMessage(
-                        'error:invalidDeviceNameFlagsDescription'
-                    ),
-                    'lwc-dev-mobile',
-                    this.examples
-                )
-            );
-        }
+            // ensure that the device type flag value is valid
+            if (deviceType == null || deviceType.trim() === '') {
+                return Promise.reject(
+                    new SfdxError(
+                        messages.getMessage(
+                            'error:invalidDeviceTypeFlagsDescription'
+                        ),
+                        'lwc-dev-mobile',
+                        this.examples
+                    )
+                );
+            }
 
-        // ensure that the device type flag value is valid
-        if (deviceType == null || deviceType.trim() === '') {
-            return Promise.reject(
-                new SfdxError(
-                    messages.getMessage(
-                        'error:invalidDeviceTypeFlagsDescription'
-                    ),
-                    'lwc-dev-mobile',
-                    this.examples
-                )
-            );
-        }
-
-        this.platform = this.flags.platform;
-        this.deviceName = deviceName;
-        this.deviceType = deviceType;
-        return Promise.resolve();
+            this.platform = this.flags.platform;
+            this.deviceName = deviceName;
+            this.deviceType = deviceType;
+            return Promise.resolve();
+        });
     }
 
     protected async init(): Promise<void> {
@@ -172,21 +167,20 @@ export class Create extends Setup {
     }
 
     private async executeAndroidDeviceCreate(): Promise<void> {
-        return AndroidSDKUtils.findRequiredEmulatorImages().then(
-            (preferredPack) => {
-                const emuImage =
-                    preferredPack.platformEmulatorImage || 'default';
-                const androidApi = preferredPack.platformAPI;
-                const abi = preferredPack.abi;
-                return AndroidSDKUtils.createNewVirtualDevice(
-                    this.deviceName,
-                    emuImage,
-                    androidApi,
-                    this.deviceType,
-                    abi
-                );
-            }
-        );
+        return AndroidSDKUtils.findRequiredEmulatorImages(
+            this.flags.apilevel
+        ).then((preferredPack) => {
+            const emuImage = preferredPack.platformEmulatorImage || 'default';
+            const androidApi = preferredPack.platformAPI;
+            const abi = preferredPack.abi;
+            return AndroidSDKUtils.createNewVirtualDevice(
+                this.deviceName,
+                emuImage,
+                androidApi,
+                this.deviceType,
+                abi
+            );
+        });
     }
 
     private async executeIOSDeviceCreate(): Promise<string> {
