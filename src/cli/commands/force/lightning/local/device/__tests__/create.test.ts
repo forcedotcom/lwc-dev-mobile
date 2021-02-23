@@ -8,7 +8,7 @@
 import * as Config from '@oclif/config';
 import { Logger } from '@salesforce/core';
 import { AndroidPackage } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
-import { AndroidSDKUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
+import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { Version } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
@@ -59,17 +59,16 @@ describe('Create Tests', () => {
             return Promise.resolve();
         });
         jest.spyOn(
-            AndroidSDKUtils,
+            AndroidUtils,
             'findRequiredEmulatorImages'
         ).mockImplementation(findEmulatorImagesMock);
 
-        jest.spyOn(AndroidSDKUtils, 'getNextAndroidAdbPort').mockImplementation(
+        jest.spyOn(AndroidUtils, 'getNextAndroidAdbPort').mockImplementation(
             nextAdbPortMock
         );
-        jest.spyOn(
-            AndroidSDKUtils,
-            'createNewVirtualDevice'
-        ).mockImplementation(createNewVirtualDeviceMock);
+        jest.spyOn(AndroidUtils, 'createNewVirtualDevice').mockImplementation(
+            createNewVirtualDeviceMock
+        );
 
         const create = makeCreate(deviceName, androidDeviceType, 'android');
         await create.run(true);
@@ -110,10 +109,10 @@ describe('Create Tests', () => {
         const loggerSpy = jest.spyOn(logger, 'info');
         jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
         jest.spyOn(
-            AndroidSDKUtils,
+            AndroidUtils,
             'findRequiredEmulatorImages'
         ).mockImplementation(findEmulatorImagesMock);
-        jest.spyOn(AndroidSDKUtils, 'createNewVirtualDevice').mockReturnValue(
+        jest.spyOn(AndroidUtils, 'createNewVirtualDevice').mockReturnValue(
             Promise.resolve()
         );
         const create = makeCreate(deviceName, androidDeviceType, 'android');
