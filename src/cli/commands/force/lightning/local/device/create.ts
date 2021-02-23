@@ -8,7 +8,7 @@
 import { flags, FlagsConfig } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
-import { AndroidSDKUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
+import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
@@ -169,13 +169,13 @@ export class Create extends Setup {
     }
 
     private async executeAndroidDeviceCreate(): Promise<void> {
-        return AndroidSDKUtils.findRequiredEmulatorImages(
+        return AndroidUtils.findRequiredEmulatorImages(
             this.flags.apilevel
         ).then((preferredPack) => {
             const emuImage = preferredPack.platformEmulatorImage || 'default';
             const androidApi = preferredPack.platformAPI;
             const abi = preferredPack.abi;
-            return AndroidSDKUtils.createNewVirtualDevice(
+            return AndroidUtils.createNewVirtualDevice(
                 this.deviceName,
                 emuImage,
                 androidApi,
@@ -221,7 +221,7 @@ class DeviceNameAvailableRequirement implements Requirement {
         const deviceName = this.owner.deviceName;
 
         const deviceAlreadyExists = isAndroid
-            ? await AndroidSDKUtils.hasEmulator(deviceName)
+            ? await AndroidUtils.hasEmulator(deviceName)
             : (await IOSUtils.getSimulator(deviceName)) != null;
 
         return deviceAlreadyExists
@@ -255,7 +255,7 @@ class ValidDeviceTypeRequirement implements Requirement {
         const deviceType = this.owner.deviceType;
 
         const supportedDevices = isAndroid
-            ? await AndroidSDKUtils.getSupportedDevices()
+            ? await AndroidUtils.getSupportedDevices()
             : await IOSUtils.getSupportedDevices();
 
         const match = supportedDevices.find((device) => device === deviceType);

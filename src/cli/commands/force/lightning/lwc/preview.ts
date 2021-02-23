@@ -12,14 +12,13 @@ import { AndroidLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/Andr
 import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSLauncher';
+import { PlatformConfig } from '@salesforce/lwc-dev-mobile-core/lib/common/PlatformConfig';
 import {
     AndroidAppPreviewConfig,
     IOSAppPreviewConfig
 } from '@salesforce/lwc-dev-mobile-core/lib/common/PreviewConfigFile';
 import { PreviewUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/PreviewUtils';
 import { Requirement } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
-import androidConfig from '@salesforce/lwc-dev-mobile-core/lib/config/androidconfig.json';
-import iOSConfig from '@salesforce/lwc-dev-mobile-core/lib/config/iosconfig.json';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';
@@ -141,8 +140,8 @@ export class Preview extends Setup {
             const defaultDeviceName = CommandLineUtils.platformFlagIsIOS(
                 this.flags.platform
             )
-                ? iOSConfig.defaultSimulatorName
-                : androidConfig.defaultEmulatorName;
+                ? PlatformConfig.iOSConfig().defaultSimulatorName
+                : PlatformConfig.androidConfig().defaultEmulatorName;
 
             this.deviceName = CommandLineUtils.resolveFlag(
                 this.flags.target,

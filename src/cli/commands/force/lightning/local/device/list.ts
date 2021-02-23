@@ -8,7 +8,7 @@
 import { flags, FlagsConfig } from '@salesforce/command';
 import { Logger, Messages } from '@salesforce/core';
 import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
-import { AndroidSDKUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
+import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
@@ -84,7 +84,7 @@ export class List extends Setup {
             'Generating list of supported simulators'
         );
         performance.mark(this.perfMarker.startMarkName);
-        const result = await AndroidSDKUtils.fetchEmulators();
+        const result = await AndroidUtils.fetchEmulators();
         performance.mark(this.perfMarker.endMarkName);
         CommonUtils.stopCliAction();
         this.showDeviceList(result);
