@@ -88,7 +88,7 @@
   },
   "repository": "https://github.com/forcedotcom/lwc-dev-mobile",
   "scripts": {
-    "clean": "yarn rimraf dist reports coverage errorShots oclif.manifest.json",
+    "clean": "yarn rimraf lib dist reports coverage errorShots oclif.manifest.json",
     "build": "yarn clean && tsc",
     "lint": "yarn eslint src --ext js,ts",
     "postpack": "rm -f oclif.manifest.json",

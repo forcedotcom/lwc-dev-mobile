@@ -3,14 +3,18 @@
 # SPDX-License-Identifier: MIT
 # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
 version: 2.1
+
 executors:
   linux:
-    working_directory: ~/lwc-dev-mobile
+    working_directory: ~/lwc-dev-mobile-core
     docker:
       - image: circleci/node:lts
 
+orbs:
+  win: circleci/windows@2.2.0
+
 jobs:
-  run-tests:
+  run-tests-linux:
     executor: linux
     steps:
       - checkout
@@ -33,12 +37,42 @@ jobs:
           path: reports/
       - store_test_results:
           path: reports/junit/
+  run-tests-windows:
+    executor: win/default
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "yarn.lock" }}
+      - run:
+          name: Setup
+          shell: bash.exe
+          command: yarn install && yarn build
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/lwc-dev-mobile-core/node_modules
+      - run: 
+          name: Run Tests
+          shell: bash.exe
+          command: yarn test
+      - store_artifacts:
+          path: reports/
+      - store_test_results:
+          path: reports/junit/
 
 workflows:
   version: 2
   pr-test:
     jobs:
-      - run-tests:
+      - run-tests-linux:
+          filters:
+            branches:
+              only:
+                - /pull.*/
+      - run-tests-windows:
           filters:
             branches:
               only:
