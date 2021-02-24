@@ -29,7 +29,7 @@
     "@oclif/config": "^1.17.0",
     "@salesforce/command": "^3.1.0",
     "@salesforce/core": "^2.18.0",
-    "@salesforce/lwc-dev-mobile-core": "https://github.com/forcedotcom/lwc-dev-mobile/releases/download/core-dep-1.5.0-beta1/salesforce-lwc-dev-mobile-core-1.5.0.tgz",
+    "@salesforce/lwc-dev-mobile-core": "https://github.com/forcedotcom/lwc-dev-mobile/releases/download/core-dep-1.7.0-beta1/salesforce-lwc-dev-mobile-core-1.7.0.tgz",
     "chalk": "^4.1.0",
     "cli-ux": "^5.5.1"
   },
@@ -88,7 +88,7 @@
   },
   "repository": "https://github.com/forcedotcom/lwc-dev-mobile",
   "scripts": {
-    "clean": "yarn rimraf dist reports coverage errorShots oclif.manifest.json",
+    "clean": "yarn rimraf lib dist reports coverage errorShots oclif.manifest.json",
     "build": "yarn clean && tsc",
     "lint": "yarn eslint src --ext js,ts",
     "postpack": "rm -f oclif.manifest.json",

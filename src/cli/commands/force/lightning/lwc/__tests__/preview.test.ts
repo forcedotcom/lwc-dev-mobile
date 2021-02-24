@@ -77,11 +77,12 @@ describe('Preview Tests', () => {
 
     test('Preview should throw an error if server is not running', async () => {
         const logger = new Logger('test-preview');
-        const cmdMock = jest.fn((): string => {
-            throw new Error('test error');
-        });
+        const cmdMock = jest.fn(
+            (): Promise<{ stdout: string; stderr: string }> =>
+                Promise.reject(new Error('test error'))
+        );
 
-        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
+        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             cmdMock
         );
         const requirement = new LwcServerIsRunningRequirement(logger);
