@@ -6,7 +6,7 @@ version: 2.1
 
 executors:
   linux:
-    working_directory: ~/lwc-dev-mobile-core
+    working_directory: ~/lwc-dev-mobile
     docker:
       - image: circleci/node:lts
 
@@ -53,7 +53,7 @@ jobs:
           name: Save Yarn Package Cache
           key: yarn-packages-{{ checksum "yarn.lock" }}
           paths:
-            - ~/lwc-dev-mobile-core/node_modules
+            - ~/lwc-dev-mobile/node_modules
       - run: 
           name: Run Tests
           shell: bash.exe
