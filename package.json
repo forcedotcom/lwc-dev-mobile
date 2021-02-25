@@ -29,7 +29,7 @@
     "@oclif/config": "^1.17.0",
     "@salesforce/command": "^3.1.0",
     "@salesforce/core": "^2.18.0",
-    "@salesforce/lwc-dev-mobile-core": "beta",
+    "@salesforce/lwc-dev-mobile-core": "^1.0.0-beta2",
     "chalk": "^4.1.0",
     "cli-ux": "^5.5.1"
   },
