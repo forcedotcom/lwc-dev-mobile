@@ -169,7 +169,7 @@ export class Create extends Setup {
     }
 
     private async executeAndroidDeviceCreate(): Promise<void> {
-        return AndroidUtils.findRequiredEmulatorImages(
+        return AndroidUtils.fetchSupportedEmulatorImagePackage(
             this.flags.apilevel
         ).then((preferredPack) => {
             const emuImage = preferredPack.platformEmulatorImage || 'default';

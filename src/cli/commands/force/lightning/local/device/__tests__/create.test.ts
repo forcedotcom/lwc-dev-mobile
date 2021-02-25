@@ -60,7 +60,7 @@ describe('Create Tests', () => {
         });
         jest.spyOn(
             AndroidUtils,
-            'findRequiredEmulatorImages'
+            'fetchSupportedEmulatorImagePackage'
         ).mockImplementation(findEmulatorImagesMock);
 
         jest.spyOn(AndroidUtils, 'getNextAndroidAdbPort').mockImplementation(
@@ -110,7 +110,7 @@ describe('Create Tests', () => {
         jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
         jest.spyOn(
             AndroidUtils,
-            'findRequiredEmulatorImages'
+            'fetchSupportedEmulatorImagePackage'
         ).mockImplementation(findEmulatorImagesMock);
         jest.spyOn(AndroidUtils, 'createNewVirtualDevice').mockReturnValue(
             Promise.resolve()
