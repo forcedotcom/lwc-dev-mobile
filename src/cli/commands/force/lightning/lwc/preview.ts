@@ -116,6 +116,7 @@ export class Preview extends Setup {
                     )
                 ) {
                     const extraReqs: Requirement[] = [
+                        new LWCServerPluginInstalledRequirement(this.logger),
                         new LwcServerIsRunningRequirement(this.logger)
                     ];
                     this.addAdditionalRequirements(extraReqs);
@@ -407,13 +408,63 @@ export class Preview extends Setup {
 }
 
 // tslint:disable-next-line: max-classes-per-file
+export class LWCServerPluginInstalledRequirement implements Requirement {
+    public title: string;
+    public fulfilledMessage: string;
+    public unfulfilledMessage: string;
+    public logger: Logger;
+
+    constructor(logger: Logger) {
+        this.title = messages.getMessage('reqs:serverInstalled:title');
+        this.fulfilledMessage = messages.getMessage(
+            'reqs:serverInstalled:fulfilledMessage'
+        );
+        this.unfulfilledMessage = messages.getMessage(
+            'reqs:serverInstalled:unfulfilledMessage'
+        );
+        this.logger = logger;
+    }
+
+    public async checkFunction(): Promise<string> {
+        return CommonUtils.isLwcServerPluginInstalled()
+            .then(() => {
+                this.logger.info('sfdx server plugin detected.');
+                return Promise.resolve(this.fulfilledMessage);
+            })
+            .catch((error) => {
+                this.logger.info('sfdx server plugin was not detected.');
+
+                try {
+                    const command =
+                        'sfdx plugins:install @salesforce/lwc-dev-server';
+                    this.logger.info(
+                        `Installing sfdx server plugin.... ${command}`
+                    );
+                    CommonUtils.executeCommandSync(command, [
+                        'inherit',
+                        'pipe',
+                        'inherit'
+                    ]);
+                    this.logger.info('sfdx server plugin installed.');
+                    return Promise.resolve(this.fulfilledMessage);
+                } catch (error) {
+                    this.logger.error(
+                        `sfdx server plugin installion failed. ${error}`
+                    );
+                    return Promise.reject(new Error(this.unfulfilledMessage));
+                }
+            });
+    }
+}
+
+// tslint:disable-next-line: max-classes-per-file
 export class LwcServerIsRunningRequirement implements Requirement {
-    public title: string = messages.getMessage('reqs:server:title');
+    public title: string = messages.getMessage('reqs:serverStarted:title');
     public fulfilledMessage: string = messages.getMessage(
-        'reqs:server:fulfilledMessage'
+        'reqs:serverStarted:fulfilledMessage'
     );
     public unfulfilledMessage: string = messages.getMessage(
-        'reqs:server:unfulfilledMessage'
+        'reqs:serverStarted:unfulfilledMessage'
     );
     public logger: Logger;
 
