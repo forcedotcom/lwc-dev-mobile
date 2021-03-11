@@ -143,7 +143,7 @@ export class Start extends Setup {
                 } else {
                     CommonUtils.startCliAction(
                         DEVICE_START,
-                        `starting device ${this.target}`
+                        `Starting device ${this.target}`
                     );
                     return AndroidUtils.startEmulator(
                         this.target,
@@ -184,7 +184,7 @@ export class Start extends Setup {
             .then(() => {
                 CommonUtils.startCliAction(
                     DEVICE_START,
-                    `starting device ${this.target} (${simDeviceUDID})`
+                    `Starting device ${this.target} (${simDeviceUDID})`
                 );
                 return IOSUtils.bootDevice(simDeviceUDID, false);
             })
