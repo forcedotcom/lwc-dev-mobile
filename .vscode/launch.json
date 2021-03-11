@@ -114,6 +114,35 @@
             ]
         },
         {
+            "type": "node",
+            "request": "launch",
+            "name": "iOS - Device Start",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:local:device:start",
+                "-p",
+                "iOS",
+                "-t",
+                "sfdxdebug"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Android - Device Start",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:local:device:start",
+                "-p",
+                "android",
+                "-t",
+                "sfdxdebug",
+                "-w"
+            ]
+        },
+        {
             "name": "ts-node",
             "type": "node",
             "request": "launch",

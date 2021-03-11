@@ -63,9 +63,6 @@ describe('Create Tests', () => {
             'fetchSupportedEmulatorImagePackage'
         ).mockImplementation(findEmulatorImagesMock);
 
-        jest.spyOn(AndroidUtils, 'getNextAndroidAdbPort').mockImplementation(
-            nextAdbPortMock
-        );
         jest.spyOn(AndroidUtils, 'createNewVirtualDevice').mockImplementation(
             createNewVirtualDeviceMock
         );
