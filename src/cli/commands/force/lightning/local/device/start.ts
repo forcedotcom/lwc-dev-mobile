@@ -25,7 +25,6 @@ const messages = Messages.loadMessages(
 );
 
 const LWC_DEV_MOBILE = 'lwc-dev-mobile';
-const DEVICE_START = 'Device Start';
 
 export class Start extends Setup {
     public static description = messages.getMessage('commandDescription');
@@ -142,8 +141,11 @@ export class Start extends Setup {
                     );
                 } else {
                     CommonUtils.startCliAction(
-                        DEVICE_START,
-                        `Starting device ${this.target}`
+                        messages.getMessage('deviceStartAction'),
+                        util.format(
+                            messages.getMessage('deviceStartStatus'),
+                            this.target
+                        )
                     );
                     return AndroidUtils.startEmulator(
                         this.target,
@@ -154,7 +156,12 @@ export class Start extends Setup {
             })
             .then((actualPort) => {
                 CommonUtils.stopCliAction(
-                    `device ${this.target} started on port ${actualPort}, writable system = ${this.writableSystem}`
+                    util.format(
+                        messages.getMessage('deviceStartSuccessStatusAndroid'),
+                        this.target,
+                        actualPort,
+                        this.writableSystem
+                    )
                 );
                 return Promise.resolve();
             });
@@ -183,15 +190,21 @@ export class Start extends Setup {
             })
             .then(() => {
                 CommonUtils.startCliAction(
-                    DEVICE_START,
-                    `Starting device ${this.target} (${simDeviceUDID})`
+                    messages.getMessage('deviceStartAction'),
+                    util.format(
+                        messages.getMessage('deviceStartStatus'),
+                        `${this.target} (${simDeviceUDID})`
+                    )
                 );
                 return IOSUtils.bootDevice(simDeviceUDID, false);
             })
             .then(() => IOSUtils.launchSimulatorApp())
             .then(() => {
                 CommonUtils.stopCliAction(
-                    `device ${this.target} (${simDeviceUDID}) started.`
+                    util.format(
+                        messages.getMessage('deviceStartSuccessStatusIOS'),
+                        `${this.target} (${simDeviceUDID})`
+                    )
                 );
                 return Promise.resolve();
             });

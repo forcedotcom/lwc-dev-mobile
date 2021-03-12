@@ -67,8 +67,8 @@ export class List extends Setup {
 
     public async iOSDeviceList(): Promise<any> {
         CommonUtils.startCliAction(
-            'Device List',
-            'Generating list of supported simulators'
+            messages.getMessage('deviceListAction'),
+            messages.getMessage('deviceListStatus')
         );
         performance.mark(this.perfMarker.startMarkName);
         const result = await IOSUtils.getSupportedSimulators();
@@ -80,8 +80,8 @@ export class List extends Setup {
 
     public async androidDeviceList(): Promise<any> {
         CommonUtils.startCliAction(
-            'Device List',
-            'Generating list of supported simulators'
+            messages.getMessage('deviceListAction'),
+            messages.getMessage('deviceListStatus')
         );
         performance.mark(this.perfMarker.startMarkName);
         const result = await AndroidUtils.fetchEmulators();
