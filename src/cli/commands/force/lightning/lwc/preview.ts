@@ -85,8 +85,8 @@ export class Preview extends Setup {
     protected static requiresProject = false;
 
     public examples = [
-        `$ sfdx force:lightning:lwc:preview -p iOS -t LWCSim2 -n HellowWordComponent`,
-        `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -n HellowWordComponent`
+        `$ sfdx force:lightning:lwc:preview -p iOS -t LWCSim2 -n HelloWordComponent`,
+        `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -n HelloWordComponent`
     ];
 
     private serverPort: string = '';
@@ -290,8 +290,8 @@ export class Preview extends Setup {
         ) {
             try {
                 CommonUtils.startCliAction(
-                    'Preview',
-                    'Fetching app bundle path'
+                    messages.getMessage('previewAction'),
+                    messages.getMessage('previewFetchAppBundleStatus')
                 );
                 appBundlePath = PreviewUtils.getAppBundlePath(
                     path.dirname(this.configFilePath),
@@ -299,7 +299,7 @@ export class Preview extends Setup {
                 );
             } catch (error) {
                 CommonUtils.stopCliAction(
-                    'Error encountered while fetching app bundle path'
+                    messages.getMessage('previewFetchAppBundleFailureStatus')
                 );
                 return Promise.reject(error);
             }
@@ -449,9 +449,11 @@ export class LWCServerPluginInstalledRequirement implements Requirement {
                     return Promise.resolve(this.fulfilledMessage);
                 } catch (error) {
                     this.logger.error(
-                        `sfdx server plugin installion failed. ${error}`
+                        `sfdx server plugin installation failed. ${error}`
                     );
-                    return Promise.reject(new Error(this.unfulfilledMessage));
+                    return Promise.reject(
+                        new SfdxError(this.unfulfilledMessage)
+                    );
                 }
             });
     }

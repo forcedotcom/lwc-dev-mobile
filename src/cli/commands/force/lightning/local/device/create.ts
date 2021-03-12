@@ -84,14 +84,18 @@ export class Create extends Setup {
                     'Setup requirements met, continuing with Device Create'
                 );
                 CommonUtils.startCliAction(
-                    'Device Create',
-                    'Creating new device'
+                    messages.getMessage('deviceCreateAction'),
+                    util.format(
+                        messages.getMessage('deviceCreateStatus'),
+                        this.deviceName,
+                        this.deviceType
+                    )
                 );
                 return this.executeDeviceCreate();
             })
             .then(() => {
                 const message = util.format(
-                    messages.getMessage('success'),
+                    messages.getMessage('deviceCreateSuccessStatus'),
                     this.deviceName,
                     this.deviceType
                 );
@@ -99,7 +103,7 @@ export class Create extends Setup {
             })
             .catch((error) => {
                 CommonUtils.stopCliAction(
-                    'Error encountered during device create'
+                    messages.getMessage('deviceCreateFailureStatus')
                 );
                 this.logger.warn(
                     `Device Create failed for ${this.flags.platform}.`

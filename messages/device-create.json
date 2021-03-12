@@ -13,5 +13,8 @@
     "reqs:devicetype:title" : "Validating specified device type.",
     "reqs:devicetype:fulfilledMessage" : "Device type '%s' is valid.",
     "reqs:devicetype:unfulfilledMessage" : "Device type '%s' is invalid. Must be one of the following valid types: %s",
-    "success": "Virtual device '%s' of type '%s' created successfully."
+    "deviceCreateAction": "Device Create",
+    "deviceCreateStatus": "creating new virtual device '%s' of type '%s'",
+    "deviceCreateSuccessStatus": "virtual device '%s' of type '%s' created successfully",
+    "deviceCreateFailureStatus": "error encountered"
 }

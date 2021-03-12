@@ -4,5 +4,9 @@
     "targetFlagDescription": "Specify target virtual device name.",
     "writablesystemFlagDescription": "Specify whether a virtual device should be launched with writable system access. Applicable to Android devices only. Defaults to false.",
     "error:invalidTargetFlagsDescription": "Invalid or missing value for target device name.",
-    "error:targetDoesNotExistDescription": "Target device does not exist: %s."
+    "error:targetDoesNotExistDescription": "Target device does not exist: %s.",
+    "deviceStartAction": "Device Start",
+    "deviceStartStatus": "starting device %s",
+    "deviceStartSuccessStatusAndroid": "device %s started on port %s, writable system = %s",
+    "deviceStartSuccessStatusIOS": "device %s started"
 }
