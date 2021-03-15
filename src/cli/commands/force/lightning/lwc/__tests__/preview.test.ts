@@ -6,12 +6,15 @@
  */
 
 import * as Config from '@oclif/config';
-import { Logger, SfdxError } from '@salesforce/core';
+import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
+import { AndroidLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidLauncher';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
+import { IOSLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSLauncher';
 import { LwcServerIsRunningRequirement, Preview } from '../preview';
 
-const myPreviewCommandBlockMock = jest.fn(() => Promise.resolve());
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'preview');
 
 const passedSetupMock = jest.fn(() => {
     return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
@@ -21,45 +24,57 @@ const failedSetupMock = jest.fn(() => {
     return Promise.reject(new SfdxError('Mock Failure in tests!'));
 });
 
+const iosLaunchPreview = jest.fn(() => Promise.resolve());
+const androidLaunchPreview = jest.fn(() => Promise.resolve());
+
 describe('Preview Tests', () => {
     beforeEach(() => {
         jest.spyOn(Setup.prototype, 'run').mockImplementation(passedSetupMock);
+
+        jest.spyOn(IOSLauncher.prototype, 'launchPreview').mockImplementation(
+            iosLaunchPreview
+        );
+
+        jest.spyOn(
+            AndroidLauncher.prototype,
+            'launchPreview'
+        ).mockImplementation(androidLaunchPreview);
     });
 
     afterEach(() => {
         jest.restoreAllMocks();
     });
 
-    test('Checks that Comp Name flag is received', async () => {
-        const compPathCallValidationlMock = jest.fn(() => {
-            return Promise.resolve();
-        });
-        const preview = makePreview('compname', 'android', 'sfdxdebug');
-        preview.validateInputParameters = compPathCallValidationlMock;
-        await preview.run(true);
-        expect(compPathCallValidationlMock).toHaveBeenCalled();
+    test('Validates component name flag', async () => {
+        const preview = makePreview('', 'android', 'sfdxdebug');
+        try {
+            await preview.run(true);
+        } catch (error) {
+            expect(error.message).toBe(
+                messages.getMessage(
+                    'error:invalidComponentNameFlagsDescription'
+                )
+            );
+        }
     });
 
-    test('Checks that launch for target platform  for Android is invoked', async () => {
-        const targetAndroidCallMock = jest.fn(() => Promise.resolve());
+    test('Checks that launch for target platform for Android is invoked', async () => {
         const preview = makePreview('compname', 'android', 'sfdxdebug');
-        preview.launchPreview = targetAndroidCallMock;
         await preview.run(true);
-        expect(targetAndroidCallMock).toHaveBeenCalled();
+        expect(androidLaunchPreview).toHaveBeenCalled();
     });
 
-    test('Checks that launch for target platform  for iOS is invoked', async () => {
+    test('Checks that launch for target platform for iOS is invoked', async () => {
         const preview = makePreview('compname', 'ios', 'sfdxdebug');
-        const targetIOSCallMock = jest.fn(() => Promise.resolve());
-        preview.launchPreview = targetIOSCallMock;
         await preview.run(true);
-        expect(targetIOSCallMock).toHaveBeenCalled();
+        expect(iosLaunchPreview).toHaveBeenCalled();
     });
 
     test('Checks that setup is invoked', async () => {
         const preview = makePreview('compname', 'android', 'sfdxdebug');
         await preview.run(true);
-        expect(passedSetupMock);
+        expect(passedSetupMock).toHaveBeenCalled();
+        expect(androidLaunchPreview).toHaveBeenCalled();
     });
 
     test('Preview should throw an error if setup fails', async () => {
@@ -148,15 +163,14 @@ describe('Preview Tests', () => {
     });
 
     function makePreview(
-        componentname: string,
+        componentName: string,
         platform: string,
         target: string
     ): Preview {
         const preview = new Preview(
-            ['-n', componentname, '-p', platform, '-t', target],
+            ['-n', componentName, '-p', platform, '-t', target],
             new Config.Config(({} as any) as Config.Options)
         );
-        preview.launchPreview = myPreviewCommandBlockMock;
 
         return preview;
     }

@@ -136,7 +136,7 @@ export class Preview extends Setup {
             });
     }
 
-    public async validateInputParameters(): Promise<void> {
+    protected async validateInputParameters(): Promise<void> {
         return super.validateInputParameters().then(async () => {
             const defaultDeviceName = CommandLineUtils.platformFlagIsIOS(
                 this.flags.platform
@@ -175,8 +175,7 @@ export class Preview extends Setup {
             );
 
             const hasConfigFile =
-                this.configFilePath.length > 0 &&
-                fs.existsSync(this.configFilePath);
+                configFileName.length > 0 && fs.existsSync(this.configFilePath);
 
             const isBrowserTargetApp = PreviewUtils.isTargetingBrowser(
                 this.targetApp
@@ -279,7 +278,39 @@ export class Preview extends Setup {
         });
     }
 
-    public async launchPreview(): Promise<void> {
+    protected async init(): Promise<void> {
+        if (this.logger) {
+            // already initialized
+            return Promise.resolve();
+        }
+
+        return super
+            .init()
+            .then(() => Logger.child('force:lightning:lwc:preview', {}))
+            .then((logger) => {
+                this.logger = logger;
+                return Promise.resolve();
+            });
+    }
+
+    protected _help(): never {
+        const isCommandHelp =
+            this.argv.filter(
+                (v) => v.toLowerCase() === '-h' || v.toLowerCase() === '--help'
+            ).length > 0;
+
+        if (isCommandHelp) {
+            super._help();
+        } else {
+            const message = messages.getMessage('configFileHelpDescription');
+            // tslint:disable-next-line: no-console
+            console.log(`${message}`);
+        }
+
+        return this.exit(0);
+    }
+
+    private async launchPreview(): Promise<void> {
         // At this point all of the inputs/parameters have been verified and parsed so we can just use them.
 
         let appBundlePath: string | undefined;
@@ -330,38 +361,6 @@ export class Preview extends Setup {
                 this.serverPort
             );
         }
-    }
-
-    protected async init(): Promise<void> {
-        if (this.logger) {
-            // already initialized
-            return Promise.resolve();
-        }
-
-        return super
-            .init()
-            .then(() => Logger.child('force:lightning:lwc:preview', {}))
-            .then((logger) => {
-                this.logger = logger;
-                return Promise.resolve();
-            });
-    }
-
-    protected _help(): never {
-        const isCommandHelp =
-            this.argv.filter(
-                (v) => v.toLowerCase() === '-h' || v.toLowerCase() === '--help'
-            ).length > 0;
-
-        if (isCommandHelp) {
-            super._help();
-        } else {
-            const message = messages.getMessage('configFileHelpDescription');
-            // tslint:disable-next-line: no-console
-            console.log(`${message}`);
-        }
-
-        return this.exit(0);
     }
 
     private async launchIOS(
