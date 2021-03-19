@@ -65,32 +65,6 @@ export class List extends Setup {
             );
     }
 
-    public async iOSDeviceList(): Promise<any> {
-        CommonUtils.startCliAction(
-            messages.getMessage('deviceListAction'),
-            messages.getMessage('deviceListStatus')
-        );
-        performance.mark(this.perfMarker.startMarkName);
-        const result = await IOSUtils.getSupportedSimulators();
-        performance.mark(this.perfMarker.endMarkName);
-        CommonUtils.stopCliAction();
-        this.showDeviceList(result);
-        return Promise.resolve(result);
-    }
-
-    public async androidDeviceList(): Promise<any> {
-        CommonUtils.startCliAction(
-            messages.getMessage('deviceListAction'),
-            messages.getMessage('deviceListStatus')
-        );
-        performance.mark(this.perfMarker.startMarkName);
-        const result = await AndroidUtils.fetchEmulators();
-        performance.mark(this.perfMarker.endMarkName);
-        CommonUtils.stopCliAction();
-        this.showDeviceList(result);
-        return Promise.resolve(result);
-    }
-
     protected async init(): Promise<void> {
         if (this.logger) {
             // already initialized
@@ -104,6 +78,32 @@ export class List extends Setup {
                 this.logger = logger;
                 return Promise.resolve();
             });
+    }
+
+    private async iOSDeviceList(): Promise<any> {
+        CommonUtils.startCliAction(
+            messages.getMessage('deviceListAction'),
+            messages.getMessage('deviceListStatus')
+        );
+        performance.mark(this.perfMarker.startMarkName);
+        const result = await IOSUtils.getSupportedSimulators();
+        performance.mark(this.perfMarker.endMarkName);
+        CommonUtils.stopCliAction();
+        this.showDeviceList(result);
+        return Promise.resolve(result);
+    }
+
+    private async androidDeviceList(): Promise<any> {
+        CommonUtils.startCliAction(
+            messages.getMessage('deviceListAction'),
+            messages.getMessage('deviceListStatus')
+        );
+        performance.mark(this.perfMarker.startMarkName);
+        const result = await AndroidUtils.fetchEmulators();
+        performance.mark(this.perfMarker.endMarkName);
+        CommonUtils.stopCliAction();
+        this.showDeviceList(result);
+        return Promise.resolve(result);
     }
 
     private showDeviceList(list: any[]) {

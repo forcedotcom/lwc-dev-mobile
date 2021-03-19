@@ -116,7 +116,7 @@ export class Preview extends Setup {
                     )
                 ) {
                     const extraReqs: Requirement[] = [
-                        new LWCServerPluginInstalledRequirement(this.logger),
+                        new LwcServerPluginInstalledRequirement(this.logger),
                         new LwcServerIsRunningRequirement(this.logger)
                     ];
                     this.addAdditionalRequirements(extraReqs);
@@ -407,7 +407,7 @@ export class Preview extends Setup {
 }
 
 // tslint:disable-next-line: max-classes-per-file
-export class LWCServerPluginInstalledRequirement implements Requirement {
+export class LwcServerPluginInstalledRequirement implements Requirement {
     public title: string;
     public fulfilledMessage: string;
     public unfulfilledMessage: string;
