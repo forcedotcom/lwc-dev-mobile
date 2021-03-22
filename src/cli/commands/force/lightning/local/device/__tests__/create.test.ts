@@ -101,6 +101,36 @@ describe('Create Tests', () => {
         );
     });
 
+    test('Checks additional requirements are executed', async () => {
+        jest.restoreAllMocks();
+        // tslint:disable-next-line: no-empty
+        jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
+        jest.spyOn(IOSUtils, 'getSupportedRuntimes').mockReturnValue(
+            Promise.resolve(iOSSupportedRuntimes)
+        );
+        jest.spyOn(IOSUtils, 'getSimulator').mockReturnValue(
+            Promise.resolve(null)
+        );
+        jest.spyOn(IOSUtils, 'getSupportedDevices').mockReturnValue(
+            Promise.resolve(['iPhone-8'])
+        );
+        const createNewDeviceMock = jest.fn(() => {
+            return Promise.resolve('UDID');
+        });
+        jest.spyOn(IOSUtils, 'createNewDevice').mockImplementation(
+            createNewDeviceMock
+        );
+
+        const create = makeCreate(deviceName, iOSDeviceType, 'ios');
+        create.skipBaseRequirements = true;
+        await create.run(true);
+        expect(createNewDeviceMock).toHaveBeenCalledWith(
+            deviceName,
+            iOSDeviceType,
+            iOSSupportedRuntimes[0]
+        );
+    });
+
     test('Logger must be initialized and invoked', async () => {
         const logger = new Logger('test-logger');
         const loggerSpy = jest.spyOn(logger, 'info');
