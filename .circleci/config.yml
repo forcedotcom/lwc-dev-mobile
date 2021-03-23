@@ -12,6 +12,7 @@ executors:
 
 orbs:
   win: circleci/windows@2.2.0
+  codecov: codecov/codecov@1.0.5
 
 jobs:
   run-tests-linux:
@@ -33,6 +34,9 @@ jobs:
       - run: 
           name: Run Tests
           command: yarn test
+      - codecov/upload:
+          file: reports/coverage/*.json
+          flags: frontend,backend
       - store_artifacts:
           path: reports/
       - store_test_results:
