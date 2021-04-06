@@ -61,9 +61,6 @@ export class List extends Setup {
         );
 
         return this.validateInputParameters() // validate input
-            .then(() => {
-                return RequirementProcessor.execute(this.commandRequirements);
-            })
             .then(() =>
                 CommandLineUtils.platformFlagIsIOS(this.flags.platform)
                     ? this.iOSDeviceList()
@@ -84,20 +81,6 @@ export class List extends Setup {
                 this.logger = logger;
                 return Promise.resolve();
             });
-    }
-
-    private _requirements: CommandRequirements = {};
-    public get commandRequirements(): CommandRequirements {
-        if (Object.keys(this._requirements).length === 0) {
-            const commandDict: CommandRequirements = {};
-            commandDict.setup = getPlatformSetupRequirements(
-                this.logger,
-                this.flags.platform,
-                this.flags.apilevel
-            );
-            this._requirements = commandDict;
-        }
-        return this._requirements;
     }
 
     private async iOSDeviceList(): Promise<any> {

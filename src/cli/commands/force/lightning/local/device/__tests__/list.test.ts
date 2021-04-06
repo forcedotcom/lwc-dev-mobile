@@ -12,7 +12,6 @@ import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Android
 import { Version } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSTypes';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
-import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import { List } from '../list';
 
 const iOSDevices: IOSSimulatorDevice[] = [
@@ -85,17 +84,7 @@ const fetchEmulatorsMock = jest.fn(
     }
 );
 
-const passedSetupMock = jest.fn(() => {
-    return Promise.resolve();
-});
-
 describe('List Tests', () => {
-    beforeEach(() => {
-        jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
-            passedSetupMock
-        );
-    });
-
     afterEach(() => {
         jest.restoreAllMocks();
     });

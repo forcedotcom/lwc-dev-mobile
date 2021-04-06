@@ -13,6 +13,7 @@ import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Com
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import {
+    Requirement,
     CommandRequirements,
     RequirementProcessor
 } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
@@ -166,13 +167,20 @@ export class Create extends Setup {
     private _requirements: CommandRequirements = {};
     public get commandRequirements(): CommandRequirements {
         if (Object.keys(this._requirements).length === 0) {
-            const commandDict: CommandRequirements = {};
-            commandDict.setup = getPlatformSetupRequirements(
+            const requirements: CommandRequirements = {};
+            requirements.setup = getPlatformSetupRequirements(
                 this.logger,
                 this.flags.platform,
                 this.flags.apilevel
             );
-            this._requirements = commandDict;
+            requirements.create = {
+                requirements: [
+                    new DeviceNameAvailableRequirement(this, this.logger),
+                    new ValidDeviceTypeRequirement(this, this.logger)
+                ],
+                enabled: true
+            };
+            this._requirements = requirements;
         }
         return this._requirements;
     }
@@ -209,5 +217,81 @@ export class Create extends Setup {
                 supportedRuntimes[0]
             )
         );
+    }
+}
+
+// tslint:disable-next-line: max-classes-per-file
+class DeviceNameAvailableRequirement implements Requirement {
+    public title: string = messages.getMessage('reqs:devicename:title');
+    public fulfilledMessage: string = messages.getMessage(
+        'reqs:devicename:fulfilledMessage'
+    );
+    public unfulfilledMessage: string = messages.getMessage(
+        'reqs:devicename:unfulfilledMessage'
+    );
+    public logger: Logger;
+    private owner: Create;
+
+    constructor(owner: Create, logger: Logger) {
+        this.owner = owner;
+        this.logger = logger;
+    }
+
+    // ensure a virtual device with the same name doesn't exist already
+    public async checkFunction(): Promise<string> {
+        const isAndroid = CommandLineUtils.platformFlagIsAndroid(
+            this.owner.platform
+        );
+        const deviceName = this.owner.deviceName;
+
+        const deviceAlreadyExists = isAndroid
+            ? await AndroidUtils.hasEmulator(deviceName)
+            : (await IOSUtils.getSimulator(deviceName)) != null;
+
+        return deviceAlreadyExists
+            ? Promise.reject(util.format(this.unfulfilledMessage, deviceName))
+            : Promise.resolve(util.format(this.fulfilledMessage, deviceName));
+    }
+}
+
+// tslint:disable-next-line: max-classes-per-file
+class ValidDeviceTypeRequirement implements Requirement {
+    public title: string = messages.getMessage('reqs:devicetype:title');
+    public fulfilledMessage: string = messages.getMessage(
+        'reqs:devicetype:fulfilledMessage'
+    );
+    public unfulfilledMessage: string = messages.getMessage(
+        'reqs:devicetype:unfulfilledMessage'
+    );
+    public logger: Logger;
+    private owner: Create;
+
+    constructor(owner: Create, logger: Logger) {
+        this.owner = owner;
+        this.logger = logger;
+    }
+
+    // check whether device type is valid (i.e. it matches one of the possible values of available device types)
+    public async checkFunction(): Promise<string> {
+        const isAndroid = CommandLineUtils.platformFlagIsAndroid(
+            this.owner.platform
+        );
+        const deviceType = this.owner.deviceType;
+
+        const supportedDevices = isAndroid
+            ? await AndroidUtils.getSupportedDevices()
+            : await IOSUtils.getSupportedDevices();
+
+        const match = supportedDevices.find((device) => device === deviceType);
+
+        return match !== undefined
+            ? Promise.resolve(util.format(this.fulfilledMessage, deviceType))
+            : Promise.reject(
+                  util.format(
+                      this.unfulfilledMessage,
+                      deviceType,
+                      supportedDevices.join(', ')
+                  )
+              );
     }
 }

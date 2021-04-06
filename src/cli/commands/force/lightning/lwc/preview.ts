@@ -319,13 +319,13 @@ export class Preview extends Setup {
     private _requirements: CommandRequirements = {};
     public get commandRequirements(): CommandRequirements {
         if (Object.keys(this._requirements).length === 0) {
-            const commandDict: CommandRequirements = {};
-            commandDict.setup = getPlatformSetupRequirements(
+            const requirements: CommandRequirements = {};
+            requirements.setup = getPlatformSetupRequirements(
                 this.logger,
                 this.flags.platform,
                 this.flags.apilevel
             );
-            this._requirements = commandDict;
+            this._requirements = requirements;
         }
         return this._requirements;
     }
