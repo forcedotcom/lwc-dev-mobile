@@ -18,10 +18,15 @@ import {
     IOSAppPreviewConfig
 } from '@salesforce/lwc-dev-mobile-core/lib/common/PreviewConfigFile';
 import { PreviewUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/PreviewUtils';
-import { Requirement } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+import {
+    CommandRequirements,
+    Requirement,
+    RequirementProcessor
+} from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';
+import { getPlatformSetupRequirements } from '../setupRequirementsUtil';
 import * as configSchema from './previewConfigurationSchema.json';
 
 // Initialize Messages with the current plugin directory
@@ -100,10 +105,8 @@ export class Preview extends Setup {
         | AndroidAppPreviewConfig
         | undefined;
 
-    public async run(direct: boolean = false): Promise<any> {
-        if (direct) {
-            await this.init(); // ensure init first
-        }
+    public async run(): Promise<any> {
+        await this.init(); // ensure init first
 
         this.logger.info(`Preview command invoked for ${this.flags.platform}`);
 
@@ -115,13 +118,16 @@ export class Preview extends Setup {
                         this.appConfig
                     )
                 ) {
-                    const extraReqs: Requirement[] = [
+                    const requirements: Requirement[] = [
                         new LwcServerPluginInstalledRequirement(this.logger),
                         new LwcServerIsRunningRequirement(this.logger)
                     ];
-                    this.addAdditionalRequirements(extraReqs);
+                    this.commandRequirements.preview = {
+                        requirements,
+                        enabled: true
+                    };
                 }
-                return super.run(direct); // verify requirements
+                return RequirementProcessor.execute(this.commandRequirements); // verify requirements
             })
             .then(() => {
                 // then launch the preview if all validations have passed
@@ -308,6 +314,20 @@ export class Preview extends Setup {
         }
 
         return this.exit(0);
+    }
+
+    private _requirements: CommandRequirements = {};
+    public get commandRequirements(): CommandRequirements {
+        if (Object.keys(this._requirements).length === 0) {
+            const commandDict: CommandRequirements = {};
+            commandDict.setup = getPlatformSetupRequirements(
+                this.logger,
+                this.flags.platform,
+                this.flags.apilevel
+            );
+            this._requirements = commandDict;
+        }
+        return this._requirements;
     }
 
     private async launchPreview(): Promise<void> {

@@ -11,7 +11,7 @@ import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Android
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSTypes';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
-import { BaseSetup } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import { Start } from '../start';
 
 const targetName = 'MyDevice';
@@ -30,14 +30,14 @@ const getSimulatorMock = jest.fn(() =>
     )
 );
 const passedSetupMock = jest.fn(() => {
-    return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
+    return Promise.resolve();
 });
 
 describe('Start Tests', () => {
     beforeEach(() => {
         // tslint:disable-next-line: no-empty
         jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
-        jest.spyOn(BaseSetup.prototype, 'executeSetup').mockImplementation(
+        jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
             passedSetupMock
         );
     });
@@ -60,7 +60,7 @@ describe('Start Tests', () => {
         );
 
         const start = makeStart('android', targetName, true);
-        await start.run(true);
+        await start.run();
         expect(startEmulatorMock).toHaveBeenCalledWith(targetName, true, false);
     });
 
@@ -79,7 +79,7 @@ describe('Start Tests', () => {
         );
 
         const start = makeStart('iOS', targetName);
-        await start.run(true);
+        await start.run();
         expect(bootDeviceMock).toHaveBeenCalledWith(targetUDID, false);
     });
 
@@ -102,7 +102,7 @@ describe('Start Tests', () => {
         );
 
         const start = makeStart('iOS', targetName);
-        await start.run(true);
+        await start.run();
         expect(loggerSpy).toHaveBeenCalled();
     });
 

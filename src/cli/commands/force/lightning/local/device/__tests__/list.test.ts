@@ -7,12 +7,12 @@
 
 import * as Config from '@oclif/config';
 import { Logger } from '@salesforce/core';
-import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 import { AndroidVirtualDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import { Version } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSTypes';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
+import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import { List } from '../list';
 
 const iOSDevices: IOSSimulatorDevice[] = [
@@ -86,12 +86,14 @@ const fetchEmulatorsMock = jest.fn(
 );
 
 const passedSetupMock = jest.fn(() => {
-    return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
+    return Promise.resolve();
 });
 
 describe('List Tests', () => {
     beforeEach(() => {
-        jest.spyOn(Setup.prototype, 'run').mockImplementation(passedSetupMock);
+        jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
+            passedSetupMock
+        );
     });
 
     afterEach(() => {
@@ -103,7 +105,7 @@ describe('List Tests', () => {
             fetchEmulatorsMock
         );
         const list = makeList('android');
-        await list.run(true);
+        await list.run();
         expect(fetchEmulatorsMock).toHaveBeenCalled();
     });
 
@@ -112,7 +114,7 @@ describe('List Tests', () => {
             getSupportedSimulatorsMock
         );
         const list = makeList('ios');
-        await list.run(true);
+        await list.run();
         expect(getSupportedSimulatorsMock).toHaveBeenCalled();
     });
 
@@ -121,7 +123,7 @@ describe('List Tests', () => {
         const loggerSpy = jest.spyOn(logger, 'info');
         jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
         const list = makeList('android');
-        await list.run(true);
+        await list.run();
         expect(loggerSpy).toHaveBeenCalled();
     });
 

@@ -13,9 +13,14 @@ import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Com
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { PerformanceMarkers } from '@salesforce/lwc-dev-mobile-core/lib/common/PerformanceMarkers';
+import {
+    CommandRequirements,
+    RequirementProcessor
+} from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import chalk from 'chalk';
 import cli from 'cli-ux';
 import { performance, PerformanceObserver } from 'perf_hooks';
+import { getPlatformSetupRequirements } from '../../setupRequirementsUtil';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -48,16 +53,17 @@ export class List extends Setup {
         PerformanceMarkers.FETCH_DEVICES_MARKER_KEY
     )!;
 
-    public async run(direct: boolean = false): Promise<any> {
-        if (direct) {
-            await this.init(); // ensure init first
-        }
+    public async run(): Promise<any> {
+        await this.init(); // ensure init first
 
         this.logger.info(
             `Device List command invoked for ${this.flags.platform}`
         );
 
         return this.validateInputParameters() // validate input
+            .then(() => {
+                return RequirementProcessor.execute(this.commandRequirements);
+            })
             .then(() =>
                 CommandLineUtils.platformFlagIsIOS(this.flags.platform)
                     ? this.iOSDeviceList()
@@ -78,6 +84,20 @@ export class List extends Setup {
                 this.logger = logger;
                 return Promise.resolve();
             });
+    }
+
+    private _requirements: CommandRequirements = {};
+    public get commandRequirements(): CommandRequirements {
+        if (Object.keys(this._requirements).length === 0) {
+            const commandDict: CommandRequirements = {};
+            commandDict.setup = getPlatformSetupRequirements(
+                this.logger,
+                this.flags.platform,
+                this.flags.apilevel
+            );
+            this._requirements = commandDict;
+        }
+        return this._requirements;
     }
 
     private async iOSDeviceList(): Promise<any> {

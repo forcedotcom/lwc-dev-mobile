@@ -7,18 +7,18 @@
 
 import * as Config from '@oclif/config';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
-import { BaseSetup } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import { Setup } from '../setup';
 
 const passedSetupMock = jest.fn(() => {
-    return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
+    return Promise.resolve();
 });
 
 describe('Create Tests', () => {
     beforeEach(() => {
         // tslint:disable-next-line: no-empty
         jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
-        jest.spyOn(BaseSetup.prototype, 'executeSetup').mockImplementation(
+        jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
             passedSetupMock
         );
     });
@@ -32,7 +32,7 @@ describe('Create Tests', () => {
             ['-p', 'ios'],
             new Config.Config(({} as any) as Config.Options)
         );
-        await setup.run(true);
+        await setup.run();
         expect(passedSetupMock).toHaveBeenCalled();
     });
 });

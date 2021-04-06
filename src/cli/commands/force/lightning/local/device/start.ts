@@ -12,7 +12,12 @@ import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Android
 import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
+import {
+    CommandRequirements,
+    RequirementProcessor
+} from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import util from 'util';
+import { getPlatformSetupRequirements } from '../../setupRequirementsUtil';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -57,17 +62,17 @@ export class Start extends Setup {
     private target = '';
     private writableSystem = false;
 
-    public async run(direct: boolean = false): Promise<any> {
-        if (direct) {
-            await this.init(); // ensure init first
-        }
+    public async run(): Promise<any> {
+        await this.init(); // ensure init first
 
         this.logger.info(
             `Device Start command invoked for ${this.flags.platform}`
         );
 
-        return super
-            .run(direct) // validate input parameters + setup requirements
+        return this.validateInputParameters() // validate input parameters + setup requirements
+            .then(() => {
+                return RequirementProcessor.execute(this.commandRequirements);
+            })
             .then(() => {
                 // execute the create command
                 this.logger.info(
@@ -75,6 +80,20 @@ export class Start extends Setup {
                 );
                 return this.executeDeviceStart();
             });
+    }
+
+    private _requirements: CommandRequirements = {};
+    public get commandRequirements(): CommandRequirements {
+        if (Object.keys(this._requirements).length === 0) {
+            const commandDict: CommandRequirements = {};
+            commandDict.setup = getPlatformSetupRequirements(
+                this.logger,
+                this.flags.platform,
+                this.flags.apilevel
+            );
+            this._requirements = commandDict;
+        }
+        return this._requirements;
     }
 
     protected async validateInputParameters(): Promise<void> {
