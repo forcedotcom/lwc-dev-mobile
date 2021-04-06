@@ -117,6 +117,9 @@ describe('Create Tests', () => {
         jest.spyOn(IOSUtils, 'createNewDevice').mockImplementation(
             createNewDeviceMock
         );
+        jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
+            passedSetupMock
+        );
 
         const create = makeCreate(deviceName, iOSDeviceType, 'ios');
         await create.run();
