@@ -13,14 +13,9 @@ import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Com
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { PerformanceMarkers } from '@salesforce/lwc-dev-mobile-core/lib/common/PerformanceMarkers';
-import {
-    CommandRequirements,
-    RequirementProcessor
-} from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import chalk from 'chalk';
 import cli from 'cli-ux';
 import { performance, PerformanceObserver } from 'perf_hooks';
-import { getPlatformSetupRequirements } from '../../setupRequirementsUtil';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
