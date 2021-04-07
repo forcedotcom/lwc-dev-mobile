@@ -7,11 +7,11 @@
 
 import * as Config from '@oclif/config';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
-import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 import { AndroidLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidLauncher';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSLauncher';
 import { PreviewUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/PreviewUtils';
+import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import fs from 'fs';
 import {
     LwcServerIsRunningRequirement,
@@ -23,7 +23,7 @@ Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'preview');
 
 const passedSetupMock = jest.fn(() => {
-    return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
+    return Promise.resolve();
 });
 
 const failedSetupMock = jest.fn(() => {
@@ -59,7 +59,9 @@ const sampleConfigFile = `
 
 describe('Preview Tests', () => {
     beforeEach(() => {
-        jest.spyOn(Setup.prototype, 'run').mockImplementation(passedSetupMock);
+        jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
+            passedSetupMock
+        );
 
         jest.spyOn(IOSLauncher.prototype, 'launchPreview').mockImplementation(
             iosLaunchPreview
@@ -78,7 +80,7 @@ describe('Preview Tests', () => {
     test('Validates component name flag', async () => {
         const preview = makePreview('', 'android', 'sfdxdebug');
         try {
-            await preview.run(true);
+            await preview.run();
         } catch (error) {
             expect(error.message).toBe(
                 messages.getMessage(
@@ -90,29 +92,31 @@ describe('Preview Tests', () => {
 
     test('Checks that launch for target platform for Android is invoked', async () => {
         const preview = makePreview('compname', 'android', 'sfdxdebug');
-        await preview.run(true);
+        await preview.run();
         expect(androidLaunchPreview).toHaveBeenCalled();
     });
 
     test('Checks that launch for target platform for iOS is invoked', async () => {
         const preview = makePreview('compname', 'ios', 'sfdxdebug');
-        await preview.run(true);
+        await preview.run();
         expect(iosLaunchPreview).toHaveBeenCalled();
     });
 
     test('Checks that setup is invoked', async () => {
         const preview = makePreview('compname', 'android', 'sfdxdebug');
-        await preview.run(true);
+        await preview.run();
         expect(passedSetupMock).toHaveBeenCalled();
         expect(androidLaunchPreview).toHaveBeenCalled();
     });
 
     test('Preview should throw an error if setup fails', async () => {
         const preview = makePreview('compname', 'android', 'sfdxdebug');
-        jest.spyOn(Setup.prototype, 'run').mockImplementation(failedSetupMock);
+        jest.spyOn(RequirementProcessor, 'execute').mockImplementationOnce(
+            failedSetupMock
+        );
 
         try {
-            await preview.run(true);
+            await preview.run();
         } catch (error) {
             expect(error instanceof SfdxError).toBeTruthy();
         }
@@ -237,7 +241,7 @@ describe('Preview Tests', () => {
             'myConfig.json'
         ).getAppConfig('ios', 'com.salesforce.test');
 
-        await preview.run(true);
+        await preview.run();
         expect(iosLaunchPreview).toHaveBeenCalledWith(
             'compname',
             '/path/to/root',
@@ -253,7 +257,7 @@ describe('Preview Tests', () => {
         const loggerSpy = jest.spyOn(logger, 'info');
         jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
         const preview = makePreview('compname', 'android', 'sfdxdebug');
-        await preview.run(true);
+        await preview.run();
         expect(loggerSpy).toHaveBeenCalled();
     });
 

@@ -8,7 +8,7 @@
 import { Setup as CoreSetup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 
 export class Setup extends CoreSetup {
-    public async run(direct: boolean = false): Promise<any> {
-        return super.run(direct);
+    public async run(): Promise<any> {
+        return super.run();
     }
 }

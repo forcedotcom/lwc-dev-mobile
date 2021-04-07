@@ -12,8 +12,13 @@ import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Android
 import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
-import { Requirement } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+import {
+    Requirement,
+    CommandRequirements,
+    RequirementProcessor
+} from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import util from 'util';
+import { getPlatformSetupRequirements } from '../../setupRequirementsUtil';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -61,23 +66,17 @@ export class Create extends Setup {
     public deviceName: string = '';
     public deviceType: string = '';
 
-    public async run(direct: boolean = false): Promise<any> {
-        if (direct) {
-            await this.init(); // ensure init first
-        }
+    public async run(): Promise<any> {
+        await this.init(); // ensure init first
 
         this.logger.info(
             `Device Create command invoked for ${this.flags.platform}`
         );
 
-        const extraReqs: Requirement[] = [
-            new DeviceNameAvailableRequirement(this, this.logger),
-            new ValidDeviceTypeRequirement(this, this.logger)
-        ];
-        this.addAdditionalRequirements(extraReqs);
-
-        return super
-            .run(direct) // validate input parameters + setup requirements
+        return this.validateInputParameters()
+            .then(() => {
+                return RequirementProcessor.execute(this.commandRequirements);
+            })
             .then(() => {
                 // execute the create command
                 this.logger.info(
@@ -163,6 +162,27 @@ export class Create extends Setup {
                 this.logger = logger;
                 return Promise.resolve();
             });
+    }
+
+    private _requirements: CommandRequirements = {};
+    public get commandRequirements(): CommandRequirements {
+        if (Object.keys(this._requirements).length === 0) {
+            const requirements: CommandRequirements = {};
+            requirements.setup = getPlatformSetupRequirements(
+                this.logger,
+                this.flags.platform,
+                this.flags.apilevel
+            );
+            requirements.create = {
+                requirements: [
+                    new DeviceNameAvailableRequirement(this, this.logger),
+                    new ValidDeviceTypeRequirement(this, this.logger)
+                ],
+                enabled: true
+            };
+            this._requirements = requirements;
+        }
+        return this._requirements;
     }
 
     private async executeDeviceCreate(): Promise<any> {

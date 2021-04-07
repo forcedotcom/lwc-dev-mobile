@@ -48,10 +48,8 @@ export class List extends Setup {
         PerformanceMarkers.FETCH_DEVICES_MARKER_KEY
     )!;
 
-    public async run(direct: boolean = false): Promise<any> {
-        if (direct) {
-            await this.init(); // ensure init first
-        }
+    public async run(): Promise<any> {
+        await this.init(); // ensure init first
 
         this.logger.info(
             `Device List command invoked for ${this.flags.platform}`

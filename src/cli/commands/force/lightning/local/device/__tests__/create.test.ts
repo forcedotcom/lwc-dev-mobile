@@ -12,11 +12,11 @@ import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Android
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { Version } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
-import { BaseSetup } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import { Create } from '../create';
 
 const passedSetupMock = jest.fn(() => {
-    return Promise.resolve({ hasMetAllRequirements: true, tests: [] });
+    return Promise.resolve();
 });
 
 const deviceName = 'MyDeviceName';
@@ -42,7 +42,7 @@ describe('Create Tests', () => {
     beforeEach(() => {
         // tslint:disable-next-line: no-empty
         jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
-        jest.spyOn(BaseSetup.prototype, 'executeSetup').mockImplementation(
+        jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
             passedSetupMock
         );
     });
@@ -52,9 +52,6 @@ describe('Create Tests', () => {
     });
 
     test('Checks that launch for target platform for Android is invoked', async () => {
-        const nextAdbPortMock = jest.fn(() => {
-            return Promise.resolve(0);
-        });
         const createNewVirtualDeviceMock = jest.fn(() => {
             return Promise.resolve();
         });
@@ -68,7 +65,7 @@ describe('Create Tests', () => {
         );
 
         const create = makeCreate(deviceName, androidDeviceType, 'android');
-        await create.run(true);
+        await create.run();
         expect(createNewVirtualDeviceMock).toHaveBeenCalledWith(
             deviceName,
             androidImage,
@@ -93,7 +90,7 @@ describe('Create Tests', () => {
         );
 
         const create = makeCreate(deviceName, iOSDeviceType, 'ios');
-        await create.run(true);
+        await create.run();
         expect(createNewDeviceMock).toHaveBeenCalledWith(
             deviceName,
             iOSDeviceType,
@@ -120,10 +117,12 @@ describe('Create Tests', () => {
         jest.spyOn(IOSUtils, 'createNewDevice').mockImplementation(
             createNewDeviceMock
         );
+        jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
+            passedSetupMock
+        );
 
         const create = makeCreate(deviceName, iOSDeviceType, 'ios');
-        create.skipBaseRequirements = true;
-        await create.run(true);
+        await create.run();
         expect(createNewDeviceMock).toHaveBeenCalledWith(
             deviceName,
             iOSDeviceType,
@@ -143,7 +142,7 @@ describe('Create Tests', () => {
             Promise.resolve()
         );
         const create = makeCreate(deviceName, androidDeviceType, 'android');
-        await create.run(true);
+        await create.run();
         expect(loggerSpy).toHaveBeenCalled();
     });
 

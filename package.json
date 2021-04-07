@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/lwc-dev-mobile",
   "description": "Salesforce CLI plugin for mobile extensions to Local Development",
-  "version": "1.1.1-beta7",
+  "version": "1.1.1-beta8",
   "author": {
     "name": "Raj Rao",
     "email": "rao.r@salesforce.com",
@@ -29,7 +29,7 @@
     "@oclif/config": "^1.17.0",
     "@salesforce/command": "^3.1.0",
     "@salesforce/core": "^2.18.0",
-    "@salesforce/lwc-dev-mobile-core": "^1.0.0-beta7",
+    "@salesforce/lwc-dev-mobile-core": "^1.0.0-beta9",
     "chalk": "^4.1.0",
     "cli-ux": "^5.5.1"
   },
