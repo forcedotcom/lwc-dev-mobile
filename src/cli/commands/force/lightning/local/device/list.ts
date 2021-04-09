@@ -5,9 +5,8 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { flags, FlagsConfig } from '@salesforce/command';
+import { FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages } from '@salesforce/core';
-import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
@@ -27,16 +26,11 @@ const messages = Messages.loadMessages(
     'device-list'
 );
 
-export class List extends Setup {
+export class List extends SfdxCommand {
     public static description = messages.getMessage('commandDescription');
 
     public static readonly flagsConfig: FlagsConfig = {
-        platform: flags.string({
-            char: 'p',
-            description: messages.getMessage('platformFlagDescription'),
-            longDescription: messages.getMessage('platformFlagDescription'),
-            required: true
-        })
+        ...CommonUtils.platformFlagConfig
     };
 
     public examples = [
@@ -55,12 +49,14 @@ export class List extends Setup {
             `Device List command invoked for ${this.flags.platform}`
         );
 
-        return this.validateInputParameters() // validate input
-            .then(() =>
-                CommandLineUtils.platformFlagIsIOS(this.flags.platform)
-                    ? this.iOSDeviceList()
-                    : this.androidDeviceList()
-            );
+        return CommonUtils.validatePlatformFlag(
+            this.flags,
+            this.examples
+        ).then(() =>
+            CommandLineUtils.platformFlagIsIOS(this.flags.platform)
+                ? this.iOSDeviceList()
+                : this.androidDeviceList()
+        );
     }
 
     protected async init(): Promise<void> {

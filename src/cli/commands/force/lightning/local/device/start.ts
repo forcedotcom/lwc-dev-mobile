@@ -5,15 +5,15 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { flags, FlagsConfig } from '@salesforce/command';
+import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
-import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import {
     CommandRequirements,
+    HasRequirements,
     RequirementProcessor
 } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import util from 'util';
@@ -31,15 +31,10 @@ const messages = Messages.loadMessages(
 
 const LWC_DEV_MOBILE = 'lwc-dev-mobile';
 
-export class Start extends Setup {
+export class Start extends SfdxCommand implements HasRequirements {
     public static description = messages.getMessage('commandDescription');
 
     public static readonly flagsConfig: FlagsConfig = {
-        platform: flags.string({
-            char: 'p',
-            description: messages.getMessage('platformFlagDescription'),
-            required: true
-        }),
         target: flags.string({
             char: 't',
             description: messages.getMessage('targetFlagDescription'),
@@ -50,7 +45,8 @@ export class Start extends Setup {
             description: messages.getMessage('writablesystemFlagDescription'),
             required: false,
             default: false
-        })
+        }),
+        ...CommonUtils.platformFlagConfig
     };
 
     public examples = [
@@ -97,28 +93,30 @@ export class Start extends Setup {
     }
 
     protected async validateInputParameters(): Promise<void> {
-        return super.validateInputParameters().then(() => {
-            const target = this.flags.target as string;
-            const writableSystem = this.flags.writablesystem as boolean;
+        return CommonUtils.validatePlatformFlag(this.flags, this.examples).then(
+            () => {
+                const target = this.flags.target as string;
+                const writableSystem = this.flags.writablesystem as boolean;
 
-            // ensure that thetarget flag value is valid
-            if (target == null || target.trim() === '') {
-                return Promise.reject(
-                    new SfdxError(
-                        messages.getMessage(
-                            'error:invalidTargetFlagsDescription'
-                        ),
-                        LWC_DEV_MOBILE,
-                        this.examples
-                    )
-                );
+                // ensure that thetarget flag value is valid
+                if (target == null || target.trim() === '') {
+                    return Promise.reject(
+                        new SfdxError(
+                            messages.getMessage(
+                                'error:invalidTargetFlagsDescription'
+                            ),
+                            LWC_DEV_MOBILE,
+                            this.examples
+                        )
+                    );
+                }
+
+                this.platform = this.flags.platform;
+                this.target = target;
+                this.writableSystem = writableSystem;
+                return Promise.resolve();
             }
-
-            this.platform = this.flags.platform;
-            this.target = target;
-            this.writableSystem = writableSystem;
-            return Promise.resolve();
-        });
+        );
     }
 
     protected async init(): Promise<void> {

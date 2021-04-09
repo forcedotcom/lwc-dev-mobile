@@ -705,10 +705,9 @@
     "@salesforce/ts-types" "^1.5.0"
     tslib "^1.10.0"
 
-"@salesforce/lwc-dev-mobile-core@^1.0.0-beta9":
-  version "1.0.0-beta9"
-  resolved "https://registry.yarnpkg.com/@salesforce/lwc-dev-mobile-core/-/lwc-dev-mobile-core-1.0.0-beta9.tgz#e04b9a15457df4edd9e792ea08ab548483e5a8b7"
-  integrity sha512-TUNK02d6m7iOtqrcVMSiSADkwOYrWyT6UMfISmDqsMoHEi6I3pflT8w1Bp4OpDHQ88ZZCqa01BsRCXEmHSYX4g==
+"@salesforce/lwc-dev-mobile-core@file:../lwc-dev-mobile-core/salesforce-lwc-dev-mobile-core-1.0.0-beta10.tgz":
+  version "1.0.0-beta10"
+  resolved "file:../lwc-dev-mobile-core/salesforce-lwc-dev-mobile-core-1.0.0-beta10.tgz#2eb1fc03c18bd53ac5a8d8bfb8c75793c9f42235"
   dependencies:
     "@oclif/config" "^1.17.0"
     "@salesforce/command" "^3.1.0"
