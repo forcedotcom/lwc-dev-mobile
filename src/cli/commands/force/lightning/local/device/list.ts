@@ -8,7 +8,10 @@
 import { FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages } from '@salesforce/core';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
-import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import {
+    CommandLineUtils,
+    FlagsConfigType
+} from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { PerformanceMarkers } from '@salesforce/lwc-dev-mobile-core/lib/common/PerformanceMarkers';
@@ -30,7 +33,7 @@ export class List extends SfdxCommand {
     public static description = messages.getMessage('commandDescription');
 
     public static readonly flagsConfig: FlagsConfig = {
-        ...CommonUtils.platformFlagConfig
+        ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
     };
 
     public examples = [
@@ -49,7 +52,7 @@ export class List extends SfdxCommand {
             `Device List command invoked for ${this.flags.platform}`
         );
 
-        return CommonUtils.validatePlatformFlag(
+        return CommandLineUtils.validatePlatformFlag(
             this.flags,
             this.examples
         ).then(() =>

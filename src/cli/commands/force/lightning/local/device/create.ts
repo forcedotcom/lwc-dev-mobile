@@ -8,7 +8,10 @@
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
-import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import {
+    CommandLineUtils,
+    FlagsConfigType
+} from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import {
@@ -44,8 +47,8 @@ export class Create extends SfdxCommand implements HasRequirements {
             description: messages.getMessage('deviceTypeFlagDescription'),
             required: true
         }),
-        ...CommonUtils.apiLevelFlagConfig,
-        ...CommonUtils.platformFlagConfig
+        ...CommandLineUtils.createFlagConfig(FlagsConfigType.ApiLevel, false),
+        ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
     };
 
     public examples = [
@@ -103,9 +106,9 @@ export class Create extends SfdxCommand implements HasRequirements {
     }
 
     protected async validateInputParameters(): Promise<void> {
-        return CommonUtils.validatePlatformFlag(this.flags, this.examples)
+        return CommandLineUtils.validatePlatformFlag(this.flags, this.examples)
             .then(() =>
-                CommonUtils.validateApiLevelFlag(this.flags, this.examples)
+                CommandLineUtils.validateApiLevelFlag(this.flags, this.examples)
             )
             .then(() => {
                 const deviceName = this.flags.devicename as string;

@@ -8,7 +8,10 @@
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
-import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import {
+    CommandLineUtils,
+    FlagsConfigType
+} from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import {
@@ -46,7 +49,7 @@ export class Start extends SfdxCommand implements HasRequirements {
             required: false,
             default: false
         }),
-        ...CommonUtils.platformFlagConfig
+        ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
     };
 
     public examples = [
@@ -93,30 +96,31 @@ export class Start extends SfdxCommand implements HasRequirements {
     }
 
     protected async validateInputParameters(): Promise<void> {
-        return CommonUtils.validatePlatformFlag(this.flags, this.examples).then(
-            () => {
-                const target = this.flags.target as string;
-                const writableSystem = this.flags.writablesystem as boolean;
+        return CommandLineUtils.validatePlatformFlag(
+            this.flags,
+            this.examples
+        ).then(() => {
+            const target = this.flags.target as string;
+            const writableSystem = this.flags.writablesystem as boolean;
 
-                // ensure that thetarget flag value is valid
-                if (target == null || target.trim() === '') {
-                    return Promise.reject(
-                        new SfdxError(
-                            messages.getMessage(
-                                'error:invalidTargetFlagsDescription'
-                            ),
-                            LWC_DEV_MOBILE,
-                            this.examples
-                        )
-                    );
-                }
-
-                this.platform = this.flags.platform;
-                this.target = target;
-                this.writableSystem = writableSystem;
-                return Promise.resolve();
+            // ensure that thetarget flag value is valid
+            if (target == null || target.trim() === '') {
+                return Promise.reject(
+                    new SfdxError(
+                        messages.getMessage(
+                            'error:invalidTargetFlagsDescription'
+                        ),
+                        LWC_DEV_MOBILE,
+                        this.examples
+                    )
+                );
             }
-        );
+
+            this.platform = this.flags.platform;
+            this.target = target;
+            this.writableSystem = writableSystem;
+            return Promise.resolve();
+        });
     }
 
     protected async init(): Promise<void> {
