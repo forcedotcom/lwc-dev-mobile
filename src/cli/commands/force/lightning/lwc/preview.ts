@@ -135,6 +135,12 @@ export class Preview extends SfdxCommand implements HasRequirements {
             });
     }
 
+    // TODO: Preview command takes quite a few command flags/parameters compared to other commands.
+    //       Furthermore, the flags need to be processed more than in other commands which
+    //       makes validating them at flagConfig's "validate" method more difficult.
+    //
+    //       In the future refactoring we should seek to simplify validateInputParameters so that
+    //       we can take advantage of flagConfig's "validate".
     protected async validateInputParameters(): Promise<void> {
         const defaultDeviceName = CommandLineUtils.platformFlagIsIOS(
             this.flags.platform
@@ -315,15 +321,15 @@ export class Preview extends SfdxCommand implements HasRequirements {
                 this.flags.platform,
                 this.flags.apilevel
             );
+            this._requirements.preview = {
+                requirements: [
+                    new LwcServerPluginInstalledRequirement(this.logger),
+                    new LwcServerIsRunningRequirement(this.logger)
+                ],
+                enabled: this.useLwc()
+            };
             this._requirements = requirements;
         }
-        this._requirements.preview = {
-            requirements: [
-                new LwcServerPluginInstalledRequirement(this.logger),
-                new LwcServerIsRunningRequirement(this.logger)
-            ],
-            enabled: this.useLwc()
-        };
 
         return this._requirements;
     }

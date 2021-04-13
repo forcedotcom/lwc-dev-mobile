@@ -42,7 +42,9 @@ export class Create extends SfdxCommand implements HasRequirements {
             description: messages.getMessage('deviceNameFlagDescription'),
             required: true,
             validate: (deviceName) => {
-                if (deviceName.trim() === '') {
+                if (deviceName && deviceName.trim().length > 0) {
+                    return true;
+                } else {
                     throw new SfdxError(
                         messages.getMessage(
                             'error:invalidDeviceNameFlagsDescription'
@@ -50,7 +52,6 @@ export class Create extends SfdxCommand implements HasRequirements {
                         'lwc-dev-mobile'
                     );
                 }
-                return true;
             }
         }),
         devicetype: flags.string({
@@ -58,7 +59,9 @@ export class Create extends SfdxCommand implements HasRequirements {
             description: messages.getMessage('deviceTypeFlagDescription'),
             required: true,
             validate: (deviceType) => {
-                if (deviceType.trim() === '') {
+                if (deviceType && deviceType.trim().length > 0) {
+                    return true;
+                } else {
                     throw new SfdxError(
                         messages.getMessage(
                             'error:invalidDeviceTypeFlagsDescription'
@@ -66,7 +69,6 @@ export class Create extends SfdxCommand implements HasRequirements {
                         'lwc-dev-mobile'
                     );
                 }
-                return true;
             }
         }),
         ...CommandLineUtils.createFlagConfig(FlagsConfigType.ApiLevel, false),

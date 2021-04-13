@@ -43,7 +43,9 @@ export class Start extends SfdxCommand implements HasRequirements {
             description: messages.getMessage('targetFlagDescription'),
             required: true,
             validate: (target) => {
-                if (target.trim() === '') {
+                if (target && target.trim().length > 0) {
+                    return true;
+                } else {
                     throw new SfdxError(
                         messages.getMessage(
                             'error:invalidTargetFlagsDescription'
@@ -51,7 +53,6 @@ export class Start extends SfdxCommand implements HasRequirements {
                         LWC_DEV_MOBILE
                     );
                 }
-                return true;
             }
         }),
         writablesystem: flags.boolean({
