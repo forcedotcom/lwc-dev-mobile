@@ -141,7 +141,7 @@ export class Preview extends SfdxCommand implements HasRequirements {
     //
     //       In the future refactoring we should seek to simplify validateInputParameters so that
     //       we can take advantage of flagConfig's "validate".
-    protected async validateInputParameters(): Promise<void> {
+    private async validateInputParameters(): Promise<void> {
         const defaultDeviceName = CommandLineUtils.platformFlagIsIOS(
             this.flags.platform
         )
