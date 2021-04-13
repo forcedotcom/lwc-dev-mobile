@@ -105,7 +105,16 @@ export class Preview extends SfdxCommand implements HasRequirements {
         | undefined;
 
     public async run(): Promise<any> {
-        await this.init(); // ensure init first
+        try {
+            await this.init(); // ensure init first
+        } catch (error) {
+            if (error instanceof SfdxError) {
+                const sfdxError = error as SfdxError;
+                sfdxError.actions = this.examples;
+                throw sfdxError;
+            }
+            throw error;
+        }
 
         this.logger.info(`Preview command invoked for ${this.flags.platform}`);
 
@@ -127,148 +136,135 @@ export class Preview extends SfdxCommand implements HasRequirements {
     }
 
     protected async validateInputParameters(): Promise<void> {
-        return CommandLineUtils.validatePlatformFlag(
-            this.flags,
-            this.examples
-        ).then(async () => {
-            const defaultDeviceName = CommandLineUtils.platformFlagIsIOS(
-                this.flags.platform
-            )
-                ? PlatformConfig.iOSConfig().defaultSimulatorName
-                : PlatformConfig.androidConfig().defaultEmulatorName;
+        const defaultDeviceName = CommandLineUtils.platformFlagIsIOS(
+            this.flags.platform
+        )
+            ? PlatformConfig.iOSConfig().defaultSimulatorName
+            : PlatformConfig.androidConfig().defaultEmulatorName;
 
-            this.deviceName = CommandLineUtils.resolveFlag(
-                this.flags.target,
-                defaultDeviceName
+        this.deviceName = CommandLineUtils.resolveFlag(
+            this.flags.target,
+            defaultDeviceName
+        );
+
+        this.componentName = CommandLineUtils.resolveFlag(
+            this.flags.componentname,
+            ''
+        ).trim();
+
+        this.targetApp = CommandLineUtils.resolveFlag(
+            this.flags.targetapp,
+            PreviewUtils.BROWSER_TARGET_APP
+        );
+
+        this.projectDir = CommonUtils.resolveUserHomePath(
+            CommandLineUtils.resolveFlag(this.flags.projectdir, process.cwd())
+        );
+
+        const configFileName = CommonUtils.resolveUserHomePath(
+            CommandLineUtils.resolveFlag(this.flags.configfile, '')
+        );
+
+        this.configFilePath = path.normalize(
+            path.resolve(this.projectDir, configFileName)
+        );
+
+        const hasConfigFile =
+            configFileName.length > 0 && fs.existsSync(this.configFilePath);
+
+        const isBrowserTargetApp = PreviewUtils.isTargetingBrowser(
+            this.targetApp
+        );
+
+        this.logger.debug('Validating Preview command inputs.');
+
+        // check if user provided a config file when targetapp=browser
+        // and warn them that the config file will be ignored.
+        if (isBrowserTargetApp && hasConfigFile) {
+            this.logger.warn(
+                messages.getMessage('ignoringConfigFileFlagDescription')
             );
+        }
 
-            this.componentName = CommandLineUtils.resolveFlag(
-                this.flags.componentname,
-                ''
-            ).trim();
-
-            this.targetApp = CommandLineUtils.resolveFlag(
-                this.flags.targetapp,
-                PreviewUtils.BROWSER_TARGET_APP
-            );
-
-            this.projectDir = CommonUtils.resolveUserHomePath(
-                CommandLineUtils.resolveFlag(
-                    this.flags.projectdir,
-                    process.cwd()
+        if (this.componentName.length === 0) {
+            return Promise.reject(
+                new SfdxError(
+                    messages.getMessage(
+                        'error:invalidComponentNameFlagsDescription'
+                    ),
+                    'lwc-dev-mobile',
+                    Preview.examples
                 )
             );
+        }
 
-            const configFileName = CommonUtils.resolveUserHomePath(
-                CommandLineUtils.resolveFlag(this.flags.configfile, '')
+        if (isBrowserTargetApp === false && hasConfigFile === false) {
+            return Promise.reject(
+                new SfdxError(
+                    messages.getMessage(
+                        'error:invalidConfigFile:missingDescription',
+                        [this.configFilePath]
+                    ),
+                    'lwc-dev-mobile',
+                    Preview.examples
+                )
             );
+        }
 
-            this.configFilePath = path.normalize(
-                path.resolve(this.projectDir, configFileName)
+        if (isBrowserTargetApp === false && hasConfigFile === true) {
+            // 1. validate config file against schema
+            const validationResult = await PreviewUtils.validateConfigFileWithSchema(
+                this.configFilePath,
+                configSchema
             );
+            if (validationResult.passed === false) {
+                return Promise.reject(
+                    new SfdxError(
+                        messages.getMessage(
+                            'error:invalidConfigFile:genericDescription',
+                            [this.configFilePath, validationResult.errorMessage]
+                        ),
+                        'lwc-dev-mobile'
+                    )
+                );
+            }
 
-            const hasConfigFile =
-                configFileName.length > 0 && fs.existsSync(this.configFilePath);
-
-            const isBrowserTargetApp = PreviewUtils.isTargetingBrowser(
+            // 2. validate that a matching app configuration is included in the config file
+            const configFileContent = PreviewUtils.loadConfigFile(
+                this.configFilePath
+            );
+            this.appConfig = configFileContent.getAppConfig(
+                this.flags.platform,
                 this.targetApp
             );
-
-            this.logger.debug('Validating Preview command inputs.');
-
-            // check if user provided a config file when targetapp=browser
-            // and warn them that the config file will be ignored.
-            if (isBrowserTargetApp && hasConfigFile) {
-                this.logger.warn(
-                    messages.getMessage('ignoringConfigFileFlagDescription')
+            if (this.appConfig === undefined) {
+                const errMsg = messages.getMessage(
+                    'error:invalidConfigFile:missingAppConfigDescription',
+                    [this.targetApp, this.flags.platform]
                 );
-            }
-
-            if (this.componentName.length === 0) {
                 return Promise.reject(
                     new SfdxError(
                         messages.getMessage(
-                            'error:invalidComponentNameFlagsDescription'
+                            'error:invalidConfigFile:genericDescription',
+                            [this.configFilePath, errMsg]
                         ),
-                        'lwc-dev-mobile',
-                        Preview.examples
+                        'lwc-dev-mobile'
                     )
                 );
             }
+        }
 
-            if (isBrowserTargetApp === false && hasConfigFile === false) {
-                return Promise.reject(
-                    new SfdxError(
-                        messages.getMessage(
-                            'error:invalidConfigFile:missingDescription',
-                            [this.configFilePath]
-                        ),
-                        'lwc-dev-mobile',
-                        Preview.examples
-                    )
-                );
-            }
+        if (
+            PreviewUtils.useLwcServerForPreviewing(
+                this.targetApp,
+                this.appConfig
+            )
+        ) {
+            const port = await CommonUtils.getLwcServerPort();
+            this.serverPort = port ? port : CommonUtils.DEFAULT_LWC_SERVER_PORT;
+        }
 
-            if (isBrowserTargetApp === false && hasConfigFile === true) {
-                // 1. validate config file against schema
-                const validationResult = await PreviewUtils.validateConfigFileWithSchema(
-                    this.configFilePath,
-                    configSchema
-                );
-                if (validationResult.passed === false) {
-                    return Promise.reject(
-                        new SfdxError(
-                            messages.getMessage(
-                                'error:invalidConfigFile:genericDescription',
-                                [
-                                    this.configFilePath,
-                                    validationResult.errorMessage
-                                ]
-                            ),
-                            'lwc-dev-mobile'
-                        )
-                    );
-                }
-
-                // 2. validate that a matching app configuration is included in the config file
-                const configFileContent = PreviewUtils.loadConfigFile(
-                    this.configFilePath
-                );
-                this.appConfig = configFileContent.getAppConfig(
-                    this.flags.platform,
-                    this.targetApp
-                );
-                if (this.appConfig === undefined) {
-                    const errMsg = messages.getMessage(
-                        'error:invalidConfigFile:missingAppConfigDescription',
-                        [this.targetApp, this.flags.platform]
-                    );
-                    return Promise.reject(
-                        new SfdxError(
-                            messages.getMessage(
-                                'error:invalidConfigFile:genericDescription',
-                                [this.configFilePath, errMsg]
-                            ),
-                            'lwc-dev-mobile'
-                        )
-                    );
-                }
-            }
-
-            if (
-                PreviewUtils.useLwcServerForPreviewing(
-                    this.targetApp,
-                    this.appConfig
-                )
-            ) {
-                const port = await CommonUtils.getLwcServerPort();
-                this.serverPort = port
-                    ? port
-                    : CommonUtils.DEFAULT_LWC_SERVER_PORT;
-            }
-
-            return Promise.resolve();
-        });
+        return Promise.resolve();
     }
 
     protected async init(): Promise<void> {
@@ -303,6 +299,13 @@ export class Preview extends SfdxCommand implements HasRequirements {
         return this.exit(0);
     }
 
+    public useLwc(): boolean {
+        return PreviewUtils.useLwcServerForPreviewing(
+            this.targetApp,
+            this.appConfig
+        );
+    }
+
     private _requirements: CommandRequirements = {};
     public get commandRequirements(): CommandRequirements {
         if (Object.keys(this._requirements).length === 0) {
@@ -312,24 +315,15 @@ export class Preview extends SfdxCommand implements HasRequirements {
                 this.flags.platform,
                 this.flags.apilevel
             );
-
-            if (
-                PreviewUtils.useLwcServerForPreviewing(
-                    this.targetApp,
-                    this.appConfig
-                )
-            ) {
-                requirements.preview = {
-                    requirements: [
-                        new LwcServerPluginInstalledRequirement(this.logger),
-                        new LwcServerIsRunningRequirement(this.logger)
-                    ],
-                    enabled: true
-                };
-            }
-
             this._requirements = requirements;
         }
+        this._requirements.preview = {
+            requirements: [
+                new LwcServerPluginInstalledRequirement(this.logger),
+                new LwcServerIsRunningRequirement(this.logger)
+            ],
+            enabled: this.useLwc()
+        };
 
         return this._requirements;
     }

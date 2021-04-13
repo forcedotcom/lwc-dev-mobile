@@ -40,12 +40,34 @@ export class Create extends SfdxCommand implements HasRequirements {
         devicename: flags.string({
             char: 'n',
             description: messages.getMessage('deviceNameFlagDescription'),
-            required: true
+            required: true,
+            validate: (deviceName) => {
+                if (deviceName.trim() === '') {
+                    throw new SfdxError(
+                        messages.getMessage(
+                            'error:invalidDeviceNameFlagsDescription'
+                        ),
+                        'lwc-dev-mobile'
+                    );
+                }
+                return true;
+            }
         }),
         devicetype: flags.string({
             char: 'd',
             description: messages.getMessage('deviceTypeFlagDescription'),
-            required: true
+            required: true,
+            validate: (deviceType) => {
+                if (deviceType.trim() === '') {
+                    throw new SfdxError(
+                        messages.getMessage(
+                            'error:invalidDeviceTypeFlagsDescription'
+                        ),
+                        'lwc-dev-mobile'
+                    );
+                }
+                return true;
+            }
         }),
         ...CommandLineUtils.createFlagConfig(FlagsConfigType.ApiLevel, false),
         ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
@@ -61,16 +83,26 @@ export class Create extends SfdxCommand implements HasRequirements {
     public deviceType: string = '';
 
     public async run(): Promise<any> {
-        await this.init(); // ensure init first
+        try {
+            await this.init(); // ensure init first
+        } catch (error) {
+            if (error instanceof SfdxError) {
+                const sfdxError = error as SfdxError;
+                sfdxError.actions = this.examples;
+                throw sfdxError;
+            }
+            throw error;
+        }
 
         this.logger.info(
             `Device Create command invoked for ${this.flags.platform}`
         );
 
-        return this.validateInputParameters()
-            .then(() => {
-                return RequirementProcessor.execute(this.commandRequirements);
-            })
+        this.platform = this.flags.platform as string;
+        this.deviceName = this.flags.devicename as string;
+        this.deviceType = this.flags.devicetype as string;
+
+        return RequirementProcessor.execute(this.commandRequirements)
             .then(() => {
                 // execute the create command
                 this.logger.info(
@@ -102,48 +134,6 @@ export class Create extends SfdxCommand implements HasRequirements {
                     `Device Create failed for ${this.flags.platform}.`
                 );
                 return Promise.reject(error);
-            });
-    }
-
-    protected async validateInputParameters(): Promise<void> {
-        return CommandLineUtils.validatePlatformFlag(this.flags, this.examples)
-            .then(() =>
-                CommandLineUtils.validateApiLevelFlag(this.flags, this.examples)
-            )
-            .then(() => {
-                const deviceName = this.flags.devicename as string;
-                const deviceType = this.flags.devicetype as string;
-
-                // ensure that the device name flag value is valid
-                if (deviceName == null || deviceName.trim() === '') {
-                    return Promise.reject(
-                        new SfdxError(
-                            messages.getMessage(
-                                'error:invalidDeviceNameFlagsDescription'
-                            ),
-                            'lwc-dev-mobile',
-                            this.examples
-                        )
-                    );
-                }
-
-                // ensure that the device type flag value is valid
-                if (deviceType == null || deviceType.trim() === '') {
-                    return Promise.reject(
-                        new SfdxError(
-                            messages.getMessage(
-                                'error:invalidDeviceTypeFlagsDescription'
-                            ),
-                            'lwc-dev-mobile',
-                            this.examples
-                        )
-                    );
-                }
-
-                this.platform = this.flags.platform;
-                this.deviceName = deviceName;
-                this.deviceType = deviceType;
-                return Promise.resolve();
             });
     }
 

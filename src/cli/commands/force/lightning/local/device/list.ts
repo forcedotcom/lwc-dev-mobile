@@ -6,7 +6,7 @@
  */
 
 import { FlagsConfig, SfdxCommand } from '@salesforce/command';
-import { Logger, Messages } from '@salesforce/core';
+import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import {
     CommandLineUtils,
@@ -46,20 +46,24 @@ export class List extends SfdxCommand {
     )!;
 
     public async run(): Promise<any> {
-        await this.init(); // ensure init first
+        try {
+            await this.init(); // ensure init first
+        } catch (error) {
+            if (error instanceof SfdxError) {
+                const sfdxError = error as SfdxError;
+                sfdxError.actions = this.examples;
+                throw sfdxError;
+            }
+            throw error;
+        }
 
         this.logger.info(
             `Device List command invoked for ${this.flags.platform}`
         );
 
-        return CommandLineUtils.validatePlatformFlag(
-            this.flags,
-            this.examples
-        ).then(() =>
-            CommandLineUtils.platformFlagIsIOS(this.flags.platform)
-                ? this.iOSDeviceList()
-                : this.androidDeviceList()
-        );
+        return CommandLineUtils.platformFlagIsIOS(this.flags.platform)
+            ? this.iOSDeviceList()
+            : this.androidDeviceList();
     }
 
     protected async init(): Promise<void> {

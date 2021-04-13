@@ -41,7 +41,18 @@ export class Start extends SfdxCommand implements HasRequirements {
         target: flags.string({
             char: 't',
             description: messages.getMessage('targetFlagDescription'),
-            required: true
+            required: true,
+            validate: (target) => {
+                if (target.trim() === '') {
+                    throw new SfdxError(
+                        messages.getMessage(
+                            'error:invalidTargetFlagsDescription'
+                        ),
+                        LWC_DEV_MOBILE
+                    );
+                }
+                return true;
+            }
         }),
         writablesystem: flags.boolean({
             char: 'w',
@@ -62,23 +73,34 @@ export class Start extends SfdxCommand implements HasRequirements {
     private writableSystem = false;
 
     public async run(): Promise<any> {
-        await this.init(); // ensure init first
+        try {
+            await this.init(); // ensure init first
+        } catch (error) {
+            if (error instanceof SfdxError) {
+                const sfdxError = error as SfdxError;
+                sfdxError.actions = this.examples;
+                throw sfdxError;
+            }
+            throw error;
+        }
 
         this.logger.info(
             `Device Start command invoked for ${this.flags.platform}`
         );
 
-        return this.validateInputParameters() // validate input parameters + setup requirements
-            .then(() => {
-                return RequirementProcessor.execute(this.commandRequirements);
-            })
-            .then(() => {
+        this.platform = this.flags.platform;
+        this.target = this.flags.target;
+        this.writableSystem = this.flags.writablesystem;
+
+        return RequirementProcessor.execute(this.commandRequirements).then(
+            () => {
                 // execute the create command
                 this.logger.info(
                     'Setup requirements met, continuing with Device Start'
                 );
                 return this.executeDeviceStart();
-            });
+            }
+        );
     }
 
     private _requirements: CommandRequirements = {};
@@ -93,34 +115,6 @@ export class Start extends SfdxCommand implements HasRequirements {
             this._requirements = requirements;
         }
         return this._requirements;
-    }
-
-    protected async validateInputParameters(): Promise<void> {
-        return CommandLineUtils.validatePlatformFlag(
-            this.flags,
-            this.examples
-        ).then(() => {
-            const target = this.flags.target as string;
-            const writableSystem = this.flags.writablesystem as boolean;
-
-            // ensure that thetarget flag value is valid
-            if (target == null || target.trim() === '') {
-                return Promise.reject(
-                    new SfdxError(
-                        messages.getMessage(
-                            'error:invalidTargetFlagsDescription'
-                        ),
-                        LWC_DEV_MOBILE,
-                        this.examples
-                    )
-                );
-            }
-
-            this.platform = this.flags.platform;
-            this.target = target;
-            this.writableSystem = writableSystem;
-            return Promise.resolve();
-        });
     }
 
     protected async init(): Promise<void> {

@@ -707,20 +707,7 @@
 
 "@salesforce/lwc-dev-mobile-core@../lwc-dev-mobile-core/salesforce-lwc-dev-mobile-core-1.0.0-beta10.tgz":
   version "1.0.0-beta10"
-  resolved "../lwc-dev-mobile-core/salesforce-lwc-dev-mobile-core-1.0.0-beta10.tgz#5e6bc6c04f108ca0b9d39399bc8ed571d99113d5"
-  dependencies:
-    "@oclif/config" "^1.17.0"
-    "@salesforce/command" "^3.1.0"
-    "@salesforce/core" "^2.18.0"
-    ajv "^7.0.4"
-    chalk "^4.1.0"
-    cli-ux "^5.5.1"
-    enquirer "^2.3.6"
-    listr2 "^3.3.1"
-
-"@salesforce/lwc-dev-mobile-core@file:../lwc-dev-mobile-core/salesforce-lwc-dev-mobile-core-1.0.0-beta10.tgz":
-  version "1.0.0-beta10"
-  resolved "file:../lwc-dev-mobile-core/salesforce-lwc-dev-mobile-core-1.0.0-beta10.tgz#2eb1fc03c18bd53ac5a8d8bfb8c75793c9f42235"
+  resolved "../lwc-dev-mobile-core/salesforce-lwc-dev-mobile-core-1.0.0-beta10.tgz#8cd1041d49b75073d435c1466256e7ef08b350a6"
   dependencies:
     "@oclif/config" "^1.17.0"
     "@salesforce/command" "^3.1.0"
