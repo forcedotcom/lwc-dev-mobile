@@ -260,12 +260,7 @@ export class Preview extends SfdxCommand implements HasRequirements {
             }
         }
 
-        if (
-            PreviewUtils.useLwcServerForPreviewing(
-                this.targetApp,
-                this.appConfig
-            )
-        ) {
+        if (this.useLwcServerForPreviewing()) {
             const port = await CommonUtils.getLwcServerPort();
             this.serverPort = port ? port : CommonUtils.DEFAULT_LWC_SERVER_PORT;
         }
@@ -305,7 +300,7 @@ export class Preview extends SfdxCommand implements HasRequirements {
         return this.exit(0);
     }
 
-    public useLwc(): boolean {
+    private useLwcServerForPreviewing(): boolean {
         return PreviewUtils.useLwcServerForPreviewing(
             this.targetApp,
             this.appConfig
@@ -326,7 +321,7 @@ export class Preview extends SfdxCommand implements HasRequirements {
                     new LwcServerPluginInstalledRequirement(this.logger),
                     new LwcServerIsRunningRequirement(this.logger)
                 ],
-                enabled: this.useLwc()
+                enabled: this.useLwcServerForPreviewing()
             };
             this._requirements = requirements;
         }
