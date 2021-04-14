@@ -32,31 +32,20 @@ const messages = Messages.loadMessages(
 export class List extends SfdxCommand {
     public static description = messages.getMessage('commandDescription');
 
-    public static readonly flagsConfig: FlagsConfig = {
-        ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
-    };
-
-    public examples = [
+    public static examples = [
         `sfdx force:lightning:local:device:list -p iOS`,
         `sfdx force:lightning:local:device:list -p Android`
     ];
+
+    public static readonly flagsConfig: FlagsConfig = {
+        ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
+    };
 
     private perfMarker = PerformanceMarkers.getByName(
         PerformanceMarkers.FETCH_DEVICES_MARKER_KEY
     )!;
 
     public async run(): Promise<any> {
-        try {
-            await this.init(); // ensure init first
-        } catch (error) {
-            if (error instanceof SfdxError) {
-                const sfdxError = error as SfdxError;
-                sfdxError.actions = this.examples;
-                throw sfdxError;
-            }
-            throw error;
-        }
-
         this.logger.info(
             `Device List command invoked for ${this.flags.platform}`
         );
@@ -66,12 +55,13 @@ export class List extends SfdxCommand {
             : this.androidDeviceList();
     }
 
-    protected async init(): Promise<void> {
+    public async init(): Promise<void> {
         if (this.logger) {
             // already initialized
             return Promise.resolve();
         }
 
+        CommandLineUtils.flagFailureActionMessages = List.examples;
         return super
             .init()
             .then(() => Logger.child('force:lightning:local:device:list', {}))

@@ -80,6 +80,7 @@ describe('Preview Tests', () => {
     test('Validates component name flag', async () => {
         const preview = makePreview('', 'android', 'sfdxdebug');
         try {
+            await preview.init();
             await preview.run();
         } catch (error) {
             expect(error.message).toBe(
@@ -92,18 +93,21 @@ describe('Preview Tests', () => {
 
     test('Checks that launch for target platform for Android is invoked', async () => {
         const preview = makePreview('compname', 'android', 'sfdxdebug');
+        await preview.init();
         await preview.run();
         expect(androidLaunchPreview).toHaveBeenCalled();
     });
 
     test('Checks that launch for target platform for iOS is invoked', async () => {
         const preview = makePreview('compname', 'ios', 'sfdxdebug');
+        await preview.init();
         await preview.run();
         expect(iosLaunchPreview).toHaveBeenCalled();
     });
 
     test('Checks that setup is invoked', async () => {
         const preview = makePreview('compname', 'android', 'sfdxdebug');
+        await preview.init();
         await preview.run();
         expect(passedSetupMock).toHaveBeenCalled();
         expect(androidLaunchPreview).toHaveBeenCalled();
@@ -116,6 +120,7 @@ describe('Preview Tests', () => {
         );
 
         try {
+            await preview.init();
             await preview.run();
         } catch (error) {
             expect(error instanceof SfdxError).toBeTruthy();
@@ -241,6 +246,7 @@ describe('Preview Tests', () => {
             'myConfig.json'
         ).getAppConfig('ios', 'com.salesforce.test');
 
+        await preview.init();
         await preview.run();
         expect(iosLaunchPreview).toHaveBeenCalledWith(
             'compname',
@@ -257,6 +263,7 @@ describe('Preview Tests', () => {
         const loggerSpy = jest.spyOn(logger, 'info');
         jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
         const preview = makePreview('compname', 'android', 'sfdxdebug');
+        await preview.init();
         await preview.run();
         expect(loggerSpy).toHaveBeenCalled();
     });

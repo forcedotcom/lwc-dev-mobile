@@ -94,6 +94,7 @@ describe('List Tests', () => {
             fetchEmulatorsMock
         );
         const list = makeList('android');
+        await list.init();
         await list.run();
         expect(fetchEmulatorsMock).toHaveBeenCalled();
     });
@@ -103,6 +104,7 @@ describe('List Tests', () => {
             getSupportedSimulatorsMock
         );
         const list = makeList('ios');
+        await list.init();
         await list.run();
         expect(getSupportedSimulatorsMock).toHaveBeenCalled();
     });
@@ -112,6 +114,7 @@ describe('List Tests', () => {
         const loggerSpy = jest.spyOn(logger, 'info');
         jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
         const list = makeList('android');
+        await list.init();
         await list.run();
         expect(loggerSpy).toHaveBeenCalled();
     });

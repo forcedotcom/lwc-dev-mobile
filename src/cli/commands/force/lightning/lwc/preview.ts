@@ -45,6 +45,11 @@ export class Preview extends SfdxCommand implements HasRequirements {
 
     public static args = [{ name: 'file' }];
 
+    public static examples = [
+        `$ sfdx force:lightning:lwc:preview -p iOS -t LWCSim2 -n HelloWordComponent`,
+        `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -n HelloWordComponent`
+    ];
+
     public static flagsConfig = {
         // flag with a value (-n, --name=VALUE)
         componentname: flags.string({
@@ -89,11 +94,6 @@ export class Preview extends SfdxCommand implements HasRequirements {
     // Set this to true if your command requires a project workspace; 'requiresProject' is false by default
     protected static requiresProject = false;
 
-    public examples = [
-        `$ sfdx force:lightning:lwc:preview -p iOS -t LWCSim2 -n HelloWordComponent`,
-        `$ sfdx force:lightning:lwc:preview -p Android -t LWCEmu2 -n HelloWordComponent`
-    ];
-
     private serverPort: string = '';
     private deviceName: string = '';
     private componentName: string = '';
@@ -106,17 +106,6 @@ export class Preview extends SfdxCommand implements HasRequirements {
         | undefined;
 
     public async run(): Promise<any> {
-        try {
-            await this.init(); // ensure init first
-        } catch (error) {
-            if (error instanceof SfdxError) {
-                const sfdxError = error as SfdxError;
-                sfdxError.actions = this.examples;
-                throw sfdxError;
-            }
-            throw error;
-        }
-
         this.logger.info(`Preview command invoked for ${this.flags.platform}`);
 
         return this.validateInputParameters() // validate input
@@ -231,7 +220,8 @@ export class Preview extends SfdxCommand implements HasRequirements {
                             'error:invalidConfigFile:genericDescription',
                             [this.configFilePath, validationResult.errorMessage]
                         ),
-                        'lwc-dev-mobile'
+                        'lwc-dev-mobile',
+                        Preview.examples
                     )
                 );
             }
@@ -255,7 +245,8 @@ export class Preview extends SfdxCommand implements HasRequirements {
                             'error:invalidConfigFile:genericDescription',
                             [this.configFilePath, errMsg]
                         ),
-                        'lwc-dev-mobile'
+                        'lwc-dev-mobile',
+                        Preview.examples
                     )
                 );
             }
@@ -269,12 +260,13 @@ export class Preview extends SfdxCommand implements HasRequirements {
         return Promise.resolve();
     }
 
-    protected async init(): Promise<void> {
+    public async init(): Promise<void> {
         if (this.logger) {
             // already initialized
             return Promise.resolve();
         }
 
+        CommandLineUtils.flagFailureActionMessages = Preview.examples;
         return super
             .init()
             .then(() => Logger.child('force:lightning:lwc:preview', {}))

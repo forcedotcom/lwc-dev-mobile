@@ -60,6 +60,7 @@ describe('Start Tests', () => {
         );
 
         const start = makeStart('android', targetName, true);
+        await start.init();
         await start.run();
         expect(startEmulatorMock).toHaveBeenCalledWith(targetName, true, false);
     });
@@ -79,6 +80,7 @@ describe('Start Tests', () => {
         );
 
         const start = makeStart('iOS', targetName);
+        await start.init();
         await start.run();
         expect(bootDeviceMock).toHaveBeenCalledWith(targetUDID, false);
     });
@@ -102,6 +104,7 @@ describe('Start Tests', () => {
         );
 
         const start = makeStart('iOS', targetName);
+        await start.init();
         await start.run();
         expect(loggerSpy).toHaveBeenCalled();
     });
