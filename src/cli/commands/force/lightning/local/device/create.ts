@@ -7,12 +7,14 @@
 
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
+import { AndroidEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidEnvironmentRequirements';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import {
     CommandLineUtils,
     FlagsConfigType
 } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
+import { IOSEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSEnvironmentRequirements';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import {
     Requirement,
@@ -21,7 +23,6 @@ import {
     HasRequirements
 } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import util from 'util';
-import { getPlatformSetupRequirements } from '../../setupRequirementsUtil';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -158,11 +159,15 @@ export class Create extends SfdxCommand implements HasRequirements {
     public get commandRequirements(): CommandRequirements {
         if (Object.keys(this._requirements).length === 0) {
             const requirements: CommandRequirements = {};
-            requirements.setup = getPlatformSetupRequirements(
-                this.logger,
-                this.flags.platform,
-                this.flags.apilevel
-            );
+            requirements.setup = CommandLineUtils.platformFlagIsAndroid(
+                this.flags.platform
+            )
+                ? new AndroidEnvironmentRequirements(
+                      this.logger,
+                      this.flags.apilevel
+                  )
+                : new IOSEnvironmentRequirements(this.logger);
+
             requirements.create = {
                 requirements: [
                     new DeviceNameAvailableRequirement(this, this.logger),
