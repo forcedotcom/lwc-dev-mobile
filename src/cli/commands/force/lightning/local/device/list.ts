@@ -5,11 +5,13 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { flags, FlagsConfig } from '@salesforce/command';
-import { Logger, Messages } from '@salesforce/core';
-import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
+import { FlagsConfig, SfdxCommand } from '@salesforce/command';
+import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
-import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import {
+    CommandLineUtils,
+    FlagsConfigType
+} from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { PerformanceMarkers } from '@salesforce/lwc-dev-mobile-core/lib/common/PerformanceMarkers';
@@ -27,16 +29,11 @@ const messages = Messages.loadMessages(
     'device-list'
 );
 
-export class List extends Setup {
+export class List extends SfdxCommand {
     public static description = messages.getMessage('commandDescription');
 
     public static readonly flagsConfig: FlagsConfig = {
-        platform: flags.string({
-            char: 'p',
-            description: messages.getMessage('platformFlagDescription'),
-            longDescription: messages.getMessage('platformFlagDescription'),
-            required: true
-        })
+        ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
     };
 
     public examples = [
@@ -49,18 +46,24 @@ export class List extends Setup {
     )!;
 
     public async run(): Promise<any> {
-        await this.init(); // ensure init first
+        try {
+            await this.init(); // ensure init first
+        } catch (error) {
+            if (error instanceof SfdxError) {
+                const sfdxError = error as SfdxError;
+                sfdxError.actions = this.examples;
+                throw sfdxError;
+            }
+            throw error;
+        }
 
         this.logger.info(
             `Device List command invoked for ${this.flags.platform}`
         );
 
-        return this.validateInputParameters() // validate input
-            .then(() =>
-                CommandLineUtils.platformFlagIsIOS(this.flags.platform)
-                    ? this.iOSDeviceList()
-                    : this.androidDeviceList()
-            );
+        return CommandLineUtils.platformFlagIsIOS(this.flags.platform)
+            ? this.iOSDeviceList()
+            : this.androidDeviceList();
     }
 
     protected async init(): Promise<void> {

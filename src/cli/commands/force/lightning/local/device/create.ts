@@ -5,17 +5,20 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { flags, FlagsConfig } from '@salesforce/command';
+import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
-import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
-import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import {
+    CommandLineUtils,
+    FlagsConfigType
+} from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import {
     Requirement,
     CommandRequirements,
-    RequirementProcessor
+    RequirementProcessor,
+    HasRequirements
 } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import util from 'util';
 import { getPlatformSetupRequirements } from '../../setupRequirementsUtil';
@@ -30,31 +33,46 @@ const messages = Messages.loadMessages(
     'device-create'
 );
 
-export class Create extends Setup {
+export class Create extends SfdxCommand implements HasRequirements {
     public static description = messages.getMessage('commandDescription');
 
     public static readonly flagsConfig: FlagsConfig = {
-        apilevel: flags.string({
-            char: 'a',
-            description: messages.getMessage('apiLevelFlagDescription'),
-            longDescription: messages.getMessage('apiLevelFlagDescription'),
-            required: false
-        }),
         devicename: flags.string({
             char: 'n',
             description: messages.getMessage('deviceNameFlagDescription'),
-            required: true
+            required: true,
+            validate: (deviceName) => {
+                if (deviceName && deviceName.trim().length > 0) {
+                    return true;
+                } else {
+                    throw new SfdxError(
+                        messages.getMessage(
+                            'error:invalidDeviceNameFlagsDescription'
+                        ),
+                        'lwc-dev-mobile'
+                    );
+                }
+            }
         }),
         devicetype: flags.string({
             char: 'd',
             description: messages.getMessage('deviceTypeFlagDescription'),
-            required: true
+            required: true,
+            validate: (deviceType) => {
+                if (deviceType && deviceType.trim().length > 0) {
+                    return true;
+                } else {
+                    throw new SfdxError(
+                        messages.getMessage(
+                            'error:invalidDeviceTypeFlagsDescription'
+                        ),
+                        'lwc-dev-mobile'
+                    );
+                }
+            }
         }),
-        platform: flags.string({
-            char: 'p',
-            description: messages.getMessage('platformFlagDescription'),
-            required: true
-        })
+        ...CommandLineUtils.createFlagConfig(FlagsConfigType.ApiLevel, false),
+        ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
     };
 
     public examples = [
@@ -67,16 +85,26 @@ export class Create extends Setup {
     public deviceType: string = '';
 
     public async run(): Promise<any> {
-        await this.init(); // ensure init first
+        try {
+            await this.init(); // ensure init first
+        } catch (error) {
+            if (error instanceof SfdxError) {
+                const sfdxError = error as SfdxError;
+                sfdxError.actions = this.examples;
+                throw sfdxError;
+            }
+            throw error;
+        }
 
         this.logger.info(
             `Device Create command invoked for ${this.flags.platform}`
         );
 
-        return this.validateInputParameters()
-            .then(() => {
-                return RequirementProcessor.execute(this.commandRequirements);
-            })
+        this.platform = this.flags.platform as string;
+        this.deviceName = this.flags.devicename as string;
+        this.deviceType = this.flags.devicetype as string;
+
+        return RequirementProcessor.execute(this.commandRequirements)
             .then(() => {
                 // execute the create command
                 this.logger.info(
@@ -109,44 +137,6 @@ export class Create extends Setup {
                 );
                 return Promise.reject(error);
             });
-    }
-
-    protected async validateInputParameters(): Promise<void> {
-        return super.validateInputParameters().then(() => {
-            const deviceName = this.flags.devicename as string;
-            const deviceType = this.flags.devicetype as string;
-
-            // ensure that the device name flag value is valid
-            if (deviceName == null || deviceName.trim() === '') {
-                return Promise.reject(
-                    new SfdxError(
-                        messages.getMessage(
-                            'error:invalidDeviceNameFlagsDescription'
-                        ),
-                        'lwc-dev-mobile',
-                        this.examples
-                    )
-                );
-            }
-
-            // ensure that the device type flag value is valid
-            if (deviceType == null || deviceType.trim() === '') {
-                return Promise.reject(
-                    new SfdxError(
-                        messages.getMessage(
-                            'error:invalidDeviceTypeFlagsDescription'
-                        ),
-                        'lwc-dev-mobile',
-                        this.examples
-                    )
-                );
-            }
-
-            this.platform = this.flags.platform;
-            this.deviceName = deviceName;
-            this.deviceType = deviceType;
-            return Promise.resolve();
-        });
     }
 
     protected async init(): Promise<void> {

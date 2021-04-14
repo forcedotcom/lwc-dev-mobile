@@ -5,15 +5,18 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { flags, FlagsConfig } from '@salesforce/command';
+import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
-import { Setup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
-import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import {
+    CommandLineUtils,
+    FlagsConfigType
+} from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import {
     CommandRequirements,
+    HasRequirements,
     RequirementProcessor
 } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import util from 'util';
@@ -31,26 +34,34 @@ const messages = Messages.loadMessages(
 
 const LWC_DEV_MOBILE = 'lwc-dev-mobile';
 
-export class Start extends Setup {
+export class Start extends SfdxCommand implements HasRequirements {
     public static description = messages.getMessage('commandDescription');
 
     public static readonly flagsConfig: FlagsConfig = {
-        platform: flags.string({
-            char: 'p',
-            description: messages.getMessage('platformFlagDescription'),
-            required: true
-        }),
         target: flags.string({
             char: 't',
             description: messages.getMessage('targetFlagDescription'),
-            required: true
+            required: true,
+            validate: (target) => {
+                if (target && target.trim().length > 0) {
+                    return true;
+                } else {
+                    throw new SfdxError(
+                        messages.getMessage(
+                            'error:invalidTargetFlagsDescription'
+                        ),
+                        LWC_DEV_MOBILE
+                    );
+                }
+            }
         }),
         writablesystem: flags.boolean({
             char: 'w',
             description: messages.getMessage('writablesystemFlagDescription'),
             required: false,
             default: false
-        })
+        }),
+        ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
     };
 
     public examples = [
@@ -63,23 +74,34 @@ export class Start extends Setup {
     private writableSystem = false;
 
     public async run(): Promise<any> {
-        await this.init(); // ensure init first
+        try {
+            await this.init(); // ensure init first
+        } catch (error) {
+            if (error instanceof SfdxError) {
+                const sfdxError = error as SfdxError;
+                sfdxError.actions = this.examples;
+                throw sfdxError;
+            }
+            throw error;
+        }
 
         this.logger.info(
             `Device Start command invoked for ${this.flags.platform}`
         );
 
-        return this.validateInputParameters() // validate input parameters + setup requirements
-            .then(() => {
-                return RequirementProcessor.execute(this.commandRequirements);
-            })
-            .then(() => {
+        this.platform = this.flags.platform;
+        this.target = this.flags.target;
+        this.writableSystem = this.flags.writablesystem;
+
+        return RequirementProcessor.execute(this.commandRequirements).then(
+            () => {
                 // execute the create command
                 this.logger.info(
                     'Setup requirements met, continuing with Device Start'
                 );
                 return this.executeDeviceStart();
-            });
+            }
+        );
     }
 
     private _requirements: CommandRequirements = {};
@@ -94,31 +116,6 @@ export class Start extends Setup {
             this._requirements = requirements;
         }
         return this._requirements;
-    }
-
-    protected async validateInputParameters(): Promise<void> {
-        return super.validateInputParameters().then(() => {
-            const target = this.flags.target as string;
-            const writableSystem = this.flags.writablesystem as boolean;
-
-            // ensure that thetarget flag value is valid
-            if (target == null || target.trim() === '') {
-                return Promise.reject(
-                    new SfdxError(
-                        messages.getMessage(
-                            'error:invalidTargetFlagsDescription'
-                        ),
-                        LWC_DEV_MOBILE,
-                        this.examples
-                    )
-                );
-            }
-
-            this.platform = this.flags.platform;
-            this.target = target;
-            this.writableSystem = writableSystem;
-            return Promise.resolve();
-        });
     }
 
     protected async init(): Promise<void> {
