@@ -13,7 +13,13 @@
     "error:invalidConfigFile:missingDescription": "Invalid or missing configuration file %s",
     "error:invalidConfigFile:genericDescription": "Configuration file has an invalid format: %s\n%s",
     "error:invalidConfigFile:missingAppConfigDescription": "No configuration found for %s for platform %s",
-    "reqs:server:title" : "Checking whether local development server is running",
-    "reqs:server:fulfilledMessage" : "Local development server is running on port %s.",
-    "reqs:server:unfulfilledMessage" : "Local development server is not running."
- }
+    "reqs:serverInstalled:title" : "Checking @salesforce/lwc-dev-server plugin is installed",
+    "reqs:serverInstalled:fulfilledMessage" : "@salesforce/lwc-dev-server plugin is installed.",
+    "reqs:serverInstalled:unfulfilledMessage" : "Install the @salesforce/lwc-dev-server plugin.",
+    "reqs:serverStarted:title" : "Checking whether local development server is running",
+    "reqs:serverStarted:fulfilledMessage" : "Local development server is running on port %s.",
+    "reqs:serverStarted:unfulfilledMessage" : "Local development server is not running.",
+    "previewAction": "Start Preview",
+    "previewFetchAppBundleStatus": "fetching app bundle path",
+    "previewFetchAppBundleFailureStatus": "error encountered while fetching app bundle path"
+}

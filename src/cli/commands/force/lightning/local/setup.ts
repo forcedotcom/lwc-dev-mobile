@@ -4,99 +4,11 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import util from 'util';
 
-import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
-import { Logger, Messages, SfdxError } from '@salesforce/core';
+import { Setup as CoreSetup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
 
-import { AndroidEnvironmentSetup } from '../../../../../common/AndroidEnvironmentSetup';
-import { CommandLineUtils } from '../../../../../common/Common';
-import { IOSEnvironmentSetup } from '../../../../../common/IOSEnvironmentSetup';
-import { LoggerSetup } from '../../../../../common/LoggerSetup';
-import {
-    BaseSetup,
-    Requirement,
-    SetupTestResult
-} from '../../../../../common/Requirements';
-
-// Initialize Messages with the current plugin directory
-Messages.importMessagesDirectory(__dirname);
-
-// Load the specific messages for this file. Messages from @salesforce/command, @salesforce/core,
-// or any library that is using the messages framework can also be loaded this way.
-const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'setup');
-
-export default class Setup extends SfdxCommand {
-    public static description = messages.getMessage('commandDescription');
-
-    public static readonly flagsConfig: FlagsConfig = {
-        platform: flags.string({
-            char: 'p',
-            description: messages.getMessage('platformFlagDescription'),
-            longDescription: messages.getMessage('platformFlagDescription'),
-            required: true
-        })
-    };
-
-    public examples = [
-        `sfdx force:lightning:local:setup -p iOS`,
-        `sfdx force:lightning:local:setup -p Android`
-    ];
-
-    private setupSteps: BaseSetup | undefined;
-
+export class Setup extends CoreSetup {
     public async run(): Promise<any> {
-        if (!CommandLineUtils.platformFlagIsValid(this.flags.platform)) {
-            return Promise.reject(
-                new SfdxError(
-                    messages.getMessage('error:invalidInputFlagsDescription'),
-                    'lwc-dev-mobile',
-                    this.examples
-                )
-            );
-        }
-        this.logger.info(`Setup Command called for ${this.flags.platform}`);
-        const setup = this.setup();
-        const result = await this.executeSetup(setup);
-        if (!result.hasMetAllRequirements) {
-            return Promise.reject(
-                new SfdxError(
-                    util.format(
-                        messages.getMessage('error:setupFailed'),
-                        this.flags.platform
-                    ),
-                    'lwc-dev-mobile',
-                    [messages.getMessage('error:setupFailed:recommendation')]
-                )
-            );
-        }
-        return Promise.resolve(result);
-    }
-
-    public executeSetup(setup: BaseSetup): Promise<SetupTestResult> {
-        return setup.executeSetup();
-    }
-
-    protected async init(): Promise<void> {
-        await super.init();
-        const logger = await Logger.child('mobile:setup', {});
-        this.logger = logger;
-        await LoggerSetup.initializePluginLoggers();
-    }
-
-    protected addRequirements(reqs: Requirement[]) {
-        this.setup().addRequirements(reqs);
-    }
-
-    private setup(): BaseSetup {
-        if (!this.setupSteps) {
-            this.setupSteps = CommandLineUtils.platformFlagIsAndroid(
-                this.flags.platform
-            )
-                ? (this.setupSteps = new AndroidEnvironmentSetup(this.logger))
-                : (this.setupSteps = new IOSEnvironmentSetup(this.logger));
-        }
-
-        return this.setupSteps;
+        return super.run();
     }
 }

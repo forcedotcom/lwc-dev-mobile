@@ -4,91 +4,97 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
+
+import { FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfdxError } from '@salesforce/core';
+import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
+import {
+    CommandLineUtils,
+    FlagsConfigType
+} from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
+import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
+import { PerformanceMarkers } from '@salesforce/lwc-dev-mobile-core/lib/common/PerformanceMarkers';
 import chalk from 'chalk';
 import cli from 'cli-ux';
 import { performance, PerformanceObserver } from 'perf_hooks';
-import { AndroidVirtualDevice } from '../../../../../../common/AndroidTypes';
-import { AndroidSDKUtils } from '../../../../../../common/AndroidUtils';
-import { CommandLineUtils } from '../../../../../../common/Common';
-import { IOSSimulatorDevice } from '../../../../../../common/IOSTypes';
-import { IOSUtils } from '../../../../../../common/IOSUtils';
-import { LoggerSetup } from '../../../../../../common/LoggerSetup';
-import { PerformanceMarkers } from '../../../../../../common/PerformanceMarkers';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
 
 // Load the specific messages for this file. Messages from @salesforce/command, @salesforce/core,
 // or any library that is using the messages framework can also be loaded this way.
-const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'device');
+const messages = Messages.loadMessages(
+    '@salesforce/lwc-dev-mobile',
+    'device-list'
+);
 
-export default class List extends SfdxCommand {
+export class List extends SfdxCommand {
     public static description = messages.getMessage('commandDescription');
 
-    public static readonly flagsConfig: FlagsConfig = {
-        platform: flags.string({
-            char: 'p',
-            description: messages.getMessage('platformFlagDescription'),
-            longDescription: messages.getMessage('platformFlagDescription'),
-            required: true
-        })
-    };
-
-    public examples = [
+    public static examples = [
         `sfdx force:lightning:local:device:list -p iOS`,
         `sfdx force:lightning:local:device:list -p Android`
     ];
+
+    public static readonly flagsConfig: FlagsConfig = {
+        ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
+    };
 
     private perfMarker = PerformanceMarkers.getByName(
         PerformanceMarkers.FETCH_DEVICES_MARKER_KEY
     )!;
 
     public async run(): Promise<any> {
-        const platform = this.flags.platform;
-        this.logger.info(`Device List command invoked for ${platform}`);
+        this.logger.info(
+            `Device List command invoked for ${this.flags.platform}`
+        );
 
-        if (!CommandLineUtils.platformFlagIsValid(platform)) {
-            return Promise.reject(
-                new SfdxError(
-                    messages.getMessage('error:invalidInputFlagsDescription'),
-                    'lwc-dev-mobile',
-                    this.examples
-                )
-            );
-        }
-
-        return new Promise<any>((resolve, reject) => {
-            const deviceList = CommandLineUtils.platformFlagIsIOS(platform)
-                ? this.iOSDeviceList()
-                : this.androidDeviceList();
-
-            resolve(deviceList);
-        });
+        return CommandLineUtils.platformFlagIsIOS(this.flags.platform)
+            ? this.iOSDeviceList()
+            : this.androidDeviceList();
     }
 
-    public async iOSDeviceList(): Promise<IOSSimulatorDevice[]> {
+    public async init(): Promise<void> {
+        if (this.logger) {
+            // already initialized
+            return Promise.resolve();
+        }
+
+        CommandLineUtils.flagFailureActionMessages = List.examples;
+        return super
+            .init()
+            .then(() => Logger.child('force:lightning:local:device:list', {}))
+            .then((logger) => {
+                this.logger = logger;
+                return Promise.resolve();
+            });
+    }
+
+    private async iOSDeviceList(): Promise<any> {
+        CommonUtils.startCliAction(
+            messages.getMessage('deviceListAction'),
+            messages.getMessage('deviceListStatus')
+        );
         performance.mark(this.perfMarker.startMarkName);
         const result = await IOSUtils.getSupportedSimulators();
         performance.mark(this.perfMarker.endMarkName);
+        CommonUtils.stopCliAction();
         this.showDeviceList(result);
-        return result;
+        return Promise.resolve(result);
     }
 
-    public async androidDeviceList(): Promise<AndroidVirtualDevice[]> {
+    private async androidDeviceList(): Promise<any> {
+        CommonUtils.startCliAction(
+            messages.getMessage('deviceListAction'),
+            messages.getMessage('deviceListStatus')
+        );
         performance.mark(this.perfMarker.startMarkName);
-        const result = await AndroidSDKUtils.fetchEmulators();
+        const result = await AndroidUtils.fetchEmulators();
         performance.mark(this.perfMarker.endMarkName);
+        CommonUtils.stopCliAction();
         this.showDeviceList(result);
-        return result;
-    }
-
-    protected async init(): Promise<void> {
-        await super.init();
-        const logger = await Logger.child('mobile:device:list', {});
-        this.logger = logger;
-        await LoggerSetup.initializePluginLoggers();
+        return Promise.resolve(result);
     }
 
     private showDeviceList(list: any[]) {
