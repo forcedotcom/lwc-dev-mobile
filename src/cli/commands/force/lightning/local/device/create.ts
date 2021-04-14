@@ -37,6 +37,11 @@ const messages = Messages.loadMessages(
 export class Create extends SfdxCommand implements HasRequirements {
     public static description = messages.getMessage('commandDescription');
 
+    public static examples = [
+        `sfdx force:lightning:local:device:create -p iOS -n MyNewVirtualDevice -d iPhone-8`,
+        `sfdx force:lightning:local:device:create -p Android -n MyNewVirtualDevice -d pixel_xl`
+    ];
+
     public static readonly flagsConfig: FlagsConfig = {
         devicename: flags.string({
             char: 'n',
@@ -50,7 +55,8 @@ export class Create extends SfdxCommand implements HasRequirements {
                         messages.getMessage(
                             'error:invalidDeviceNameFlagsDescription'
                         ),
-                        'lwc-dev-mobile'
+                        'lwc-dev-mobile',
+                        Create.examples
                     );
                 }
             }
@@ -67,7 +73,8 @@ export class Create extends SfdxCommand implements HasRequirements {
                         messages.getMessage(
                             'error:invalidDeviceTypeFlagsDescription'
                         ),
-                        'lwc-dev-mobile'
+                        'lwc-dev-mobile',
+                        Create.examples
                     );
                 }
             }
@@ -76,27 +83,11 @@ export class Create extends SfdxCommand implements HasRequirements {
         ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
     };
 
-    public examples = [
-        `sfdx force:lightning:local:device:create -p iOS -n MyNewVirtualDevice -d iPhone-8`,
-        `sfdx force:lightning:local:device:create -p Android -n MyNewVirtualDevice -d pixel_xl`
-    ];
-
     public platform: string = '';
     public deviceName: string = '';
     public deviceType: string = '';
 
     public async run(): Promise<any> {
-        try {
-            await this.init(); // ensure init first
-        } catch (error) {
-            if (error instanceof SfdxError) {
-                const sfdxError = error as SfdxError;
-                sfdxError.actions = this.examples;
-                throw sfdxError;
-            }
-            throw error;
-        }
-
         this.logger.info(
             `Device Create command invoked for ${this.flags.platform}`
         );
@@ -140,12 +131,13 @@ export class Create extends SfdxCommand implements HasRequirements {
             });
     }
 
-    protected async init(): Promise<void> {
+    public async init(): Promise<void> {
         if (this.logger) {
             // already initialized
             return Promise.resolve();
         }
 
+        CommandLineUtils.flagFailureActionMessages = Create.examples;
         return super
             .init()
             .then(() => Logger.child('force:lightning:local:device:create', {}))

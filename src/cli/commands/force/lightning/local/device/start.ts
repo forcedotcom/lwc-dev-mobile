@@ -38,6 +38,11 @@ const LWC_DEV_MOBILE = 'lwc-dev-mobile';
 export class Start extends SfdxCommand implements HasRequirements {
     public static description = messages.getMessage('commandDescription');
 
+    public static examples = [
+        `sfdx force:lightning:local:device:start -p iOS -t MySimulator`,
+        `sfdx force:lightning:local:device:create -p Android -t MyEmulator -w`
+    ];
+
     public static readonly flagsConfig: FlagsConfig = {
         target: flags.string({
             char: 't',
@@ -51,7 +56,8 @@ export class Start extends SfdxCommand implements HasRequirements {
                         messages.getMessage(
                             'error:invalidTargetFlagsDescription'
                         ),
-                        LWC_DEV_MOBILE
+                        LWC_DEV_MOBILE,
+                        Start.examples
                     );
                 }
             }
@@ -65,27 +71,11 @@ export class Start extends SfdxCommand implements HasRequirements {
         ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
     };
 
-    public examples = [
-        `sfdx force:lightning:local:device:start -p iOS -t MySimulator`,
-        `sfdx force:lightning:local:device:create -p Android -t MyEmulator -w`
-    ];
-
     private platform = '';
     private target = '';
     private writableSystem = false;
 
     public async run(): Promise<any> {
-        try {
-            await this.init(); // ensure init first
-        } catch (error) {
-            if (error instanceof SfdxError) {
-                const sfdxError = error as SfdxError;
-                sfdxError.actions = this.examples;
-                throw sfdxError;
-            }
-            throw error;
-        }
-
         this.logger.info(
             `Device Start command invoked for ${this.flags.platform}`
         );
@@ -122,12 +112,13 @@ export class Start extends SfdxCommand implements HasRequirements {
         return this._requirements;
     }
 
-    protected async init(): Promise<void> {
+    public async init(): Promise<void> {
         if (this.logger) {
             // already initialized
             return Promise.resolve();
         }
 
+        CommandLineUtils.flagFailureActionMessages = Start.examples;
         return super
             .init()
             .then(() => Logger.child('force:lightning:local:device:start', {}))

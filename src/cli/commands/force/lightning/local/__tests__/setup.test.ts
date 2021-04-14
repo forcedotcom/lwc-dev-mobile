@@ -14,7 +14,7 @@ const passedSetupMock = jest.fn(() => {
     return Promise.resolve();
 });
 
-describe('Create Tests', () => {
+describe('Setup Tests', () => {
     beforeEach(() => {
         // tslint:disable-next-line: no-empty
         jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
@@ -32,6 +32,7 @@ describe('Create Tests', () => {
             ['-p', 'ios'],
             new Config.Config(({} as any) as Config.Options)
         );
+        await setup.init();
         await setup.run();
         expect(passedSetupMock).toHaveBeenCalled();
     });
