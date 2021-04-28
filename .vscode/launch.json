@@ -12,9 +12,11 @@
                 "-p",
                 "iOS",
                 "-n",
-                "c/helloWorld",
+                "force-app/main/default/lwc/helloWorld",
                 "-t",
-                "sfdxdebug"
+                "sfdxdebug",
+                "-d",
+                "~/Depot/MPE/LWC-Mobile-Samples/HelloWorld"
             ]
         },
         {
@@ -28,9 +30,11 @@
                 "-p",
                 "android",
                 "-n",
-                "c/helloWorld",
+                "force-app/main/default/lwc/helloWorld",
                 "-t",
-                "sfdxdebug"
+                "sfdxdebug",
+                "-d",
+                "~/Depot/MPE/LWC-Mobile-Samples/HelloWorld"
             ]
         },
         {

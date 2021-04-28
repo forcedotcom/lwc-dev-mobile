@@ -13,11 +13,7 @@ import { IOSLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSLaunc
 import { PreviewUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/PreviewUtils';
 import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import fs from 'fs';
-import {
-    LwcServerIsRunningRequirement,
-    LwcServerPluginInstalledRequirement,
-    Preview
-} from '../preview';
+import { Preview } from '../preview';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'preview');
@@ -129,7 +125,7 @@ describe('Preview Tests', () => {
         expect(failedSetupMock).toHaveBeenCalled();
     });
 
-    test('Preview should throw an error if server is not installed', async () => {
+    /*test('Preview should throw an error if server is not installed', async () => {
         const logger = new Logger('test-preview');
         const cmdMock = jest.fn(
             (): Promise<{ stdout: string; stderr: string }> =>
@@ -213,7 +209,7 @@ describe('Preview Tests', () => {
         const portMessage = (await requirement.checkFunction()).trim();
         const port = portMessage.match(/\d+/);
         expect(port !== null && port[0] === specifiedPort).toBe(true);
-    });
+    });*/
 
     test('Attempts to launch preview for native app', async () => {
         const preview = makePreview(
