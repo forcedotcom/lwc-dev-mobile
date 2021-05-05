@@ -1,3 +1,9 @@
+[![codecov](https://codecov.io/gh/forcedotcom/lwc-dev-mobile/branch/main/graph/badge.svg?token=K8NM7ABTL1)](https://codecov.io/gh/forcedotcom/lwc-dev-mobile)
+[![MIT license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
+[![npm (scoped)](https://img.shields.io/npm/v/@salesforce/lwc-dev-mobile?color=blue)](https://www.npmjs.com/package/@salesforce/lwc-dev-mobile?activeTab=versions)
+[![npm (scoped)](https://img.shields.io/npm/v/@salesforce/lwc-dev-mobile/beta?color=orange)](https://www.npmjs.com/package/@salesforce/lwc-dev-mobile?activeTab=versions)
+[![Downloads](https://img.shields.io/npm/dt/@salesforce/lwc-dev-mobile)](https://www.npmjs.com/package/@salesforce/lwc-dev-mobile?activeTab=versions)
+
 # Salesforce CLI Mobile Extensions
 
 The Salesforce CLI Mobile Extensions allow you to extend the local preview capabilities of the [Local Development Server plug-in](https://developer.salesforce.com/tools/vscode/en/lwc/localdev/). You can see live previews of your Lightning Web Components on virtual mobile devices for iOS and Android.
