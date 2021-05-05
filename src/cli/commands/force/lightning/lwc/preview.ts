@@ -59,6 +59,11 @@ export class Preview extends SfdxCommand implements HasRequirements {
 
     public static flagsConfig = {
         // flag with a value (-n, --name=VALUE)
+        platform: flags.string({
+            char: 'p',
+            description: `Specify platform ('Desktop' or 'iOS' or 'Android').`,
+            required: true
+        }),
         componentname: flags.string({
             char: 'n',
             description: messages.getMessage('componentnameFlagDescription'),
@@ -67,7 +72,8 @@ export class Preview extends SfdxCommand implements HasRequirements {
         configfile: flags.string({
             char: 'f',
             description: messages.getMessage('configFileFlagDescription'),
-            required: false
+            required: false,
+            default: ''
         }),
         confighelp: flags.help({
             default: false,
@@ -77,19 +83,21 @@ export class Preview extends SfdxCommand implements HasRequirements {
         projectdir: flags.string({
             char: 'd',
             description: messages.getMessage('projectDirFlagDescription'),
-            required: false
+            required: false,
+            default: process.cwd()
         }),
         target: flags.string({
             char: 't',
             description: messages.getMessage('targetFlagDescription'),
-            required: false
+            required: false,
+            default: 'SFDXDebug'
         }),
         targetapp: flags.string({
             char: 'a',
             description: messages.getMessage('targetAppFlagDescription'),
-            required: false
-        }),
-        ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
+            required: false,
+            default: PreviewUtils.BROWSER_TARGET_APP
+        })
     };
 
     // Comment this out if your command does not require an org username
@@ -131,40 +139,16 @@ export class Preview extends SfdxCommand implements HasRequirements {
             });
     }
 
-    // TODO: Preview command takes quite a few command flags/parameters compared to other commands.
-    //       Furthermore, the flags need to be processed more than in other commands which
-    //       makes validating them at flagConfig's "validate" method more difficult.
-    //
-    //       In the future refactoring we should seek to simplify validateInputParameters so that
-    //       we can take advantage of flagConfig's "validate".
     private async validateInputParameters(): Promise<void> {
-        const defaultDeviceName = CommandLineUtils.platformFlagIsIOS(
-            this.flags.platform
-        )
-            ? PlatformConfig.iOSConfig().defaultSimulatorName
-            : PlatformConfig.androidConfig().defaultEmulatorName;
-
-        this.deviceName = CommandLineUtils.resolveFlag(
-            this.flags.target,
-            defaultDeviceName
-        );
-
-        this.componentName = CommandLineUtils.resolveFlag(
-            this.flags.componentname,
-            ''
-        ).trim();
-
-        this.targetApp = CommandLineUtils.resolveFlag(
-            this.flags.targetapp,
-            PreviewUtils.BROWSER_TARGET_APP
-        );
-
+        this.deviceName = (this.flags.target as string).trim();
+        this.componentName = (this.flags.componentname as string).trim();
+        this.targetApp = (this.flags.targetapp as string).trim();
         this.projectDir = CommonUtils.resolveUserHomePath(
-            CommandLineUtils.resolveFlag(this.flags.projectdir, process.cwd())
+            (this.flags.projectdir as string).trim()
         );
 
         const configFileName = CommonUtils.resolveUserHomePath(
-            CommandLineUtils.resolveFlag(this.flags.configfile, '')
+            (this.flags.configfile as string).trim()
         );
 
         this.configFilePath = path.normalize(
@@ -179,6 +163,17 @@ export class Preview extends SfdxCommand implements HasRequirements {
         );
 
         this.logger.debug('Validating Preview command inputs.');
+
+        const platform = (this.flags.platform as string).trim();
+        if (!CommandLineUtils.platformFlagIsValid(platform, true)) {
+            return Promise.reject(
+                new SfdxError(
+                    'Invalid input value for platform.',
+                    'lwc-dev-mobile',
+                    Preview.examples
+                )
+            );
+        }
 
         // check if user provided a config file when targetapp=browser
         // and warn them that the config file will be ignored.
@@ -298,15 +293,17 @@ export class Preview extends SfdxCommand implements HasRequirements {
     public get commandRequirements(): CommandRequirements {
         if (Object.keys(this._requirements).length === 0) {
             const requirements: CommandRequirements = {};
-            requirements.setup = CommandLineUtils.platformFlagIsAndroid(
-                this.flags.platform
-            )
-                ? new AndroidEnvironmentRequirements(
-                      this.logger,
-                      this.flags.apilevel
-                  )
-                : new IOSEnvironmentRequirements(this.logger);
-            this._requirements = requirements;
+            if (!CommandLineUtils.platformFlagIsDesktop(this.flags.platform)) {
+                requirements.setup = CommandLineUtils.platformFlagIsAndroid(
+                    this.flags.platform
+                )
+                    ? new AndroidEnvironmentRequirements(
+                          this.logger,
+                          this.flags.apilevel
+                      )
+                    : new IOSEnvironmentRequirements(this.logger);
+                this._requirements = requirements;
+            }
         }
 
         return this._requirements;
@@ -338,7 +335,9 @@ export class Preview extends SfdxCommand implements HasRequirements {
             }
         }
 
-        if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
+        if (CommandLineUtils.platformFlagIsDesktop(this.flags.platform)) {
+            return this.launchDesktop(this.componentName, this.projectDir);
+        } else if (CommandLineUtils.platformFlagIsIOS(this.flags.platform)) {
             const config =
                 this.appConfig && (this.appConfig as IOSAppPreviewConfig);
             return this.launchIOS(
@@ -361,6 +360,20 @@ export class Preview extends SfdxCommand implements HasRequirements {
                 config
             );
         }
+    }
+
+    private async launchDesktop(
+        componentName: string,
+        projectDir: string
+    ): Promise<void> {
+        return this.startLwrServer(
+            componentName,
+            projectDir
+        ).then((serverPort) =>
+            CommonUtils.launchUrlInDesktopBrowser(
+                `http://localhost:${serverPort}`
+            )
+        );
     }
 
     private async launchIOS(
@@ -647,7 +660,7 @@ export class Preview extends SfdxCommand implements HasRequirements {
             for (const pid of processIds) {
                 if (pid.trim()) {
                     grepParams = grepParams + ` -e ${pid.trim()}`;
-                    findstrParams = findstrParams + ` ${pid}`;
+                    findstrParams = findstrParams + ` ${pid.trim()}`;
                 }
             }
 
