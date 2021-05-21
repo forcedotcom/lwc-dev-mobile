@@ -524,12 +524,23 @@ export class Preview extends SfdxCommand implements HasRequirements {
         const lwcModuleRecord: DirModuleRecord = {
             dir: twoLevelUp
         };
+        //{
+        //    dir:
+        //        '/Users/maliroteh/Depot/MPE/LWC-Mobile-Samples/HelloWorld/force-app/main/default'
+        //}
+        //{
+        //    name: 'helloWorld',
+        //    path:
+        //        '/Users/maliroteh/Depot/MPE/LWC-Mobile-Samples/HelloWorld/force-app/main/default/lwc/helloWorld/helloWorld.js'
+        //}
 
         const defaultLwrRoute: LwrRoute = {
             id: rootComponent,
             path: '/',
             rootComponent: rootComponent
         };
+        //{ id: 'helloWorld', path: '/', rootComponent: 'lwc/helloWorld' }
+        //{ id: 'helloWorld', path: '/', rootComponent: 'helloWorld' }
 
         try {
             // If the user has provided an LWR config file then take it and add our custom entries to it

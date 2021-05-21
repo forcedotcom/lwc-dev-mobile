@@ -1,3 +1,62 @@
+/* TypeScript Version
+
+import { FsModuleEntry, AbstractModuleId } from '@lwrjs/types';
+import LwcModuleProvider from '@lwrjs/lwc-module-provider';
+
+export default class CustomLwcModuleProvider extends LwcModuleProvider {
+    name = 'custom-lwc-module-provider';
+
+    async getModuleEntry({
+        specifier,
+        importer,
+        version
+    }: AbstractModuleId): Promise<FsModuleEntry | undefined> {
+        try {
+            const result = await super.getModuleEntry({
+                specifier,
+                importer,
+                version
+            });
+            return Promise.resolve(result);
+        } catch {
+            console.log(
+                `CustomLwcModuleProvider is unable to resolve module '${specifier}' for '${importer}'... Skipping and deferring to other providers to resolve.`
+            );
+            return Promise.resolve(undefined);
+        }
+    }
+}
+*/
+
+/* JavaScript Version
+//import { FsModuleEntry, AbstractModuleId } from '@lwrjs/types';
+//import LwcModuleProvider from '@lwrjs/lwc-module-provider';
+
+const p = require('@lwrjs/lwc-module-provider').default;
+
+export default class CustomLwcModuleProvider extends p {
+    name = 'custom-lwc-module-provider';
+
+    async getModuleEntry({
+        specifier,
+        importer,
+        version
+    }) {
+        try {
+            const result = await super.getModuleEntry({
+                specifier,
+                importer,
+                version
+            });
+            return Promise.resolve(result);
+        } catch {
+            console.log(
+                `CustomLwcModuleProvider is unable to resolve module '${specifier}' for '${importer}'... Skipping and deferring to other providers to resolve.`
+            );
+            return Promise.resolve(undefined);
+        }
+    }
+}*/
 import path from 'path';
 
 var __defProp = Object.defineProperty;
