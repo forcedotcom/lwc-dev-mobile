@@ -33,7 +33,9 @@
     "chalk": "^4.1.0",
     "cli-ux": "^5.5.1",
     "lwc": "1.18.0",
-    "lwr": "0.2.1"
+    "lwr": "0.2.6",
+    "@lwrjs/types": "0.2.6",
+    "@lwrjs/lwc-module-provider": "0.2.6"
   },
   "devDependencies": {
     "@oclif/dev-cli": "^1.26.0",

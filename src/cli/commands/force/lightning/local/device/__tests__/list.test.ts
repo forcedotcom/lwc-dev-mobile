@@ -9,6 +9,7 @@ import * as Config from '@oclif/config';
 import { Logger } from '@salesforce/core';
 import { AndroidVirtualDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
+import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { Version } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSTypes';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
@@ -85,6 +86,11 @@ const fetchEmulatorsMock = jest.fn(
 );
 
 describe('List Tests', () => {
+    beforeEach(() => {
+        // tslint:disable-next-line: no-empty
+        jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
+    });
+
     afterEach(() => {
         jest.restoreAllMocks();
     });
