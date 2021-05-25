@@ -54,6 +54,7 @@ export class LwrServerUtils {
         projectDir: string
     ): LwrGlobalConfig {
         const nextPort = LwrServerUtils.getNextServerPort();
+        const rootDirectory = path.resolve(projectDir);
         const cacheDirectory = path.resolve(`${projectDir}/__lwr_cache__`);
 
         // Here we are doing 2 things:
@@ -76,10 +77,9 @@ export class LwrServerUtils {
         const twoLevelUp = path.resolve(path.join(componentFullPath, '../../'));
 
         // e.g: lwc/helloWorld
-        const rootComp = componentFullPath.replace(
-            `${twoLevelUp}${path.sep}`,
-            ''
-        );
+        const rootComp = componentFullPath
+            .replace(`${twoLevelUp}${path.sep}`, '')
+            .replace(/\\/gi, '/');
 
         const lwcModuleRecord: DirModuleRecord = {
             dir: twoLevelUp
@@ -106,7 +106,7 @@ export class LwrServerUtils {
         }
 
         if (!config.rootDir) {
-            config.rootDir = projectDir;
+            config.rootDir = rootDirectory;
         }
 
         if (!config.cacheDir) {

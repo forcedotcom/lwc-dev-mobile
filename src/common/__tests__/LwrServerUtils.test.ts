@@ -86,10 +86,10 @@ describe('LwrServerUtils Tests', () => {
         expect(config.port).toBe(3456);
 
         // rootDir must be preserved from the user-provided config file
-        expect(config.rootDir).toBe(path.normalize('/path/to/my/rootdir'));
+        expect(config.rootDir).toBe('/path/to/my/rootdir');
 
         // cacheDir must be preserved from the user-provided config file
-        expect(config.cacheDir).toBe(path.normalize('/path/to/my/cachedir'));
+        expect(config.cacheDir).toBe('/path/to/my/cachedir');
 
         // LWC module record should be added to the ones from the user-provided config file
         const insertedLwcModuleRecord = (config.lwc &&
@@ -97,7 +97,7 @@ describe('LwrServerUtils Tests', () => {
         const originalLwcModuleRecord = (config.lwc &&
             config.lwc.modules[1]) as DirModuleRecord;
         expect(insertedLwcModuleRecord.dir).toBe(
-            path.normalize(`${projectDir}${pathToDefault}`)
+            path.resolve(`${projectDir}${pathToDefault}`)
         );
         expect(originalLwcModuleRecord.dir).toBe('$rootDir/src/modules');
 
@@ -223,18 +223,18 @@ describe('LwrServerUtils Tests', () => {
 
     function verifyDefaultConfig(config: LwrGlobalConfig) {
         // rootDir must be set to project dir
-        expect(config.rootDir).toBe(path.normalize(projectDir));
+        expect(config.rootDir).toBe(path.resolve(projectDir));
 
         // cacheDir must be relative to project dir
         expect(config.cacheDir).toBe(
-            path.normalize(`${projectDir}/__lwr_cache__`)
+            path.resolve(`${projectDir}/__lwr_cache__`)
         );
 
         // LWC module record should be set to 2-level-up path
         const lwcModuleRecord = (config.lwc &&
             config.lwc.modules[0]) as DirModuleRecord;
         expect(lwcModuleRecord.dir).toBe(
-            path.normalize(`${projectDir}${pathToDefault}`)
+            path.resolve(`${projectDir}${pathToDefault}`)
         );
 
         // our custom module provider should be appended to the list of default providers
