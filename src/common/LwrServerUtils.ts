@@ -61,19 +61,10 @@ export class LwrServerUtils {
         // where as when the user using SFDX to create a project for LWC components, that project won't have any of the
         // packages needed by LWR. However our plugin does have those packages, but LWR does not seem to have a way of
         // allowing for a 'backup location' for looking up packages. So to work around that we create a custom module provider
-        // that would attempt that resolving packages using the 'node_modules' of our plugin.
+        // that would attempt at resolving packages using the 'node_modules' of our plugin.
         //
         //
-        // 2. We are explicitly removing @lwrjs/lwc-module-provider from the list of built-in providers that is provided by LWR
-        // (and instead use our custom provider from #1 above which internally calls into @lwrjs/lwc-module-provider).
-        // This is b/c @lwrjs/lwc-module-provider throws an exception when it cannot resolve a package (see https://sfdc.co/bFOXlQ).
-        // But this seems to break the logic that LWR is using in LwrModuleRegistry.delegateGetModuleEntryOnServices() (see https://sfdc.co/bVPnkl)
-        // In that function they loop over all of their providers and one-by-one ask each to resolve a module. If it cannot
-        // resolve a module then they will go to the next provider and ask it to resolve the module, and so on. The logic there
-        // is that if all of the providers can't resolve, only then an exception is thrown. But b/c @lwrjs/lwc-module-provider
-        // throws an exception instead of returning undefined/null it breaks that logic and so the looping won't continue to the
-        // other providers. In our custom provider we explicity wrap a try-catch around our call into @lwrjs/lwc-module-provider and
-        // return undefined/null just so that this looping can continue.
+        // 2. Due to bug W-9230056 we are using our internal LWC Module provider in place of the default LWC module provider from LWR
         const modifiedModuleProviders = LwrServerUtils.getModifiedModuleProviders();
 
         // e.g: /LWC-Mobile-Samples/HelloWorld/force-app/main/default/lwc/helloWorld
@@ -100,65 +91,49 @@ export class LwrServerUtils {
             rootComponent: rootComp
         };
 
+        let config: LwrGlobalConfig = {};
         try {
             // If the user has provided an LWR config file then take it and add our custom entries to it
-            const lwrJsonConfig: LwrGlobalConfig = CommonUtils.loadJsonFromFile(
+            config = CommonUtils.loadJsonFromFile(
                 path.resolve(path.join(projectDir, 'lwr.config.json'))
             ) as LwrGlobalConfig;
-
-            if (!lwrJsonConfig.port && nextPort) {
-                lwrJsonConfig.port = nextPort;
-            }
-
-            if (!lwrJsonConfig.rootDir) {
-                lwrJsonConfig.rootDir = projectDir;
-            }
-
-            if (!lwrJsonConfig.cacheDir) {
-                lwrJsonConfig.cacheDir = cacheDirectory;
-            }
-
-            if (!lwrJsonConfig.lwc) {
-                lwrJsonConfig.lwc = {
-                    modules: [lwcModuleRecord]
-                };
-            } else {
-                lwrJsonConfig.lwc.modules.unshift(lwcModuleRecord);
-            }
-
-            if (!lwrJsonConfig.moduleProviders) {
-                lwrJsonConfig.moduleProviders = modifiedModuleProviders;
-            } else {
-                lwrJsonConfig.moduleProviders.unshift(
-                    ...modifiedModuleProviders
-                );
-            }
-
-            if (!lwrJsonConfig.routes) {
-                lwrJsonConfig.routes = [defaultLwrRoute];
-            } else {
-                lwrJsonConfig.routes.unshift(defaultLwrRoute);
-            }
-
-            return lwrJsonConfig;
         } catch {
-            // the user didn't provide an LWR config file so just create a config containing only our custom entries
-            const lwrGlobalConfig: LwrGlobalConfig = {
-                rootDir: projectDir,
-                cacheDir: cacheDirectory,
-                lwc: {
-                    modules: [lwcModuleRecord]
-                },
-                moduleProviders: modifiedModuleProviders,
-                routes: [defaultLwrRoute]
-            };
-
-            if (nextPort) {
-                lwrGlobalConfig.port = nextPort;
-            }
-
-            return lwrGlobalConfig;
+            // ignore and continue
         }
+
+        if (!config.port && nextPort) {
+            config.port = nextPort;
+        }
+
+        if (!config.rootDir) {
+            config.rootDir = projectDir;
+        }
+
+        if (!config.cacheDir) {
+            config.cacheDir = cacheDirectory;
+        }
+
+        if (!config.lwc) {
+            config.lwc = {
+                modules: [lwcModuleRecord]
+            };
+        } else {
+            config.lwc.modules.unshift(lwcModuleRecord);
+        }
+
+        if (!config.moduleProviders) {
+            config.moduleProviders = modifiedModuleProviders;
+        } else {
+            config.moduleProviders.unshift(...modifiedModuleProviders);
+        }
+
+        if (!config.routes) {
+            config.routes = [defaultLwrRoute];
+        } else {
+            config.routes.unshift(defaultLwrRoute);
+        }
+
+        return config;
     }
 
     public static setServerIdleTimeout(
@@ -188,18 +163,8 @@ export class LwrServerUtils {
 
     public static getNextServerPort(): number | undefined {
         try {
-            // The LWR server can be launched either via our Preview command or manually by the user from command line. Following
-            // the LWR Recipes examples, the user is encouraged to create a script file named start-server.mjs to be used for
-            // launching LWR server but the user doesn't have to use that name and can use any other name that they like. Whether
-            // the LWR server is launched by our Preview command or manually by the user, the bottom line is that Node is used to
-            // launch the LWR server process. So to find out the ports that are used, we will go ahead and find the process IDs
-            // for all running Node processes and then find the ports (if any) that those processes are using to avoid using
-            // those same ports.
-            //
-            // The upside of this approach is that we're guaranteed not to clash with the ports used by another LWR server,
-            // regardless of whether those processes were launched via our Preview command, or via start-server.mjs script
-            // or another script file. The downside is that it goes through all Node processes even those that are not used
-            // for launching LWR server instances, so it would take slightly longer to determine the next available port.
+            // Get a list of all TCP ports that are currently in use. Pick the highest port number
+            // and then increment that by 2 to use as the new port for LWR server.
             const getUsedTCPPortsCommand =
                 process.platform === 'win32'
                     ? 'netstat -ano -p tcp | findstr "LISTENING"' // output format: TCP  0.0.0.0:3000  0.0.0.0  LISTENING  4636
