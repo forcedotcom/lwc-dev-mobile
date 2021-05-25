@@ -22,7 +22,9 @@ const defaultServerTimeout = 30 * 60 * 1000; // 30 minutes
 export class LwrServerUtils {
     public static async startLwrServer(
         componentName: string,
-        projectDir: string
+        projectDir: string,
+        idleTimeout: number = defaultServerTimeout,
+        exitOnIdle: boolean = true
     ): Promise<string> {
         const lwrApp = createServer(
             LwrServerUtils.getMergedLwrConfig(componentName, projectDir)
@@ -36,13 +38,11 @@ export class LwrServerUtils {
                 console.log(
                     `Listening on port ${runtimeConfig.port} ( mode = ${runtimeConfig.serverMode} , type = ${runtimeConfig.serverType} )`
                 );
-                LwrServerUtils.setServerIdleTimeout(
-                    lwrApp,
-                    defaultServerTimeout,
-                    () => {
+                LwrServerUtils.setServerIdleTimeout(lwrApp, idleTimeout, () => {
+                    if (exitOnIdle) {
                         process.exit(0); // kill the process on server timeout
                     }
-                );
+                });
             })
             .then(() => {
                 return Promise.resolve(`${runtimeConfig.port}`);
@@ -200,46 +200,16 @@ export class LwrServerUtils {
             // regardless of whether those processes were launched via our Preview command, or via start-server.mjs script
             // or another script file. The downside is that it goes through all Node processes even those that are not used
             // for launching LWR server instances, so it would take slightly longer to determine the next available port.
-            const getProcessCommand =
+            const getUsedTCPPortsCommand =
                 process.platform === 'win32'
-                    ? 'wmic process where "CommandLine Like \'%node%\'" get ProcessId | findstr -v "ProcessId"'
-                    : `ps -ax | grep node | grep -v grep | awk '{print $1}'`;
+                    ? 'netstat -ano -p tcp | findstr "LISTENING"' // output format: TCP  0.0.0.0:3000  0.0.0.0  LISTENING  4636
+                    : 'lsof -Pn -iTCP -sTCP:LISTEN | grep TCP'; // output format: node  87475 username  35u  IPv6  0x78e419ed04835b59  0t0  TCP  *:3000 (LISTEN)
 
-            const result = CommonUtils.executeCommandSync(getProcessCommand);
-            const processIds = result.split('\n');
-            const ports = LwrServerUtils.getPortNumberForProcesses(
-                processIds
-            ).sort();
-            const largest = ports[ports.length - 1];
-            if (largest) {
-                return largest + 2;
-            } else {
-                return undefined;
-            }
-        } catch {
-            return undefined;
-        }
-    }
+            const results = CommonUtils.executeCommandSync(
+                getUsedTCPPortsCommand
+            ).split('\n');
 
-    private static getPortNumberForProcesses(processIds: string[]): number[] {
-        const ports: number[] = [];
-        try {
-            let grepParams = '';
-            let findstrParams = '';
-            for (const pid of processIds) {
-                if (pid.trim()) {
-                    grepParams = grepParams + ` -e ${pid.trim()}`;
-                    findstrParams = findstrParams + ` ${pid.trim()}`;
-                }
-            }
-
-            // all used TCP ports: lsof -Pn -iTCP -sTCP:LISTEN | grep TCP
-            const cmd =
-                process.platform === 'win32'
-                    ? `netstat -ano -p tcp | findstr "LISTENING" | findstr "${findstrParams}"` // TCP  0.0.0.0:3000  0.0.0.0  LISTENING  4636
-                    : `lsof -Pn -i6 -sTCP:LISTEN | grep ${grepParams}`; // node  87475 username  35u  IPv6  0x78e419ed04835b59  0t0  TCP  *:3000 (LISTEN)
-            const results = CommonUtils.executeCommandSync(cmd).split('\n');
-
+            const ports: number[] = [];
             for (const result of results) {
                 try {
                     let idxStart = result.indexOf('TCP') + 3;
@@ -254,11 +224,16 @@ export class LwrServerUtils {
                     // ignore and continue
                 }
             }
+            ports.sort((a, b) => (a > b ? 1 : -1));
+            const largest = ports[ports.length - 1];
+            if (largest) {
+                return largest + 2;
+            } else {
+                return undefined;
+            }
         } catch {
-            // ignore and continue
+            return undefined;
         }
-
-        return ports;
     }
 
     private static getModifiedModuleProviders(): ServiceEntry[] {
@@ -278,16 +253,23 @@ export class LwrServerUtils {
         // cleanup the fake cache folder that is created
         fs.rmdirSync(cacheDirectory, { recursive: true });
 
-        // Use our custom provider as the first item in the list. If it cannot resolve then use the
-        // rest of the default providers (all except lwc-module-provider which our custom provider replaces).
-        const newProviders: ServiceEntry[] = [
-            [path.resolve(`${__dirname}/CustomLwcModuleProvider.js`), undefined]
-        ];
-        config.moduleProviders.forEach((provider: ServiceEntry) => {
-            if (provider[0] !== '@lwrjs/lwc-module-provider') {
-                newProviders.push(provider);
-            }
-        });
+        // TODO: When bug W-9230056 is fixed, get rid of this mapping and just append our
+        //       custom module provider directly to config.moduleProviders.
+        const newProviders: ServiceEntry[] = config.moduleProviders.map(
+            (provider) =>
+                provider[0] === '@lwrjs/lwc-module-provider'
+                    ? [
+                          path.resolve(
+                              `${__dirname}/InternalLwcModuleProvider.js`
+                          ),
+                          undefined
+                      ]
+                    : provider
+        );
+        newProviders.push([
+            path.resolve(`${__dirname}/CustomLwcModuleProvider.js`),
+            undefined
+        ]);
 
         return newProviders;
     }

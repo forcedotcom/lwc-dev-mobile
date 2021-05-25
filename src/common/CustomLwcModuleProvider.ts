@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
 import { AbstractModuleId, FsModuleEntry, ProviderContext } from '@lwrjs/types';
 import LwcModuleProvider from '@lwrjs/lwc-module-provider';
 import path from 'path';
@@ -45,6 +51,7 @@ export default class CustomLwcModuleProvider extends LwcModuleProvider {
         this.name = 'custom-lwc-module-provider';
     }
 
+    // TODO: When bug W-9230056 is fixed, delete this function.
     async getModuleEntry(
         moduleId: AbstractModuleId
     ): Promise<FsModuleEntry | undefined> {
@@ -52,10 +59,6 @@ export default class CustomLwcModuleProvider extends LwcModuleProvider {
             const result = await super.getModuleEntry(moduleId);
             return Promise.resolve(result);
         } catch {
-            // tslint:disable-next-line: no-console
-            console.log(
-                `CustomLwcModuleProvider is unable to resolve module '${moduleId.specifier}' for '${moduleId.importer}'... Skipping and deferring to other providers to resolve.`
-            );
             return Promise.resolve(undefined);
         }
     }

@@ -101,9 +101,11 @@ describe('LwrServerUtils Tests', () => {
         );
         expect(originalLwcModuleRecord.dir).toBe('$rootDir/src/modules');
 
-        // our custom module provider should be added to the ones from the user-provided config file
+        // our custom module provider should be appended to the list of default providers followed by the ones from the user-provided config file
         const customModuleProvider = ((config.moduleProviders &&
-            config.moduleProviders[0]) as ServiceEntry)[0];
+            config.moduleProviders[
+                config.moduleProviders.length - 2
+            ]) as ServiceEntry)[0];
         const originalModuleProvider = (config.moduleProviders &&
             config.moduleProviders[
                 config.moduleProviders.length - 1
@@ -124,18 +126,25 @@ describe('LwrServerUtils Tests', () => {
 
     test('getNextServerPort returns an available port', async () => {
         jest.restoreAllMocks();
-        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(
-            (cmd) => {
-                if (cmd.startsWith('wmic') || cmd.startsWith('ps')) {
-                    return '1000\n2000'; // simulate 2 processes running with these PIDs
-                } else {
-                    return `TCP  0.0.0.0:3344  0.0.0.0  LISTENING  4636
-                            node  87475 username  35u  IPv6  0x78e419ed04835b59  0t0  TCP  *:3346 (LISTEN)`;
-                }
-            }
-        );
+        jest.spyOn(CommonUtils, 'executeCommandSync').mockImplementation(() => {
+            return `rapportd  721 username    5u  IPv4 0x11bcbe7c8626bac9      0t0  TCP *:2400 (LISTEN)
+                    rapportd  721 username    6u  IPv6 0x11bcbe7c83fc1d39      0t0  TCP *:2500 (LISTEN)
+                    nxnode.bi 739 username   15u  IPv6 0x11bcbe7c8494cd39      0t0  TCP [::1]:2600 (LISTEN)
+                    nxnode.bi 739 username   16u  IPv4 0x11bcbe7c858da679      0t0  TCP 127.0.0.1:2700 (LISTEN)
+                    nxnode.bi 739 username   20u  IPv4 0x11bcbe7c858d9229      0t0  TCP 127.0.0.1:2800 (LISTEN)
+                    nxclient  909 username    5u  IPv4 0x11bcbe7c8626cf19      0t0  TCP 127.0.0.1:2900 (LISTEN)
+                    TCP    0.0.0.0:1300            0.0.0.0:0              LISTENING       2276
+                    TCP    0.0.0.0:1400            0.0.0.0:0              LISTENING       3932
+                    TCP    0.0.0.0:1500            0.0.0.0:0              LISTENING       864
+                    TCP    127.0.0.1:1800          0.0.0.0:0              LISTENING       11684
+                    TCP    127.0.0.1:1900          0.0.0.0:0              LISTENING       12112
+                    TCP    127.0.0.1:2000          0.0.0.0:0              LISTENING       12908
+                    TCP    192.168.1.163:2100      0.0.0.0:0              LISTENING       4
+                    TCP    192.168.148.1:2200      0.0.0.0:0              LISTENING       4
+                    TCP    192.168.171.1:2300      0.0.0.0:0              LISTENING       4`;
+        });
         const port = LwrServerUtils.getNextServerPort();
-        expect(port).toBe(3348);
+        expect(port).toBe(2902);
     });
 
     test('Callback is invoked when server idle timeout is detected', async () => {
@@ -169,8 +178,47 @@ describe('LwrServerUtils Tests', () => {
         LwrServerUtils.setServerIdleTimeout(lwrApp, 100, () => {
             callbackInvoked = true;
         });
-        await CommonUtils.delay(500);
+        await CommonUtils.delay(200); // wait for it to shut down
         expect(callbackInvoked).toBe(true);
+    });
+
+    test('startLwrServer starts the server and returns a valid port number', async () => {
+        const mockConfig: LwrGlobalConfig = {
+            rootDir: os.tmpdir(),
+            cacheDir: path.join(
+                os.tmpdir(),
+                '__temporary_cache_to_be_deleted__'
+            ),
+            lwc: {
+                modules: [
+                    {
+                        dir:
+                            '/LWC-Mobile-Samples/HelloWorld/force-app/main/default'
+                    }
+                ]
+            },
+            routes: [
+                {
+                    id: 'lwc/helloWorld',
+                    path: '/',
+                    rootComponent: 'lwc/helloWorld'
+                }
+            ]
+        };
+
+        jest.spyOn(LwrServerUtils, 'getMergedLwrConfig').mockReturnValue(
+            mockConfig
+        );
+
+        const portString = await LwrServerUtils.startLwrServer(
+            '/force-app/main/default/lwc/helloWorld',
+            '/LWC-Mobile-Samples/HelloWorld/',
+            100,
+            false
+        );
+        await CommonUtils.delay(200); // wait for it to shut down
+        const portNumber = parseInt(portString, 10);
+        expect(Number.isNaN(portNumber)).toBe(false);
     });
 
     function verifyDefaultConfig(config: LwrGlobalConfig) {
@@ -189,9 +237,11 @@ describe('LwrServerUtils Tests', () => {
             path.normalize(`${projectDir}${pathToDefault}`)
         );
 
-        // our custom module provider should be added as the first item in the list of providers
+        // our custom module provider should be appended to the list of default providers
         const customModuleProvider = ((config.moduleProviders &&
-            config.moduleProviders[0]) as ServiceEntry)[0];
+            config.moduleProviders[
+                config.moduleProviders.length - 1
+            ]) as ServiceEntry)[0];
         expect(
             customModuleProvider.endsWith('CustomLwcModuleProvider.js')
         ).toBe(true);
