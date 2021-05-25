@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
-import { LwrApp } from 'lwr';
+import { createServer, LwrApp } from 'lwr';
 import { LwrGlobalConfig } from '@lwrjs/types';
 import {
     DirModuleRecord,
@@ -17,18 +17,14 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
+const defaultServerTimeout = 30 * 60 * 1000; // 30 minutes
+
 export class LwrServerUtils {
     public static async startLwrServer(
         componentName: string,
         projectDir: string
     ): Promise<string> {
-        // Note: Instead of require('lwr') if we use an import statement at the top of this file the unit tests would fail
-        //       to run with the following weird error message:
-        //
-        //    Cannot find module '@lwrjs/app-service/identity' from 'node_modules/@lwrjs/view-registry/build/cjs/utils.cjs'
-        //
-        //       This is the only reason why we reference createServer using a require statement instead of an import.
-        const lwrApp = require('lwr').createServer(
+        const lwrApp = createServer(
             LwrServerUtils.getMergedLwrConfig(componentName, projectDir)
         );
 
@@ -40,42 +36,17 @@ export class LwrServerUtils {
                 console.log(
                     `Listening on port ${runtimeConfig.port} ( mode = ${runtimeConfig.serverMode} , type = ${runtimeConfig.serverType} )`
                 );
-                LwrServerUtils.setServerIdleTimeout(lwrApp);
+                LwrServerUtils.setServerIdleTimeout(
+                    lwrApp,
+                    defaultServerTimeout,
+                    () => {
+                        process.exit(0); // kill the process on server timeout
+                    }
+                );
             })
             .then(() => {
                 return Promise.resolve(`${runtimeConfig.port}`);
             });
-    }
-
-    public static getModifiedModuleProviders(): ServiceEntry[] {
-        // We have to jump through the hoop of creating a temporary instance of an LwrApp because
-        // DEFAULT_MODULE_PROVIDERS which is defined in @lwrjs/core/src/env-config.ts is not exported.
-        // Otherwise we could have just used DEFAULT_MODULE_PROVIDERS to get the default providers.
-        const cacheDirectory = path.join(
-            os.tmpdir(),
-            '__temporary_cache_to_be_deleted__'
-        );
-        const tempServer = require('lwr').createServer({
-            cacheDir: cacheDirectory
-        });
-        const config = tempServer.getConfig();
-        tempServer.close();
-
-        // cleanup the fake cache folder that is created
-        fs.rmdirSync(cacheDirectory, { recursive: true });
-
-        // Use our custom provider as the first item in the list. If it cannot resolve then use the
-        // rest of the default providers (all except lwc-module-provider which our custom provider replaces).
-        const newProviders: ServiceEntry[] = [
-            [path.resolve(`${__dirname}/CustomLwcModuleProvider.js`), undefined]
-        ];
-        config.moduleProviders.forEach((provider: ServiceEntry) => {
-            if (provider[0] !== '@lwrjs/lwc-module-provider') {
-                newProviders.push(provider);
-            }
-        });
-
-        return newProviders;
     }
 
     public static getMergedLwrConfig(
@@ -191,9 +162,10 @@ export class LwrServerUtils {
     }
 
     public static setServerIdleTimeout(
-        lwrApp: LwrApp,
-        timeoutMinutes: number = 30
-    ) {
+        app: LwrApp,
+        timeout: number,
+        callback: () => void
+    ): void {
         // Ideally LWR should provide API for setting an idle timeout for the server.
         // But they currently don't have this feature so we jump through a little hoop
         // here to set an idle timeout detection mechanism. We do this b/c every time
@@ -202,23 +174,14 @@ export class LwrServerUtils {
         // user's machine. So we add this detection and when a server is idle for a
         // given amount of time, we will then close its connection and exit the process.
         // tslint:disable:no-string-literal
-        const server = lwrApp['server'];
+        const server = app['server'];
         if (server) {
-            let timer: NodeJS.Timeout;
-            const timeoutMilliseconds = timeoutMinutes * 60 * 1000;
+            let timer = LwrServerUtils.setTimeoutTimer(app, timeout, callback);
             server.on('request', () => {
                 if (timer) {
                     clearTimeout(timer);
                 }
-
-                timer = setTimeout(async () => {
-                    // tslint:disable-next-line: no-console
-                    console.log(
-                        `Server idle for ${timeoutMinutes} minutes... shutting down`
-                    );
-                    await lwrApp.close();
-                    process.exit(0);
-                }, timeoutMilliseconds);
+                timer = LwrServerUtils.setTimeoutTimer(app, timeout, callback);
             });
         }
     }
@@ -258,7 +221,7 @@ export class LwrServerUtils {
         }
     }
 
-    public static getPortNumberForProcesses(processIds: string[]): number[] {
+    private static getPortNumberForProcesses(processIds: string[]): number[] {
         const ports: number[] = [];
         try {
             let grepParams = '';
@@ -296,5 +259,55 @@ export class LwrServerUtils {
         }
 
         return ports;
+    }
+
+    private static getModifiedModuleProviders(): ServiceEntry[] {
+        // We have to jump through the hoop of creating a temporary instance of an LwrApp because
+        // DEFAULT_MODULE_PROVIDERS which is defined in @lwrjs/core/src/env-config.ts is not exported.
+        // Otherwise we could have just used DEFAULT_MODULE_PROVIDERS to get the default providers.
+        const cacheDirectory = path.join(
+            os.tmpdir(),
+            '__temporary_cache_to_be_deleted__'
+        );
+        const tempServer = createServer({
+            cacheDir: cacheDirectory
+        });
+        const config = tempServer.getConfig();
+        tempServer.close();
+
+        // cleanup the fake cache folder that is created
+        fs.rmdirSync(cacheDirectory, { recursive: true });
+
+        // Use our custom provider as the first item in the list. If it cannot resolve then use the
+        // rest of the default providers (all except lwc-module-provider which our custom provider replaces).
+        const newProviders: ServiceEntry[] = [
+            [path.resolve(`${__dirname}/CustomLwcModuleProvider.js`), undefined]
+        ];
+        config.moduleProviders.forEach((provider: ServiceEntry) => {
+            if (provider[0] !== '@lwrjs/lwc-module-provider') {
+                newProviders.push(provider);
+            }
+        });
+
+        return newProviders;
+    }
+
+    private static setTimeoutTimer(
+        lwrApp: LwrApp,
+        timeoutMilliseconds: number,
+        callback: () => void
+    ): NodeJS.Timeout {
+        return setTimeout(async () => {
+            const timeoutSeconds = timeoutMilliseconds / 1000;
+
+            // tslint:disable-next-line: no-console
+            console.log(
+                `Server idle for ${timeoutSeconds} seconds... shutting down`
+            );
+
+            await lwrApp.close();
+
+            callback();
+        }, timeoutMilliseconds);
     }
 }

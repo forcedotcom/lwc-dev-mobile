@@ -14,6 +14,13 @@ module.exports = {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     testPathIgnorePatterns: ['/node_modules/', '/lib/', '/dist/'],
     moduleDirectories: ['node_modules'],
+    moduleNameMapper: {
+        '@lwrjs/app-service/identity':
+            '<rootDir>/node_modules/@lwrjs/app-service/build/cjs/identity.cjs',
+        '@lwrjs/app-service/moduleProvider':
+            '<rootDir>/node_modules/@lwrjs/app-service/build/cjs/moduleProvider/index.cjs',
+        '@lwrjs/core/package': '<rootDir>/node_modules/@lwrjs/core/package.cjs'
+    },
     collectCoverage: false,
     coverageReporters: ['json', 'html', 'text'],
     collectCoverageFrom: ['src/**/*.ts', 'src/**/*.js', 'modules/**/*.js'],
