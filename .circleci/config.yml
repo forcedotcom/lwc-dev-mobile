@@ -53,9 +53,12 @@ jobs:
           name: 'Install node'
           shell: bash.exe
           command: |
-            nvm install 14.16.0
+            nvm install 14.16.0 --default --latest-npm
             nvm use 14.16.0
-            nvm install-latest-npm
+      - run:
+          name: 'Install yarn'
+          shell: bash.exe
+          command: npm install --global yarn
       - run:
           name: Setup
           shell: bash.exe
