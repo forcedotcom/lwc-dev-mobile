@@ -11,7 +11,7 @@ executors:
       - image: circleci/node:lts
 
 orbs:
-  win: circleci/windows@2.2.0
+  win: circleci/windows@2.4.0
   codecov: codecov/codecov@1.0.5
 
 jobs:
@@ -49,6 +49,16 @@ jobs:
           name: Restore Yarn Package Cache
           keys:
             - yarn-packages-{{ checksum "yarn.lock" }}
+      - run:
+          name: 'Install node'
+          shell: bash.exe
+          command: |
+            nvm install 14.16.0 --default --latest-npm
+            nvm use 14.16.0
+      - run:
+          name: 'Install yarn'
+          shell: bash.exe
+          command: npm install --global yarn
       - run:
           name: Setup
           shell: bash.exe

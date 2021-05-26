@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "skipLibCheck": true,                  /* Need this so that we can use LWR module without getting compiler errors about globalThis.Response not being defined */
     "experimentalDecorators": true,
     "resolveJsonModule": true,
     "pretty": true,
