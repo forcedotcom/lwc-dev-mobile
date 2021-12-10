@@ -82,7 +82,7 @@ describe('Preview Tests', () => {
         try {
             await preview.init();
             await preview.run();
-        } catch (error) {
+        } catch (error: any) {
             expect(error.message).toBe(
                 messages.getMessage(
                     'error:invalidComponentNameFlagsDescription'
@@ -181,8 +181,7 @@ describe('Preview Tests', () => {
             (): Promise<{ stdout: string; stderr: string }> =>
                 Promise.resolve({
                     stderr: '',
-                    stdout:
-                        'path/to/bin/node /path/to/bin/sfdx.js force:lightning:lwc:start'
+                    stdout: 'path/to/bin/node /path/to/bin/sfdx.js force:lightning:lwc:start'
                 })
         );
 
@@ -300,7 +299,7 @@ describe('Preview Tests', () => {
 
         const preview = new Preview(
             args,
-            new Config.Config(({} as any) as Config.Options)
+            new Config.Config({} as any as Config.Options)
         );
 
         return preview;
