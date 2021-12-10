@@ -78,11 +78,9 @@ const getSupportedSimulatorsMock = jest.fn(
     }
 );
 
-const fetchEmulatorsMock = jest.fn(
-    (): Promise<AndroidVirtualDevice[]> => {
-        return Promise.resolve(androidDevices);
-    }
-);
+const fetchEmulatorsMock = jest.fn((): Promise<AndroidVirtualDevice[]> => {
+    return Promise.resolve(androidDevices);
+});
 
 describe('List Tests', () => {
     afterEach(() => {
@@ -113,6 +111,9 @@ describe('List Tests', () => {
         const logger = new Logger('test-logger');
         const loggerSpy = jest.spyOn(logger, 'info');
         jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
+        jest.spyOn(AndroidUtils, 'fetchEmulators').mockImplementation(
+            fetchEmulatorsMock
+        );
         const list = makeList('android');
         await list.init();
         await list.run();
@@ -127,7 +128,7 @@ describe('List Tests', () => {
     function makeList(platform: string): List {
         const list = new List(
             ['-p', platform],
-            new Config.Config(({} as any) as Config.Options)
+            new Config.Config({} as any as Config.Options)
         );
         return list;
     }
