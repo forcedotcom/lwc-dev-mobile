@@ -30,7 +30,7 @@ describe('Setup Tests', () => {
     test('Should route to Setup in lwc-dev-mobile-core', async () => {
         const setup = new Setup(
             ['-p', 'ios'],
-            new Config.Config({} as any as Config.Options)
+            new Config.Config({} as Config.Options)
         );
         await setup.init();
         await setup.run();

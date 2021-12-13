@@ -158,7 +158,7 @@ describe('Create Tests', () => {
     function makeCreate(name: string, type: string, platform: string): Create {
         const create = new Create(
             ['-n', name, '-d', type, '-p', platform],
-            new Config.Config({} as any as Config.Options)
+            new Config.Config({} as Config.Options)
         );
         return create;
     }

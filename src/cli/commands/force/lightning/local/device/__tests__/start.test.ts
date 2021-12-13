@@ -123,10 +123,7 @@ describe('Start Tests', () => {
         if (writable) {
             args.push('-w');
         }
-        const start = new Start(
-            args,
-            new Config.Config({} as any as Config.Options)
-        );
+        const start = new Start(args, new Config.Config({} as Config.Options));
         return start;
     }
 });

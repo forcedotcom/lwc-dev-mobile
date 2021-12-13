@@ -299,7 +299,7 @@ describe('Preview Tests', () => {
 
         const preview = new Preview(
             args,
-            new Config.Config({} as any as Config.Options)
+            new Config.Config({} as Config.Options)
         );
 
         return preview;
