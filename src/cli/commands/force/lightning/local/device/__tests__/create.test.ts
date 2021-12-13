@@ -40,7 +40,7 @@ const findEmulatorImagesMock = jest.fn(() => {
 
 describe('Create Tests', () => {
     beforeEach(() => {
-        // tslint:disable-next-line: no-empty
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
         jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
             passedSetupMock
@@ -102,7 +102,7 @@ describe('Create Tests', () => {
 
     test('Checks additional requirements are executed', async () => {
         jest.restoreAllMocks();
-        // tslint:disable-next-line: no-empty
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
         jest.spyOn(IOSUtils, 'getSupportedRuntimes').mockReturnValue(
             Promise.resolve(iOSSupportedRuntimes)
@@ -158,7 +158,7 @@ describe('Create Tests', () => {
     function makeCreate(name: string, type: string, platform: string): Create {
         const create = new Create(
             ['-n', name, '-d', type, '-p', platform],
-            new Config.Config(({} as any) as Config.Options)
+            new Config.Config({} as any as Config.Options)
         );
         return create;
     }

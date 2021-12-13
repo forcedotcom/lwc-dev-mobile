@@ -94,12 +94,12 @@ export class Preview extends SfdxCommand implements HasRequirements {
     // Set this to true if your command requires a project workspace; 'requiresProject' is false by default
     protected static requiresProject = false;
 
-    private serverPort: string = '';
-    private deviceName: string = '';
-    private componentName: string = '';
-    private targetApp: string = '';
-    private projectDir: string = '';
-    private configFilePath: string = '';
+    private serverPort = '';
+    private deviceName = '';
+    private componentName = '';
+    private targetApp = '';
+    private projectDir = '';
+    private configFilePath = '';
     private appConfig:
         | IOSAppPreviewConfig
         | AndroidAppPreviewConfig
@@ -209,10 +209,11 @@ export class Preview extends SfdxCommand implements HasRequirements {
 
         if (isBrowserTargetApp === false && hasConfigFile === true) {
             // 1. validate config file against schema
-            const validationResult = await PreviewUtils.validateConfigFileWithSchema(
-                this.configFilePath,
-                configSchema
-            );
+            const validationResult =
+                await PreviewUtils.validateConfigFileWithSchema(
+                    this.configFilePath,
+                    configSchema
+                );
             if (validationResult.passed === false) {
                 return Promise.reject(
                     new SfdxError(
@@ -440,36 +441,39 @@ export class LwcServerPluginInstalledRequirement implements Requirement {
     }
 
     public async checkFunction(): Promise<string> {
-        return CommonUtils.isLwcServerPluginInstalled()
-            .then(() => {
-                this.logger.info('sfdx server plugin detected.');
-                return Promise.resolve(this.fulfilledMessage);
-            })
-            .catch((error) => {
-                this.logger.info('sfdx server plugin was not detected.');
-
-                try {
-                    const command =
-                        'sfdx plugins:install @salesforce/lwc-dev-server';
-                    this.logger.info(
-                        `Installing sfdx server plugin.... ${command}`
-                    );
-                    CommonUtils.executeCommandSync(command, [
-                        'inherit',
-                        'pipe',
-                        'inherit'
-                    ]);
-                    this.logger.info('sfdx server plugin installed.');
+        return (
+            CommonUtils.isLwcServerPluginInstalled()
+                .then(() => {
+                    this.logger.info('sfdx server plugin detected.');
                     return Promise.resolve(this.fulfilledMessage);
-                } catch (error) {
-                    this.logger.error(
-                        `sfdx server plugin installation failed. ${error}`
-                    );
-                    return Promise.reject(
-                        new SfdxError(this.unfulfilledMessage)
-                    );
-                }
-            });
+                })
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                .catch((error) => {
+                    this.logger.info('sfdx server plugin was not detected.');
+
+                    try {
+                        const command =
+                            'sfdx plugins:install @salesforce/lwc-dev-server';
+                        this.logger.info(
+                            `Installing sfdx server plugin.... ${command}`
+                        );
+                        CommonUtils.executeCommandSync(command, [
+                            'inherit',
+                            'pipe',
+                            'inherit'
+                        ]);
+                        this.logger.info('sfdx server plugin installed.');
+                        return Promise.resolve(this.fulfilledMessage);
+                    } catch (error) {
+                        this.logger.error(
+                            `sfdx server plugin installation failed. ${error}`
+                        );
+                        return Promise.reject(
+                            new SfdxError(this.unfulfilledMessage)
+                        );
+                    }
+                })
+        );
     }
 }
 

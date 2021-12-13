@@ -6,7 +6,7 @@
  */
 
 import { FlagsConfig, SfdxCommand } from '@salesforce/command';
-import { Logger, Messages, SfdxError } from '@salesforce/core';
+import { Logger, Messages } from '@salesforce/core';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import {
     CommandLineUtils,
@@ -98,7 +98,7 @@ export class List extends SfdxCommand {
     }
 
     private showDeviceList(list: any[]) {
-        let duration: number = 0;
+        let duration = 0;
 
         const obs = new PerformanceObserver((items, observer) => {
             duration = items.getEntries()[0].duration / 1000;

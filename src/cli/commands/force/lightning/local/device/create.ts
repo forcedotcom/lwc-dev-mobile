@@ -83,9 +83,9 @@ export class Create extends SfdxCommand implements HasRequirements {
         ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
     };
 
-    public platform: string = '';
-    public deviceName: string = '';
-    public deviceType: string = '';
+    public platform = '';
+    public deviceName = '';
+    public deviceType = '';
 
     public async run(): Promise<any> {
         this.logger.info(
