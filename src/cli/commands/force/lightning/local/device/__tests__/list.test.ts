@@ -128,7 +128,7 @@ describe('List Tests', () => {
     function makeList(platform: string): List {
         const list = new List(
             ['-p', platform],
-            new Config.Config({} as any as Config.Options)
+            new Config.Config({} as Config.Options)
         );
         return list;
     }

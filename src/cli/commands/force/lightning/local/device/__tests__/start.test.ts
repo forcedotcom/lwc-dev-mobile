@@ -35,7 +35,7 @@ const passedSetupMock = jest.fn(() => {
 
 describe('Start Tests', () => {
     beforeEach(() => {
-        // tslint:disable-next-line: no-empty
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
         jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
             passedSetupMock
@@ -117,16 +117,13 @@ describe('Start Tests', () => {
     function makeStart(
         platform: string,
         target: string,
-        writable: boolean = false
+        writable = false
     ): Start {
         const args = ['-p', platform, '-t', target];
         if (writable) {
             args.push('-w');
         }
-        const start = new Start(
-            args,
-            new Config.Config(({} as any) as Config.Options)
-        );
+        const start = new Start(args, new Config.Config({} as Config.Options));
         return start;
     }
 });

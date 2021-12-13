@@ -82,8 +82,8 @@ describe('Preview Tests', () => {
         try {
             await preview.init();
             await preview.run();
-        } catch (error: any) {
-            expect(error.message).toBe(
+        } catch (error) {
+            expect((error as any).message).toBe(
                 messages.getMessage(
                     'error:invalidComponentNameFlagsDescription'
                 )
@@ -171,7 +171,7 @@ describe('Preview Tests', () => {
         requirement
             .checkFunction()
             .then(() => fail('should have thrown an error'))
-            // tslint:disable-next-line: no-empty
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
             .catch(() => {});
     });
 
@@ -299,7 +299,7 @@ describe('Preview Tests', () => {
 
         const preview = new Preview(
             args,
-            new Config.Config({} as any as Config.Options)
+            new Config.Config({} as Config.Options)
         );
 
         return preview;

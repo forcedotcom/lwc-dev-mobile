@@ -16,7 +16,7 @@ const passedSetupMock = jest.fn(() => {
 
 describe('Setup Tests', () => {
     beforeEach(() => {
-        // tslint:disable-next-line: no-empty
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
         jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
             passedSetupMock
@@ -30,7 +30,7 @@ describe('Setup Tests', () => {
     test('Should route to Setup in lwc-dev-mobile-core', async () => {
         const setup = new Setup(
             ['-p', 'ios'],
-            new Config.Config(({} as any) as Config.Options)
+            new Config.Config({} as Config.Options)
         );
         await setup.init();
         await setup.run();
