@@ -62,7 +62,7 @@ $ sfdx force:lightning:local:setup -p iOS
 
 #### Preview
 
-Preview extends the local preview capabilities of the [Local Development Server plug-in](https://developer.salesforce.com/tools/vscode/en/lwc/localdev/). With Mobile Extensions, you can use this plug-in to preview your Lightning Web Components on virtual mobile devices.
+Preview extends the local preview capabilities of the [Local Development Server plug-in](https://developer.salesforce.com/tools/vscode/en/localdev/lwclocaldev). With Mobile Extensions, you can use this plug-in to preview your Lightning Web Components on virtual mobile devices.
 
 ```
 sfdx force:lightning:lwc:preview -n <component name> -p <mobile platform>] [-t <target>]
