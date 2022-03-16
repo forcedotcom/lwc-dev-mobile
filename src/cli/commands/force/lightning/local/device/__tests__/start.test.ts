@@ -65,7 +65,7 @@ describe('Start Tests', () => {
         expect(startEmulatorMock).toHaveBeenCalledWith(targetName, true, false);
     });
 
-    test('Checks that launch for target platform for iOS is invoked', async () => {
+    test('Checks that launch for target platform for iOS with name is invoked', async () => {
         const bootDeviceMock = jest.fn(() => Promise.resolve());
         const launchSimulatorAppMock = jest.fn(() => Promise.resolve());
 
@@ -80,6 +80,26 @@ describe('Start Tests', () => {
         );
 
         const start = makeStart('iOS', targetName);
+        await start.init();
+        await start.run();
+        expect(bootDeviceMock).toHaveBeenCalledWith(targetUDID, false);
+    });
+
+    test('Checks that launch for target platform for iOS with udid is invoked', async () => {
+        const bootDeviceMock = jest.fn(() => Promise.resolve());
+        const launchSimulatorAppMock = jest.fn(() => Promise.resolve());
+
+        jest.spyOn(IOSUtils, 'getSimulator').mockImplementation(
+            getSimulatorMock
+        );
+
+        jest.spyOn(IOSUtils, 'bootDevice').mockImplementation(bootDeviceMock);
+
+        jest.spyOn(IOSUtils, 'launchSimulatorApp').mockImplementation(
+            launchSimulatorAppMock
+        );
+
+        const start = makeStart('iOS', targetUDID);
         await start.init();
         await start.run();
         expect(bootDeviceMock).toHaveBeenCalledWith(targetUDID, false);
