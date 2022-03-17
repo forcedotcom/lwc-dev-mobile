@@ -116,7 +116,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "iOS - Device Start",
+            "name": "iOS - Device Start with name",
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
@@ -125,6 +125,20 @@
                 "iOS",
                 "-t",
                 "sfdxdebug"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "iOS - Device Start with udid",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:local:device:start",
+                "-p",
+                "iOS",
+                "-t",
+                "<replace with udid for sfdxdebug device>"
             ]
         },
         {
