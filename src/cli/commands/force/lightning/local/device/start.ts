@@ -179,6 +179,7 @@ export class Start extends SfdxCommand implements HasRequirements {
     }
 
     private async executeIOSDeviceStart(): Promise<void> {
+        let simDeviceName = '';
         let simDeviceUDID = '';
         return IOSUtils.getSimulator(this.target)
             .then((simDevice) => {
@@ -195,6 +196,7 @@ export class Start extends SfdxCommand implements HasRequirements {
                         )
                     );
                 } else {
+                    simDeviceName = simDevice.name;
                     simDeviceUDID = simDevice.udid;
                     return Promise.resolve();
                 }
@@ -204,7 +206,7 @@ export class Start extends SfdxCommand implements HasRequirements {
                     messages.getMessage('deviceStartAction'),
                     util.format(
                         messages.getMessage('deviceStartStatus'),
-                        `${this.target} (${simDeviceUDID})`
+                        `${simDeviceName} (${simDeviceUDID})`
                     )
                 );
                 return IOSUtils.bootDevice(simDeviceUDID, false);
@@ -214,7 +216,7 @@ export class Start extends SfdxCommand implements HasRequirements {
                 CommonUtils.stopCliAction(
                     util.format(
                         messages.getMessage('deviceStartSuccessStatusIOS'),
-                        `${this.target} (${simDeviceUDID})`
+                        `${simDeviceName} (${simDeviceUDID})`
                     )
                 );
                 return Promise.resolve();
