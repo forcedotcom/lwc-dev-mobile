@@ -52,7 +52,7 @@ const androidDevices: AndroidVirtualDevice[] = [
         'pixel-xl-path',
         'Google APIs',
         'Android 9',
-        Version.from('28')
+        Version.from('28')!
     ),
     new AndroidVirtualDevice(
         'Nexus_5X',
@@ -60,7 +60,7 @@ const androidDevices: AndroidVirtualDevice[] = [
         'nexus-5x-path',
         'Google APIs',
         'Android 10',
-        Version.from('29')
+        Version.from('29')!
     ),
     new AndroidVirtualDevice(
         'Pixel_4_XL',
@@ -68,7 +68,7 @@ const androidDevices: AndroidVirtualDevice[] = [
         'pixel-4-xl-path',
         'Google APIs',
         'Android 11',
-        Version.from('30')
+        Version.from('30')!
     )
 ];
 
