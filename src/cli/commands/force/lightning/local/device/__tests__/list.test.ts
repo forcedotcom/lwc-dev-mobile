@@ -5,7 +5,8 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import * as Config from '@oclif/config';
+import { Config } from '@oclif/core/lib/config';
+import { Options } from '@oclif/core/lib/interfaces';
 import { Logger } from '@salesforce/core';
 import { AndroidVirtualDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
@@ -126,10 +127,7 @@ describe('List Tests', () => {
     });
 
     function makeList(platform: string): List {
-        const list = new List(
-            ['-p', platform],
-            new Config.Config({} as Config.Options)
-        );
+        const list = new List(['-p', platform], new Config({} as Options));
         return list;
     }
 });

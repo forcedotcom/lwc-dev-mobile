@@ -16,7 +16,7 @@ import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUt
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { PerformanceMarkers } from '@salesforce/lwc-dev-mobile-core/lib/common/PerformanceMarkers';
 import chalk from 'chalk';
-import cli from 'cli-ux';
+import { CliUx } from '@oclif/core';
 import { performance, PerformanceObserver } from 'perf_hooks';
 
 // Initialize Messages with the current plugin directory
@@ -114,7 +114,7 @@ export class List extends SfdxCommand {
         );
 
         const message = `DeviceList (${duration.toFixed(3)} sec)`;
-        const tree = cli.tree();
+        const tree = CliUx.ux.tree();
         tree.insert(message);
         const rootNode = tree.nodes[message];
         list.forEach((item) => {

@@ -6,7 +6,7 @@
  */
 
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
-import { Logger, Messages, SfdxError } from '@salesforce/core';
+import { Logger, Messages, SfError } from '@salesforce/core';
 import { AndroidEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidEnvironmentRequirements';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import {
@@ -52,7 +52,7 @@ export class Start extends SfdxCommand implements HasRequirements {
                 if (target && target.trim().length > 0) {
                     return true;
                 } else {
-                    throw new SfdxError(
+                    throw new SfError(
                         messages.getMessage(
                             'error:invalidTargetFlagsDescription'
                         ),
@@ -140,7 +140,7 @@ export class Start extends SfdxCommand implements HasRequirements {
             .then((hasEmulator) => {
                 if (!hasEmulator) {
                     return Promise.reject(
-                        new SfdxError(
+                        new SfError(
                             util.format(
                                 messages.getMessage(
                                     'error:targetDoesNotExistDescription'
@@ -185,7 +185,7 @@ export class Start extends SfdxCommand implements HasRequirements {
             .then((simDevice) => {
                 if (simDevice === null) {
                     return Promise.reject(
-                        new SfdxError(
+                        new SfError(
                             util.format(
                                 messages.getMessage(
                                     'error:targetDoesNotExistDescription'

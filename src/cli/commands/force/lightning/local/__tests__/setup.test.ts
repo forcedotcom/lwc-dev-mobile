@@ -5,7 +5,8 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import * as Config from '@oclif/config';
+import { Config } from '@oclif/core/lib/config';
+import { Options } from '@oclif/core/lib/interfaces';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import { Setup } from '../setup';
@@ -28,10 +29,7 @@ describe('Setup Tests', () => {
     });
 
     test('Should route to Setup in lwc-dev-mobile-core', async () => {
-        const setup = new Setup(
-            ['-p', 'ios'],
-            new Config.Config({} as Config.Options)
-        );
+        const setup = new Setup(['-p', 'ios'], new Config({} as Options));
         await setup.init();
         await setup.run();
         expect(passedSetupMock).toHaveBeenCalled();

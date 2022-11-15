@@ -6,7 +6,7 @@
  */
 
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Logger, Messages, SfdxError } from '@salesforce/core';
+import { Logger, Messages, SfError } from '@salesforce/core';
 import { AndroidEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidEnvironmentRequirements';
 import { AndroidLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidLauncher';
 import {
@@ -62,7 +62,7 @@ export class Preview extends SfdxCommand implements HasRequirements {
             description: messages.getMessage('configFileFlagDescription'),
             required: false
         }),
-        confighelp: flags.help({
+        confighelp: flags.boolean({
             default: false,
             description: messages.getMessage('configHelpFlagDescription'),
             required: false
@@ -110,14 +110,24 @@ export class Preview extends SfdxCommand implements HasRequirements {
 
         return this.validateInputParameters() // validate input
             .then(() => {
-                return RequirementProcessor.execute(this.commandRequirements); // verify requirements
-            })
-            .then(() => {
-                // then launch the preview if all validations have passed
-                this.logger.info(
-                    'Setup requirements met, continuing with preview'
-                );
-                return this.launchPreview();
+                if (this.flags.confighelp === true) {
+                    const message = messages.getMessage(
+                        'configFileHelpDescription'
+                    );
+                    // tslint:disable-next-line: no-console
+                    console.log(`${message}`);
+                    return Promise.resolve();
+                } else {
+                    return RequirementProcessor.execute(
+                        this.commandRequirements
+                    ).then(() => {
+                        // then launch the preview if all validations have passed
+                        this.logger.info(
+                            'Setup requirements met, continuing with preview'
+                        );
+                        return this.launchPreview();
+                    });
+                }
             })
             .catch((error) => {
                 this.logger.warn(`Preview failed for ${this.flags.platform}.`);
@@ -184,7 +194,7 @@ export class Preview extends SfdxCommand implements HasRequirements {
 
         if (this.componentName.length === 0) {
             return Promise.reject(
-                new SfdxError(
+                new SfError(
                     messages.getMessage(
                         'error:invalidComponentNameFlagsDescription'
                     ),
@@ -196,7 +206,7 @@ export class Preview extends SfdxCommand implements HasRequirements {
 
         if (isBrowserTargetApp === false && hasConfigFile === false) {
             return Promise.reject(
-                new SfdxError(
+                new SfError(
                     messages.getMessage(
                         'error:invalidConfigFile:missingDescription',
                         [this.configFilePath]
@@ -216,7 +226,7 @@ export class Preview extends SfdxCommand implements HasRequirements {
                 );
             if (validationResult.passed === false) {
                 return Promise.reject(
-                    new SfdxError(
+                    new SfError(
                         messages.getMessage(
                             'error:invalidConfigFile:genericDescription',
                             [this.configFilePath, validationResult.errorMessage]
@@ -241,7 +251,7 @@ export class Preview extends SfdxCommand implements HasRequirements {
                     [this.targetApp, this.flags.platform]
                 );
                 return Promise.reject(
-                    new SfdxError(
+                    new SfError(
                         messages.getMessage(
                             'error:invalidConfigFile:genericDescription',
                             [this.configFilePath, errMsg]
@@ -275,23 +285,6 @@ export class Preview extends SfdxCommand implements HasRequirements {
                 this.logger = logger;
                 return Promise.resolve();
             });
-    }
-
-    protected _help(): never {
-        const isCommandHelp =
-            this.argv.filter(
-                (v) => v.toLowerCase() === '-h' || v.toLowerCase() === '--help'
-            ).length > 0;
-
-        if (isCommandHelp) {
-            super._help();
-        } else {
-            const message = messages.getMessage('configFileHelpDescription');
-            // tslint:disable-next-line: no-console
-            console.log(`${message}`);
-        }
-
-        return this.exit(0);
     }
 
     private useLwcServerForPreviewing(): boolean {
@@ -469,7 +462,7 @@ export class LwcServerPluginInstalledRequirement implements Requirement {
                             `sfdx server plugin installation failed. ${error}`
                         );
                         return Promise.reject(
-                            new SfdxError(this.unfulfilledMessage)
+                            new SfError(this.unfulfilledMessage)
                         );
                     }
                 })

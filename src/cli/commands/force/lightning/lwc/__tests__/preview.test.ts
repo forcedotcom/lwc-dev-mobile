@@ -5,8 +5,9 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import * as Config from '@oclif/config';
-import { Logger, Messages, SfdxError } from '@salesforce/core';
+import { Config } from '@oclif/core/lib/config';
+import { Options } from '@oclif/core/lib/interfaces';
+import { Logger, Messages, SfError } from '@salesforce/core';
 import { AndroidLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidLauncher';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { IOSLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSLauncher';
@@ -27,7 +28,7 @@ const passedSetupMock = jest.fn(() => {
 });
 
 const failedSetupMock = jest.fn(() => {
-    return Promise.reject(new SfdxError('Mock Failure in tests!'));
+    return Promise.reject(new SfError('Mock Failure in tests!'));
 });
 
 const iosLaunchPreview = jest.fn(() => Promise.resolve());
@@ -123,7 +124,7 @@ describe('Preview Tests', () => {
             await preview.init();
             await preview.run();
         } catch (error) {
-            expect(error instanceof SfdxError).toBeTruthy();
+            expect(error instanceof SfError).toBeTruthy();
         }
 
         expect(failedSetupMock).toHaveBeenCalled();
@@ -297,10 +298,7 @@ describe('Preview Tests', () => {
             args.push(targetapp);
         }
 
-        const preview = new Preview(
-            args,
-            new Config.Config({} as Config.Options)
-        );
+        const preview = new Preview(args, new Config({} as Options));
 
         return preview;
     }

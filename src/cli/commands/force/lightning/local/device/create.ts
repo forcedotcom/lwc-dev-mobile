@@ -6,7 +6,7 @@
  */
 
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
-import { Logger, Messages, SfdxError } from '@salesforce/core';
+import { Logger, Messages, SfError } from '@salesforce/core';
 import { AndroidEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidEnvironmentRequirements';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
 import {
@@ -51,7 +51,7 @@ export class Create extends SfdxCommand implements HasRequirements {
                 if (deviceName && deviceName.trim().length > 0) {
                     return true;
                 } else {
-                    throw new SfdxError(
+                    throw new SfError(
                         messages.getMessage(
                             'error:invalidDeviceNameFlagsDescription'
                         ),
@@ -69,7 +69,7 @@ export class Create extends SfdxCommand implements HasRequirements {
                 if (deviceType && deviceType.trim().length > 0) {
                     return true;
                 } else {
-                    throw new SfdxError(
+                    throw new SfError(
                         messages.getMessage(
                             'error:invalidDeviceTypeFlagsDescription'
                         ),
