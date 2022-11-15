@@ -5,7 +5,8 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import * as Config from '@oclif/config';
+import { Config } from '@oclif/core/lib/config';
+import { Options } from '@oclif/core/lib/interfaces';
 import { Logger } from '@salesforce/core';
 import { AndroidPackage } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
@@ -158,7 +159,7 @@ describe('Create Tests', () => {
     function makeCreate(name: string, type: string, platform: string): Create {
         const create = new Create(
             ['-n', name, '-d', type, '-p', platform],
-            new Config.Config({} as Config.Options)
+            new Config({} as Options)
         );
         return create;
     }

@@ -8,7 +8,7 @@ module.exports = {
     displayName: 'Unit Tests',
     setupFilesAfterEnv: ['jest-extended', 'jest-chain'],
     transform: {
-        '^.+\\.tsx?$': 'ts-jest'
+        '^.+\\.ts?$': 'ts-jest'
     },
     testMatch: ['**/__tests__/**/?(*.)(spec|test).(js|ts)'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
