@@ -109,7 +109,9 @@
     "test:watch": "yarn test --watch",
     "test:debug": "node --inspect node_modules/.bin/jest src --runInBand",
     "version": "oclif readme && git add README.md",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "prettier:write": "prettier --write \"src/**/*.{ts, tsx, js, jsx}\"",
+    "prettier:verify": "prettier --list-different \"src/**/*.{ts, tsx, js, jsx}\""
   },
   "husky": {
     "hooks": {
