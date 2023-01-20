@@ -52,7 +52,7 @@ Setup helps you set up virtual mobile devices—iOS simulators and Android emula
 sfdx force:lightning:local:setup -p <mobile platform>
 ```
 
-- `-p, --platform=platform` Specify platform ('iOS' or 'Android')
+- `-p, --platform=platform` Specify platform (iOS or Android)
 
 For example:
 
@@ -69,7 +69,7 @@ sfdx force:lightning:lwc:preview -n <component name> -p <mobile platform>] [-t <
 ```
 
 - `-n, --componentname=componentname` The LWC component name
-- `-p, --platform=platform` Specify platform ('iOS' or 'Android')
+- `-p, --platform=platform` Specify platform (iOS or Android)
 - `-t, --target=target` Specify name of target simulator or emulator
 
 For example:

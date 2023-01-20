@@ -1,6 +1,6 @@
 {
     "commandDescription": "Start a virtual mobile device",
-    "platformFlagDescription": "Specify platform ('iOS' or 'Android').",
+    "platformFlagDescription": "Specify platform (iOS or Android).",
     "targetFlagDescription": "Specify target virtual device name.",
     "writablesystemFlagDescription": "Specify whether a virtual device should be launched with writable system access. Applicable to Android devices only. Defaults to false.",
     "error:invalidTargetFlagsDescription": "Invalid or missing value for target device name.",
