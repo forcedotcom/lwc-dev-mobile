@@ -213,7 +213,7 @@
                 "-a",
                 ".MainActivity",
                 "-k",
-                "com.company.package"
+                "com.example.android.myApp"
             ]
         },
         {

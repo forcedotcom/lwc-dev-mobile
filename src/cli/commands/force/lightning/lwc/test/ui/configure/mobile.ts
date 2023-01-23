@@ -44,10 +44,10 @@ export class Mobile extends SfdxCommand implements HasRequirements {
         `$ force:lightning:lwc:test:ui:configure:mobile -p Android -d sfdxdebug -o './wdio.conf.js' -f jasmine -r local -t 4723 -u 'http://localhost' -i '/path/to/myPageObjects.config.json' -b '/path/to/my.apk' -a .MainActivity -k com.example.android.myApp`
     ];
 
-    private static defaultOutputFile = './wdio.conf.js';
-    private static supportedTestFrameworks = ['jasmine', 'mocha', 'cucumber'];
-    private static supportedTestRunners = ['local', 'browser'];
-    private static defaultTestRunnerBaseUrl = 'http://localhost';
+    public static defaultOutputFile = './wdio.conf.js';
+    public static supportedTestFrameworks = ['jasmine', 'mocha', 'cucumber'];
+    public static supportedTestRunners = ['local', 'browser'];
+    public static defaultTestRunnerBaseUrl = 'http://localhost';
 
     private static createError(stringId: string): SfError {
         return new SfError(
@@ -250,6 +250,15 @@ export class Mobile extends SfdxCommand implements HasRequirements {
             this.flags.devicename,
             ''
         );
+        if (deviceName.length == 0) {
+            return Promise.reject(
+                new SfError(
+                    messages.getMessage(
+                        'error:invalidDeviceNameFlagsDescription'
+                    )
+                )
+            );
+        }
 
         const output = CommandLineUtils.resolveFlag(
             this.flags.output,
@@ -362,7 +371,8 @@ export class Mobile extends SfdxCommand implements HasRequirements {
             });
     }
 
-    private executeCreateConfigFile(
+    // The following is public for unit testing purposes only
+    public executeCreateConfigFile(
         isAndroid: boolean,
         device: AndroidVirtualDevice | IOSSimulatorDevice,
         output: string,
