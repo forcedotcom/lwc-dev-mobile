@@ -277,30 +277,27 @@ describe('Mobile UI Test Configuration Tests', () => {
 
         expect(destArg).toBe(Mobile.defaultOutputFile);
         expect(
-            contentArg.includes(`runner: '${Mobile.supportedTestRunners[0]}',`)
+            contentArg.includes(`"runner": "${Mobile.supportedTestRunners[0]}"`)
         ).toBe(true);
-        expect(contentArg.includes(`port: `)).toBe(false);
+        expect(contentArg.includes(`"port": `)).toBe(false);
         expect(
             contentArg.includes(
-                `baseUrl: '${Mobile.defaultTestRunnerBaseUrl}',`
+                `"baseUrl": "${Mobile.defaultTestRunnerBaseUrl}"`
             )
         ).toBe(true);
         expect(
             contentArg.includes(
-                `framework: '${Mobile.supportedTestFrameworks[0]}',`
+                `"framework": "${Mobile.supportedTestFrameworks[0]}"`
             )
         ).toBe(true);
-        expect(contentArg.includes(`'appium:platformName': 'iOS',`)).toBe(true);
-        expect(
-            contentArg.includes(`'appium:automationName': 'XCUITest',`)
-        ).toBe(true);
-        expect(contentArg.includes(`'appium:deviceName': 'iPhone-8',`)).toBe(
+        expect(contentArg.includes(`"appium:platformName": "iOS"`)).toBe(true);
+        expect(contentArg.includes(`"appium:automationName": "XCUITest"`)).toBe(
             true
         );
-        expect(contentArg.includes(`'appium:platformVersion': '13',`)).toBe(
+        expect(contentArg.includes(`"appium:udid": "udid-iPhone-8"`)).toBe(
             true
         );
-        expect(contentArg.includes(`'appium:app': '/path/to/my.app',`)).toBe(
+        expect(contentArg.includes(`"appium:app": "/path/to/my.app"`)).toBe(
             true
         );
     });
@@ -321,35 +318,35 @@ describe('Mobile UI Test Configuration Tests', () => {
 
         expect(destArg).toBe(Mobile.defaultOutputFile);
         expect(
-            contentArg.includes(`runner: '${Mobile.supportedTestRunners[0]}',`)
+            contentArg.includes(`"runner": "${Mobile.supportedTestRunners[0]}"`)
         ).toBe(true);
         expect(contentArg.includes(`port: `)).toBe(false);
         expect(
             contentArg.includes(
-                `baseUrl: '${Mobile.defaultTestRunnerBaseUrl}',`
+                `"baseUrl": "${Mobile.defaultTestRunnerBaseUrl}"`
             )
         ).toBe(true);
         expect(
             contentArg.includes(
-                `framework: '${Mobile.supportedTestFrameworks[0]}',`
+                `"framework": "${Mobile.supportedTestFrameworks[0]}"`
             )
         ).toBe(true);
-        expect(contentArg.includes(`'appium:platformName': 'Android',`)).toBe(
+        expect(contentArg.includes(`"appium:platformName": "Android"`)).toBe(
             true
         );
         expect(
-            contentArg.includes(`'appium:automationName': 'UiAutomator2',`)
+            contentArg.includes(`"appium:automationName": "UiAutomator2"`)
         ).toBe(true);
-        expect(contentArg.includes(`'appium:avd': 'Pixel_XL',`)).toBe(true);
-        expect(contentArg.includes(`'appium:app': '/path/to/my.apk',`)).toBe(
+        expect(contentArg.includes(`"appium:avd": "Pixel_XL"`)).toBe(true);
+        expect(contentArg.includes(`"appium:app": "/path/to/my.apk"`)).toBe(
             true
         );
         expect(
-            contentArg.includes(`'appium:appActivity': '.MainActivity',`)
+            contentArg.includes(`"appium:appActivity": ".MainActivity"`)
         ).toBe(true);
         expect(
             contentArg.includes(
-                `'appium:appPackage': 'com.example.android.myApp',`
+                `"appium:appPackage": "com.example.android.myApp"`
             )
         ).toBe(true);
     });

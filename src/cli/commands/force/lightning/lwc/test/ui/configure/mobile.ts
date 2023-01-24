@@ -371,82 +371,61 @@ export class Mobile extends SfdxCommand implements HasRequirements {
         bundlePath: string,
         appActivity: string,
         appPackage: string,
-        runner: string,
-        port: string,
-        baseUrl: string,
+        testRunner: string,
+        testRunnerPort: string,
+        testRunnerBaseUrl: string,
         injectionConfigsPath: string
     ): Promise<void> {
-        // get the version by taking the last part of the runtimeId
-        // eg: iOS 16.2 => 16.2
-        const iOSVersion = (
-            (device as IOSSimulatorDevice | null)?.runtimeId ?? ''
-        )
-            .split(' ')
-            .pop();
-
-        const iOSCapabilities = dedent`
-            capabilities: [
-                {
-                    'appium:platformName': 'iOS',
-                    'appium:automationName': 'XCUITest',
-                    'appium:deviceName': '${device.name}',
-                    'appium:platformVersion': '${iOSVersion}',
-                    'appium:app': '${bundlePath}',
-                },
+        const config: { [k: string]: any } = {
+            services: [
+                [
+                    'appium',
+                    {
+                        command: 'appium'
+                    }
+                ],
+                [
+                    'UtamWdioService',
+                    {
+                        injectionConfigs: [injectionConfigsPath]
+                    }
+                ]
             ],
-        `;
-
-        const androidCapabilities = dedent`
             capabilities: [
-                {
-                    'appium:platformName': 'Android',
-                    'appium:automationName': 'UiAutomator2',
-                    'appium:avd': '${device.name}',
-                    'appium:app': '${bundlePath}',
-                    'appium:appActivity': '${appActivity}',
-                    'appium:appPackage': '${appPackage}',
-                },
+                isAndroid
+                    ? {
+                          'appium:platformName': 'Android',
+                          'appium:automationName': 'UiAutomator2',
+                          'appium:app': bundlePath,
+                          'appium:appActivity': appActivity,
+                          'appium:appPackage': appPackage,
+                          'appium:avd': device.name
+                      }
+                    : {
+                          'appium:platformName': 'iOS',
+                          'appium:automationName': 'XCUITest',
+                          'appium:app': bundlePath,
+                          'appium:udid': (device as IOSSimulatorDevice).udid
+                      }
             ],
-        `;
+            framework: testFramework,
+            baseUrl: testRunnerBaseUrl,
+            runner: testRunner
+        };
 
-        const capabilities = isAndroid ? androidCapabilities : iOSCapabilities;
+        if (testRunnerPort.length > 0) {
+            config['port'] = testRunnerPort;
+        }
 
-        const runnerPort = port.length > 0 ? `port: ${port},` : '';
+        const configJSON = JSON.stringify(config, undefined, 2);
 
-        const content = dedent`
-            exports.config = {
-                runner: '${runner}',
-                ${runnerPort}
-                baseUrl: '${baseUrl}',
-
-                framework: '${testFramework}',
-
-                specs: [
-                    // ToDo: define location for spec files here
-                ],
-                exclude: [
-                    // 'path/to/excluded/files'
-                ],
-
-                services: [
-                    [
-                        'appium',
-                        {
-                            command: 'appium',
-                        },
-                    ],
-                    [
-                        UtamWdioService,
-                        {
-                            implicitTimeout: 0,
-                            injectionConfigs: ['${injectionConfigsPath}'],
-                        },
-                    ],
-                ],
-
-                ${capabilities}
-            }
-        `;
+        const content =
+            "const { UtamWdioService } = require('wdio-utam-service')\n\n" +
+            // convert from string to object to pickup the one imported using the require statement
+            `exports.config = ${configJSON.replace(
+                '"UtamWdioService"',
+                'UtamWdioService'
+            )}`;
 
         return CommonUtils.createTextFile(output, content);
     }
