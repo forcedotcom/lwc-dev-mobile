@@ -22,5 +22,8 @@
     "error:invalidRunnerFlagsDescription": "Invalid or missing value for WebdriverIO test runner.",
     "error:invalidPortFlagsDescription": "Invalid or missing value for WebdriverIO test runner port.",
     "error:invalidBaseUrlFlagsDescription": "Invalid or missing value for WebdriverIO base url.",
-    "error:invalidInjectionConfigsFlagsDescription": "Invalid or missing value for path to injection config file."
+    "error:invalidInjectionConfigsFlagsDescription": "Invalid or missing value for path to injection config file.",
+    "bundleNotFound": "Unable to find app bundle: %s",
+    "appActivityIgnored": "App Activity will be ignored on iOS",
+    "appPackageIgnored": "App Package will be ignored on iOS"
 }

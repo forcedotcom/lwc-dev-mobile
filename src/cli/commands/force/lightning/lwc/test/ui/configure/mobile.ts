@@ -23,6 +23,7 @@ import {
     HasRequirements,
     CommandRequirements
 } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+import fs from 'fs';
 import util from 'util';
 
 // Initialize Messages with the current plugin directory
@@ -264,6 +265,11 @@ export class Mobile extends SfdxCommand implements HasRequirements {
             this.flags.bundlepath,
             ''
         );
+        if (!fs.existsSync(bundlePath)) {
+            this.logger.warn(
+                util.format(messages.getMessage('bundleNotFound'), bundlePath)
+            );
+        }
 
         const appActivity = CommandLineUtils.resolveFlag(
             this.flags.appactivity,
@@ -277,6 +283,8 @@ export class Mobile extends SfdxCommand implements HasRequirements {
                     )
                 )
             );
+        } else if (!isAndroid && appActivity.length > 0) {
+            this.logger.warn(messages.getMessage('appActivityIgnored'));
         }
 
         const appPackage = CommandLineUtils.resolveFlag(
@@ -291,6 +299,8 @@ export class Mobile extends SfdxCommand implements HasRequirements {
                     )
                 )
             );
+        } else if (!isAndroid && appPackage.length > 0) {
+            this.logger.warn(messages.getMessage('appPackageIgnored'));
         }
 
         const runner = CommandLineUtils.resolveFlag(
