@@ -400,47 +400,47 @@ describe('Mobile UI Test Configuration Tests', () => {
         }
 
         if (output && output.length > 0) {
-            args.push('-o');
+            args.push('--output');
             args.push(output);
         }
 
         if (testFramework && testFramework.length > 0) {
-            args.push('-f');
+            args.push('--testframework');
             args.push(testFramework);
         }
 
         if (bundlePath && bundlePath.length > 0) {
-            args.push('-b');
+            args.push('--bundlepath');
             args.push(bundlePath);
         }
 
         if (appActivity && appActivity.length > 0) {
-            args.push('-a');
+            args.push('--appactivity');
             args.push(appActivity);
         }
 
         if (appPackage && appPackage.length > 0) {
-            args.push('-k');
+            args.push('--apppackage');
             args.push(appPackage);
         }
 
         if (runner && runner.length > 0) {
-            args.push('-r');
+            args.push('--runner');
             args.push(runner);
         }
 
         if (port && port.length > 0) {
-            args.push('-t');
+            args.push('--port');
             args.push(port);
         }
 
         if (baseurl && baseurl.length > 0) {
-            args.push('-u');
+            args.push('--baseurl');
             args.push(baseurl);
         }
 
         if (injectionconfigs && injectionconfigs.length > 0) {
-            args.push('-i');
+            args.push('--injectionconfigs');
             args.push(injectionconfigs);
         }
 

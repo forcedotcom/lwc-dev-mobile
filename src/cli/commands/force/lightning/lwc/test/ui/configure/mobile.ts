@@ -40,8 +40,8 @@ export class Mobile extends SfdxCommand implements HasRequirements {
     public static description = messages.getMessage('commandDescription');
 
     public static examples = [
-        `$ force:lightning:lwc:test:ui:configure:mobile -p iOS -d sfdxdebug -o './wdio.conf.js' -f jasmine -r local -t 4723 -u 'http://localhost' -i '/path/to/myPageObjects.config.json' -b '/path/to/my.app'`,
-        `$ force:lightning:lwc:test:ui:configure:mobile -p Android -d sfdxdebug -o './wdio.conf.js' -f jasmine -r local -t 4723 -u 'http://localhost' -i '/path/to/myPageObjects.config.json' -b '/path/to/my.apk' -a .MainActivity -k com.example.android.myApp`
+        `$ force:lightning:lwc:test:ui:configure:mobile -p iOS -d iPhone 12 --output './wdio.conf.js' --testframework jasmine --runner local --port 4723 --baseurl 'http://localhost' --injectionconfigs '/path/to/myPageObjects.config.json' --bundlepath '/path/to/my.app'`,
+        `$ force:lightning:lwc:test:ui:configure:mobile -p Android -d Pixel_5_API_33 --output './wdio.conf.js' --testframework jasmine --runner local --port 4723 --baseurl 'http://localhost' --injectionconfigs '/path/to/myPageObjects.config.json' --bundlepath '/path/to/my.apk' --appactivity .MainActivity --apppackage com.example.android.myApp`
     ];
 
     public static defaultOutputFile = './wdio.conf.js';
@@ -74,7 +74,6 @@ export class Mobile extends SfdxCommand implements HasRequirements {
             }
         }),
         output: flags.string({
-            char: 'o',
             description: messages.getMessage('outputFlagDescription'),
             required: false,
             validate: (outputPath) => {
@@ -88,7 +87,6 @@ export class Mobile extends SfdxCommand implements HasRequirements {
             }
         }),
         testframework: flags.string({
-            char: 'f',
             description: messages.getMessage('testFrameworkFlagDescription'),
             required: false,
             validate: (testFramework) => {
@@ -103,7 +101,6 @@ export class Mobile extends SfdxCommand implements HasRequirements {
             }
         }),
         bundlepath: flags.string({
-            char: 'b',
             description: messages.getMessage('bundlePathFlagDescription'),
             required: false,
             validate: (bundlePath) => {
@@ -117,7 +114,6 @@ export class Mobile extends SfdxCommand implements HasRequirements {
             }
         }),
         appactivity: flags.string({
-            char: 'a',
             description: messages.getMessage('appActivityFlagDescription'),
             required: false,
             validate: (activity) => {
@@ -131,7 +127,6 @@ export class Mobile extends SfdxCommand implements HasRequirements {
             }
         }),
         apppackage: flags.string({
-            char: 'k',
             description: messages.getMessage('appPackageFlagDescription'),
             required: false,
             validate: (pkg) => {
@@ -145,7 +140,6 @@ export class Mobile extends SfdxCommand implements HasRequirements {
             }
         }),
         runner: flags.string({
-            char: 'r',
             description: messages.getMessage('runnerFlagDescription'),
             required: false,
             validate: (testRunner) => {
@@ -160,7 +154,6 @@ export class Mobile extends SfdxCommand implements HasRequirements {
             }
         }),
         port: flags.string({
-            char: 't',
             description: messages.getMessage('portFlagDescription'),
             required: false,
             validate: (runnerPort) => {
@@ -175,7 +168,6 @@ export class Mobile extends SfdxCommand implements HasRequirements {
             }
         }),
         baseurl: flags.string({
-            char: 'u',
             description: messages.getMessage('baseUrlFlagDescription'),
             required: false,
             validate: (baseUrl) => {
@@ -190,7 +182,6 @@ export class Mobile extends SfdxCommand implements HasRequirements {
             }
         }),
         injectionconfigs: flags.string({
-            char: 'i',
             description: messages.getMessage('injectionConfigsFlagDescription'),
             required: false,
             validate: (configsPath) => {

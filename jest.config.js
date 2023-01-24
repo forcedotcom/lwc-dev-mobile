@@ -28,5 +28,8 @@ module.exports = {
                 output: './reports/junit/jest-results.xml'
             }
         ]
-    ]
+    ],
+    fakeTimers: {
+        enableGlobally: true,
+    }
 };
