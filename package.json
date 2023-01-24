@@ -36,8 +36,7 @@
     "@salesforce/command": "^5.2.41",
     "@salesforce/core": "^3.32.14",
     "@salesforce/lwc-dev-mobile-core": "^2.2.0",
-    "chalk": "^4.1.2",
-    "ts-dedent": "^2.2.0"
+    "chalk": "^4.1.2"
   },
   "devDependencies": {
     "@types/jest": "^29.2.6",

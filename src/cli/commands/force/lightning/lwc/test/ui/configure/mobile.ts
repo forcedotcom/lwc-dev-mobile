@@ -23,7 +23,6 @@ import {
     HasRequirements,
     CommandRequirements
 } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
-import dedent from 'ts-dedent';
 import util from 'util';
 
 // Initialize Messages with the current plugin directory
