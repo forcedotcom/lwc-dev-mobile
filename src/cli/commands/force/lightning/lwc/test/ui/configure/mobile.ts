@@ -386,6 +386,7 @@ export class Mobile extends SfdxCommand implements HasRequirements {
         injectionConfigsPath: string
     ): Promise<void> {
         const config: { [k: string]: any } = {
+            specs: ['force-app/**/*.spec.js', 'force-app/**/*.test.js'],
             services: [
                 [
                     'appium',
@@ -429,7 +430,7 @@ export class Mobile extends SfdxCommand implements HasRequirements {
         const configJSON = JSON.stringify(config, undefined, 2);
 
         const content =
-            "const { UtamWdioService } = require('wdio-utam-service')\n\n" +
+            `const { UtamWdioService } = require("wdio-utam-service")\n\n` +
             // convert from string to object to pickup the one imported using the require statement
             `exports.config = ${configJSON.replace(
                 '"UtamWdioService"',

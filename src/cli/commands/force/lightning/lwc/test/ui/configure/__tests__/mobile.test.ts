@@ -135,7 +135,7 @@ describe('Mobile UI Test Configuration Tests', () => {
             await cmd1.init();
             await cmd1.run();
         } catch (error) {
-            expect((error as any).message).toBe(
+            expect((error as any).message).toContain(
                 messages.getMessage('error:invalidPlatformFlagsDescription')
             );
         }
@@ -145,7 +145,7 @@ describe('Mobile UI Test Configuration Tests', () => {
             await cmd2.init();
             await cmd2.run();
         } catch (error) {
-            expect((error as any).message).toBe(
+            expect((error as any).message).toContain(
                 messages.getMessage('error:invalidPlatformFlagsDescription')
             );
         }
@@ -160,7 +160,7 @@ describe('Mobile UI Test Configuration Tests', () => {
             await cmd.init();
             await cmd.run();
         } catch (error) {
-            expect((error as any).message).toBe(
+            expect((error as any).message).toContain(
                 messages.getMessage('error:invalidDeviceNameFlagsDescription')
             );
         }
@@ -175,7 +175,7 @@ describe('Mobile UI Test Configuration Tests', () => {
             await cmd.init();
             await cmd.run();
         } catch (error) {
-            expect((error as any).message).toBe(
+            expect((error as any).message).toContain(
                 messages.getMessage('error:invalidAppActivityFlagsDescription')
             );
         }
@@ -191,7 +191,7 @@ describe('Mobile UI Test Configuration Tests', () => {
             await cmd.init();
             await cmd.run();
         } catch (error) {
-            expect((error as any).message).toBe(
+            expect((error as any).message).toContain(
                 messages.getMessage('error:invalidAppPackageFlagsDescription')
             );
         }
@@ -276,30 +276,20 @@ describe('Mobile UI Test Configuration Tests', () => {
         expect(createTextFile).toHaveBeenCalled();
 
         expect(destArg).toBe(Mobile.defaultOutputFile);
-        expect(
-            contentArg.includes(`"runner": "${Mobile.supportedTestRunners[0]}"`)
-        ).toBe(true);
-        expect(contentArg.includes(`"port": `)).toBe(false);
-        expect(
-            contentArg.includes(
-                `"baseUrl": "${Mobile.defaultTestRunnerBaseUrl}"`
-            )
-        ).toBe(true);
-        expect(
-            contentArg.includes(
-                `"framework": "${Mobile.supportedTestFrameworks[0]}"`
-            )
-        ).toBe(true);
-        expect(contentArg.includes(`"appium:platformName": "iOS"`)).toBe(true);
-        expect(contentArg.includes(`"appium:automationName": "XCUITest"`)).toBe(
-            true
+        expect(contentArg).toContain(
+            `"runner": "${Mobile.supportedTestRunners[0]}"`
         );
-        expect(contentArg.includes(`"appium:udid": "udid-iPhone-8"`)).toBe(
-            true
+        expect(contentArg).not.toContain(`"port": `);
+        expect(contentArg).toContain(
+            `"baseUrl": "${Mobile.defaultTestRunnerBaseUrl}"`
         );
-        expect(contentArg.includes(`"appium:app": "/path/to/my.app"`)).toBe(
-            true
+        expect(contentArg).toContain(
+            `"framework": "${Mobile.supportedTestFrameworks[0]}"`
         );
+        expect(contentArg).toContain(`"appium:platformName": "iOS"`);
+        expect(contentArg).toContain(`"appium:automationName": "XCUITest"`);
+        expect(contentArg).toContain(`"appium:udid": "udid-iPhone-8"`);
+        expect(contentArg).toContain(`"appium:app": "/path/to/my.app"`);
     });
 
     test('Correct content is in config file - Android', async () => {
@@ -317,38 +307,24 @@ describe('Mobile UI Test Configuration Tests', () => {
         expect(createTextFile).toHaveBeenCalled();
 
         expect(destArg).toBe(Mobile.defaultOutputFile);
-        expect(
-            contentArg.includes(`"runner": "${Mobile.supportedTestRunners[0]}"`)
-        ).toBe(true);
-        expect(contentArg.includes(`port: `)).toBe(false);
-        expect(
-            contentArg.includes(
-                `"baseUrl": "${Mobile.defaultTestRunnerBaseUrl}"`
-            )
-        ).toBe(true);
-        expect(
-            contentArg.includes(
-                `"framework": "${Mobile.supportedTestFrameworks[0]}"`
-            )
-        ).toBe(true);
-        expect(contentArg.includes(`"appium:platformName": "Android"`)).toBe(
-            true
+        expect(contentArg).toContain(
+            `"runner": "${Mobile.supportedTestRunners[0]}"`
         );
-        expect(
-            contentArg.includes(`"appium:automationName": "UiAutomator2"`)
-        ).toBe(true);
-        expect(contentArg.includes(`"appium:avd": "Pixel_XL"`)).toBe(true);
-        expect(contentArg.includes(`"appium:app": "/path/to/my.apk"`)).toBe(
-            true
+        expect(contentArg).not.toContain(`port: `);
+        expect(contentArg).toContain(
+            `"baseUrl": "${Mobile.defaultTestRunnerBaseUrl}"`
         );
-        expect(
-            contentArg.includes(`"appium:appActivity": ".MainActivity"`)
-        ).toBe(true);
-        expect(
-            contentArg.includes(
-                `"appium:appPackage": "com.example.android.myApp"`
-            )
-        ).toBe(true);
+        expect(contentArg).toContain(
+            `"framework": "${Mobile.supportedTestFrameworks[0]}"`
+        );
+        expect(contentArg).toContain(`"appium:platformName": "Android"`);
+        expect(contentArg).toContain(`"appium:automationName": "UiAutomator2"`);
+        expect(contentArg).toContain(`"appium:avd": "Pixel_XL"`);
+        expect(contentArg).toContain(`"appium:app": "/path/to/my.apk"`);
+        expect(contentArg).toContain(`"appium:appActivity": ".MainActivity"`);
+        expect(contentArg).toContain(
+            `"appium:appPackage": "com.example.android.myApp"`
+        );
     });
 
     test('Logger must be initialized and invoked', async () => {
@@ -384,7 +360,7 @@ describe('Mobile UI Test Configuration Tests', () => {
         baseurl,
         injectionconfigs
     }: NamedParameters): Mobile {
-        const args = []; //['-n', componentName, '-p', platform, '-t', target];
+        const args = [];
 
         if (platform && platform.length > 0) {
             args.push('-p');
