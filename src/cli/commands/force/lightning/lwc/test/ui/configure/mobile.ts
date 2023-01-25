@@ -386,7 +386,6 @@ export class Mobile extends SfdxCommand implements HasRequirements {
         injectionConfigsPath: string
     ): Promise<void> {
         const config: { [k: string]: any } = {
-            specs: ['force-app/**/*.spec.js', 'force-app/**/*.test.js'],
             services: [
                 [
                     'appium',
