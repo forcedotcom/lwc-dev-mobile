@@ -4,87 +4,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "iOS - Preview",
-            "console": "integratedTerminal",
-            "program": "${workspaceFolder}/bin/run",
-            "args": [
-                "force:lightning:lwc:preview",
-                "-p",
-                "iOS",
-                "-n",
-                "c/helloWorld",
-                "-t",
-                "sfdxdebug"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Android - Preview",
-            "console": "integratedTerminal",
-            "program": "${workspaceFolder}/bin/run",
-            "args": [
-                "force:lightning:lwc:preview",
-                "-p",
-                "android",
-                "-n",
-                "c/helloWorld",
-                "-t",
-                "sfdxdebug"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "iOS - Setup",
-            "console": "integratedTerminal",
-            "program": "${workspaceFolder}/bin/run",
-            "args": [
-                "force:lightning:local:setup",
-                "-p",
-                "iOS"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Android - Setup",
-            "console": "integratedTerminal",
-            "program": "${workspaceFolder}/bin/run",
-            "args": [
-                "force:lightning:local:setup",
-                "-p",
-                "android"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "iOS - Device List",
-            "console": "integratedTerminal",
-            "program": "${workspaceFolder}/bin/run",
-            "args": [
-                "force:lightning:local:device:list",
-                "-p",
-                "iOS"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Android - Device List",
-            "console": "integratedTerminal",
-            "program": "${workspaceFolder}/bin/run",
-            "args": [
-                "force:lightning:local:device:list",
-                "-p",
-                "android"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "iOS - Device Create",
+            "name": "Device Create - iOS",
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
@@ -100,7 +20,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Android - Device Create",
+            "name": "Device Create - Android",
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
@@ -116,7 +36,31 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "iOS - Device Start with name",
+            "name": "Device List - iOS",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:local:device:list",
+                "-p",
+                "iOS"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Device List - Android",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:local:device:list",
+                "-p",
+                "android"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Device Start - iOS (w/ name)",
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
@@ -130,7 +74,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "iOS - Device Start with udid",
+            "name": "Device Start - iOS (w/ UDID)",
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
@@ -144,7 +88,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Android - Device Start",
+            "name": "Device Start - Android",
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
@@ -154,6 +98,122 @@
                 "-t",
                 "sfdxdebug",
                 "-w"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Preview - iOS",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:lwc:preview",
+                "-p",
+                "iOS",
+                "-n",
+                "c/helloWorld",
+                "-t",
+                "sfdxdebug"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Preview - Android",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:lwc:preview",
+                "-p",
+                "android",
+                "-n",
+                "c/helloWorld",
+                "-t",
+                "sfdxdebug"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Setup - iOS",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:local:setup",
+                "-p",
+                "iOS"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Setup - Android",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:local:setup",
+                "-p",
+                "android"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "UTAM Create Mobile Config - iOS",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:lwc:test:ui:configure:mobile",
+                "-p",
+                "iOS",
+                "-d",
+                "iPhone 12",
+                "--output",
+                "./wdio.conf.js",
+                "--testframework",
+                "jasmine",
+                "--runner",
+                "local",
+                "--port",
+                "4723",
+                "--baseurl",
+                "http://localhost",
+                "--injectionconfigs",
+                "./myPageObjects.config.json",
+                "--bundlepath",
+                "/path/to/my.app"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "UTAM Create Mobile Config - Android",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:lwc:test:ui:configure:mobile",
+                "-p",
+                "android",
+                "-d",
+                "Pixel_5_API_33",
+                "--output",
+                "./wdio.conf.js",
+                "--testframework",
+                "jasmine",
+                "--runner",
+                "local",
+                "--port",
+                "4723",
+                "--baseurl",
+                "http://localhost",
+                "--injectionconfigs",
+                "./myPageObjects.config.json",
+                "--bundlepath",
+                "/path/to/my.apk",
+                "--appactivity",
+                ".MainActivity",
+                "--apppackage",
+                "com.example.android.myApp"
             ]
         },
         {
