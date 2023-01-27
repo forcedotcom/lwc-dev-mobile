@@ -213,6 +213,22 @@
             ]
         },
         {
+            "type": "node",
+            "request": "launch",
+            "name": "Run - UTAM Test",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:lwc:test:utam:run",
+                "-p",
+                "iOS",
+                "--config",
+                "./wdio.conf.js",
+                "--spec",
+                "./path/to/my/spec/test.spec.js",
+            ]
+        },
+        {
             "name": "ts-node",
             "type": "node",
             "request": "launch",

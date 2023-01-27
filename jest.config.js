@@ -17,7 +17,10 @@ module.exports = {
     collectCoverage: false,
     coverageReporters: ['json', 'html', 'text'],
     collectCoverageFrom: ['src/**/*.ts', 'src/**/*.js', 'modules/**/*.js'],
-    coveragePathIgnorePatterns: ['prismjs.js'],
+    coveragePathIgnorePatterns: [
+        'prismjs.js',
+        'test.spec.js'
+    ],
     coverageDirectory: 'reports/coverage',
     reporters: [
         'default',

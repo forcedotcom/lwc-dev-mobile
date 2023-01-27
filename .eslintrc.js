@@ -19,7 +19,8 @@ module.exports = {
         "**/node_modules/**",
         "**/dist/**",
         "**/lib/**",
-        "**/reports/**"
+        "**/reports/**",
+        "**/utam/spec/test.spec.js"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
