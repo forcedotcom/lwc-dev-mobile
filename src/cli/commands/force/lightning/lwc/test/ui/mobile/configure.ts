@@ -40,7 +40,7 @@ export class Configure extends SfdxCommand implements HasRequirements {
     public static description = messages.getMessage('commandDescription');
 
     public static examples = [
-        `$ force:lightning:lwc:test:ui:mobile:configure -p iOS -d iPhone 12 --output './wdio.conf.js' --testframework jasmine --port 4723 --baseurl 'http://localhost' --injectionconfigs '/path/to/myPageObjects.config.json' --bundlepath '/path/to/my.app'`,
+        `$ force:lightning:lwc:test:ui:mobile:configure -p iOS -d 'iPhone 12' --output './wdio.conf.js' --testframework jasmine --port 4723 --baseurl 'http://localhost' --injectionconfigs '/path/to/myPageObjects.config.json' --bundlepath '/path/to/my.app'`,
         `$ force:lightning:lwc:test:ui:mobile:configure -p Android -d Pixel_5_API_33 --output './wdio.conf.js' --testframework jasmine --port 4723 --baseurl 'http://localhost' --injectionconfigs '/path/to/myPageObjects.config.json' --bundlepath '/path/to/my.apk' --appactivity .MainActivity --apppackage com.example.android.myApp`
     ];
 
