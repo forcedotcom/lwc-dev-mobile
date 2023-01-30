@@ -15,12 +15,12 @@ import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUt
 import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSTypes';
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
-import { Mobile } from '../mobile';
+import { Configure } from '../configure';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages(
     '@salesforce/lwc-dev-mobile',
-    'test-ui-configure-mobile'
+    'test-ui-mobile-configure'
 );
 
 const passedSetupMock = jest.fn(() => {
@@ -38,7 +38,6 @@ let testFrameworkArg: string;
 let bundlePathArg: string;
 let appActivityArg: string;
 let appPackageArg: string;
-let runnerArg: string;
 let portArg: string;
 let baseUrlArg: string;
 let injectionConfigsPathArg: string;
@@ -52,7 +51,6 @@ const executeCreateConfigFile = jest.fn(
         bundlePath,
         appActivity,
         appPackage,
-        runner,
         port,
         baseUrl,
         injectionConfigsPath
@@ -64,7 +62,6 @@ const executeCreateConfigFile = jest.fn(
         bundlePathArg = bundlePath;
         appActivityArg = appActivity;
         appPackageArg = appPackage;
-        runnerArg = runner;
         portArg = port;
         baseUrlArg = baseUrl;
         injectionConfigsPathArg = injectionConfigsPath;
@@ -206,7 +203,7 @@ describe('Mobile UI Test Configuration Tests', () => {
         });
 
         jest.spyOn(
-            Mobile.prototype,
+            Configure.prototype,
             'executeCreateConfigFile'
         ).mockImplementation(executeCreateConfigFile);
 
@@ -215,14 +212,13 @@ describe('Mobile UI Test Configuration Tests', () => {
 
         expect(isAndroidArg).toBe(true);
         expect(deviceArg).toBeTruthy();
-        expect(outputArg).toBe(Mobile.defaultOutputFile);
-        expect(testFrameworkArg).toBe(Mobile.supportedTestFrameworks[0]);
+        expect(outputArg).toBe(Configure.defaultOutputFile);
+        expect(testFrameworkArg).toBe(Configure.supportedTestFrameworks[0]);
         expect(bundlePathArg).toBe('');
         expect(appActivityArg).toBe('.MainActivity');
         expect(appPackageArg).toBe('com.example.android.myApp');
-        expect(runnerArg).toBe(Mobile.supportedTestRunners[0]);
         expect(portArg).toBe('');
-        expect(baseUrlArg).toBe(Mobile.defaultTestRunnerBaseUrl);
+        expect(baseUrlArg).toBe(Configure.defaultTestRunnerBaseUrl);
         expect(injectionConfigsPathArg).toBe('');
     });
 
@@ -233,7 +229,7 @@ describe('Mobile UI Test Configuration Tests', () => {
         });
 
         jest.spyOn(
-            Mobile.prototype,
+            Configure.prototype,
             'executeCreateConfigFile'
         ).mockImplementation(executeCreateConfigFile);
 
@@ -275,16 +271,13 @@ describe('Mobile UI Test Configuration Tests', () => {
         expect(passedSetupMock).toHaveBeenCalled();
         expect(createTextFile).toHaveBeenCalled();
 
-        expect(destArg).toBe(Mobile.defaultOutputFile);
-        expect(contentArg).toContain(
-            `"runner": "${Mobile.supportedTestRunners[0]}"`
-        );
+        expect(destArg).toBe(Configure.defaultOutputFile);
         expect(contentArg).not.toContain(`"port": `);
         expect(contentArg).toContain(
-            `"baseUrl": "${Mobile.defaultTestRunnerBaseUrl}"`
+            `"baseUrl": "${Configure.defaultTestRunnerBaseUrl}"`
         );
         expect(contentArg).toContain(
-            `"framework": "${Mobile.supportedTestFrameworks[0]}"`
+            `"framework": "${Configure.supportedTestFrameworks[0]}"`
         );
         expect(contentArg).toContain(`"appium:platformName": "iOS"`);
         expect(contentArg).toContain(`"appium:automationName": "XCUITest"`);
@@ -306,16 +299,13 @@ describe('Mobile UI Test Configuration Tests', () => {
         expect(passedSetupMock).toHaveBeenCalled();
         expect(createTextFile).toHaveBeenCalled();
 
-        expect(destArg).toBe(Mobile.defaultOutputFile);
-        expect(contentArg).toContain(
-            `"runner": "${Mobile.supportedTestRunners[0]}"`
-        );
+        expect(destArg).toBe(Configure.defaultOutputFile);
         expect(contentArg).not.toContain(`port: `);
         expect(contentArg).toContain(
-            `"baseUrl": "${Mobile.defaultTestRunnerBaseUrl}"`
+            `"baseUrl": "${Configure.defaultTestRunnerBaseUrl}"`
         );
         expect(contentArg).toContain(
-            `"framework": "${Mobile.supportedTestFrameworks[0]}"`
+            `"framework": "${Configure.supportedTestFrameworks[0]}"`
         );
         expect(contentArg).toContain(`"appium:platformName": "Android"`);
         expect(contentArg).toContain(`"appium:automationName": "UiAutomator2"`);
@@ -344,7 +334,7 @@ describe('Mobile UI Test Configuration Tests', () => {
 
     test('Messages folder should be loaded', async () => {
         expect.assertions(1);
-        expect(Mobile.description !== null).toBeTruthy();
+        expect(Configure.description !== null).toBeTruthy();
     });
 
     function createCommand({
@@ -355,11 +345,10 @@ describe('Mobile UI Test Configuration Tests', () => {
         bundlePath,
         appActivity,
         appPackage,
-        runner,
         port,
         baseurl,
         injectionconfigs
-    }: NamedParameters): Mobile {
+    }: NamedParameters): Configure {
         const args = [];
 
         if (platform && platform.length > 0) {
@@ -397,11 +386,6 @@ describe('Mobile UI Test Configuration Tests', () => {
             args.push(appPackage);
         }
 
-        if (runner && runner.length > 0) {
-            args.push('--runner');
-            args.push(runner);
-        }
-
         if (port && port.length > 0) {
             args.push('--port');
             args.push(port);
@@ -417,7 +401,7 @@ describe('Mobile UI Test Configuration Tests', () => {
             args.push(injectionconfigs);
         }
 
-        const cmd = new Mobile(args, new Config({} as Options));
+        const cmd = new Configure(args, new Config({} as Options));
 
         return cmd;
     }
@@ -431,7 +415,6 @@ interface NamedParameters {
     bundlePath?: string;
     appActivity?: string;
     appPackage?: string;
-    runner?: string;
     port?: string;
     baseurl?: string;
     injectionconfigs?: string;

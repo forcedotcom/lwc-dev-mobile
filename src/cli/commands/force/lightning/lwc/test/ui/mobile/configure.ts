@@ -33,28 +33,27 @@ Messages.importMessagesDirectory(__dirname);
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages(
     '@salesforce/lwc-dev-mobile',
-    'test-ui-configure-mobile'
+    'test-ui-mobile-configure'
 );
 
-export class Mobile extends SfdxCommand implements HasRequirements {
+export class Configure extends SfdxCommand implements HasRequirements {
     public static description = messages.getMessage('commandDescription');
 
     public static examples = [
-        `$ force:lightning:lwc:test:ui:configure:mobile -p iOS -d iPhone 12 --output './wdio.conf.js' --testframework jasmine --runner local --port 4723 --baseurl 'http://localhost' --injectionconfigs '/path/to/myPageObjects.config.json' --bundlepath '/path/to/my.app'`,
-        `$ force:lightning:lwc:test:ui:configure:mobile -p Android -d Pixel_5_API_33 --output './wdio.conf.js' --testframework jasmine --runner local --port 4723 --baseurl 'http://localhost' --injectionconfigs '/path/to/myPageObjects.config.json' --bundlepath '/path/to/my.apk' --appactivity .MainActivity --apppackage com.example.android.myApp`
+        `$ force:lightning:lwc:test:ui:mobile:configure -p iOS -d iPhone 12 --output './wdio.conf.js' --testframework jasmine --port 4723 --baseurl 'http://localhost' --injectionconfigs '/path/to/myPageObjects.config.json' --bundlepath '/path/to/my.app'`,
+        `$ force:lightning:lwc:test:ui:mobile:configure -p Android -d Pixel_5_API_33 --output './wdio.conf.js' --testframework jasmine --port 4723 --baseurl 'http://localhost' --injectionconfigs '/path/to/myPageObjects.config.json' --bundlepath '/path/to/my.apk' --appactivity .MainActivity --apppackage com.example.android.myApp`
     ];
 
     public static defaultOutputFile = './wdio.conf.js';
     public static supportedTestFrameworks = ['jasmine', 'mocha', 'cucumber'];
-    public static supportedTestRunners = ['local', 'browser'];
     public static defaultTestRunnerBaseUrl = 'http://localhost';
 
-    private static createError(stringId: string): SfError {
-        return new SfError(
-            messages.getMessage(stringId),
-            'lwc-dev-mobile',
-            Mobile.examples
-        );
+    private static createError(stringId: string, ...param: any[]): SfError {
+        let msg = messages.getMessage(stringId);
+        if (param.length > 0) {
+            msg = util.format(msg, param);
+        }
+        return new SfError(msg, 'lwc-dev-mobile', Configure.examples);
     }
 
     public static flagsConfig = {
@@ -62,96 +61,38 @@ export class Mobile extends SfdxCommand implements HasRequirements {
         devicename: flags.string({
             char: 'd',
             description: messages.getMessage('deviceNameFlagDescription'),
-            required: true,
-            validate: (deviceName) => {
-                if (deviceName && deviceName.trim().length > 0) {
-                    return true;
-                } else {
-                    throw Mobile.createError(
-                        'error:invalidDeviceNameFlagsDescription'
-                    );
-                }
-            }
+            required: true
         }),
         output: flags.string({
             description: messages.getMessage('outputFlagDescription'),
-            required: false,
-            validate: (outputPath) => {
-                if (outputPath && outputPath.trim().length > 0) {
-                    return true;
-                } else {
-                    throw Mobile.createError(
-                        'error:invalidOutputFlagsDescription'
-                    );
-                }
-            }
+            required: false
         }),
         testframework: flags.string({
             description: messages.getMessage('testFrameworkFlagDescription'),
             required: false,
             validate: (testFramework) => {
                 const framework = (testFramework ?? '').trim().toLowerCase();
-                if (Mobile.supportedTestFrameworks.includes(framework)) {
+                if (Configure.supportedTestFrameworks.includes(framework)) {
                     return true;
                 } else {
-                    throw Mobile.createError(
-                        'error:invalidTestFrameworkFlagsDescription'
+                    throw Configure.createError(
+                        'error:invalidTestFrameworkFlagsDescription',
+                        framework
                     );
                 }
             }
         }),
         bundlepath: flags.string({
             description: messages.getMessage('bundlePathFlagDescription'),
-            required: false,
-            validate: (bundlePath) => {
-                if (bundlePath && bundlePath.trim().length > 0) {
-                    return true;
-                } else {
-                    throw Mobile.createError(
-                        'error:invalidBundlePathFlagsDescription'
-                    );
-                }
-            }
+            required: false
         }),
         appactivity: flags.string({
             description: messages.getMessage('appActivityFlagDescription'),
-            required: false,
-            validate: (activity) => {
-                if (activity && activity.trim().length > 0) {
-                    return true;
-                } else {
-                    throw Mobile.createError(
-                        'error:invalidAppActivityFlagsDescription'
-                    );
-                }
-            }
+            required: false
         }),
         apppackage: flags.string({
             description: messages.getMessage('appPackageFlagDescription'),
-            required: false,
-            validate: (pkg) => {
-                if (pkg && pkg.trim().length > 0) {
-                    return true;
-                } else {
-                    throw Mobile.createError(
-                        'error:invalidAppPackageFlagsDescription'
-                    );
-                }
-            }
-        }),
-        runner: flags.string({
-            description: messages.getMessage('runnerFlagDescription'),
-            required: false,
-            validate: (testRunner) => {
-                const rnr = (testRunner ?? '').trim().toLowerCase();
-                if (Mobile.supportedTestRunners.includes(rnr)) {
-                    return true;
-                } else {
-                    throw Mobile.createError(
-                        'error:invalidRunnerFlagsDescription'
-                    );
-                }
-            }
+            required: false
         }),
         port: flags.string({
             description: messages.getMessage('portFlagDescription'),
@@ -161,8 +102,9 @@ export class Mobile extends SfdxCommand implements HasRequirements {
                 if (prt.length > 0 && !isNaN(Number(prt))) {
                     return true;
                 } else {
-                    throw Mobile.createError(
-                        'error:invalidPortFlagsDescription'
+                    throw Configure.createError(
+                        'error:invalidPortFlagsDescription',
+                        prt
                     );
                 }
             }
@@ -175,24 +117,16 @@ export class Mobile extends SfdxCommand implements HasRequirements {
                 if (url.startsWith('http://') || url.startsWith('https://')) {
                     return true;
                 } else {
-                    throw Mobile.createError(
-                        'error:invalidBaseUrlFlagsDescription'
+                    throw Configure.createError(
+                        'error:invalidBaseUrlFlagsDescription',
+                        url
                     );
                 }
             }
         }),
         injectionconfigs: flags.string({
             description: messages.getMessage('injectionConfigsFlagDescription'),
-            required: false,
-            validate: (configsPath) => {
-                if (configsPath && configsPath.trim().length > 0) {
-                    return true;
-                } else {
-                    throw Mobile.createError(
-                        'error:invalidInjectionConfigsFlagsDescription'
-                    );
-                }
-            }
+            required: false
         })
     };
 
@@ -217,11 +151,11 @@ export class Mobile extends SfdxCommand implements HasRequirements {
             return Promise.resolve();
         }
 
-        CommandLineUtils.flagFailureActionMessages = Mobile.examples;
+        CommandLineUtils.flagFailureActionMessages = Configure.examples;
         return super
             .init()
             .then(() =>
-                Logger.child('force:lightning:lwc:test:ui:configure:mobile', {})
+                Logger.child('force:lightning:lwc:test:ui:mobile:configure', {})
             )
             .then((logger) => {
                 this.logger = logger;
@@ -240,31 +174,27 @@ export class Mobile extends SfdxCommand implements HasRequirements {
         const deviceName = CommandLineUtils.resolveFlag(
             this.flags.devicename,
             ''
-        );
-        if (deviceName.length == 0) {
+        ).trim();
+        if (deviceName.length === 0) {
             return Promise.reject(
-                new SfError(
-                    messages.getMessage(
-                        'error:invalidDeviceNameFlagsDescription'
-                    )
-                )
+                Configure.createError('error:invalidDeviceNameFlagsDescription')
             );
         }
 
         const output = CommandLineUtils.resolveFlag(
             this.flags.output,
-            Mobile.defaultOutputFile
-        );
+            Configure.defaultOutputFile
+        ).trim();
 
         const testFramework = CommandLineUtils.resolveFlag(
             this.flags.testframework,
-            Mobile.supportedTestFrameworks[0]
-        );
+            Configure.supportedTestFrameworks[0]
+        ).trim();
 
         const bundlePath = CommandLineUtils.resolveFlag(
             this.flags.bundlepath,
             ''
-        );
+        ).trim();
         if (!fs.existsSync(bundlePath)) {
             this.logger.warn(
                 util.format(messages.getMessage('bundleNotFound'), bundlePath)
@@ -274,13 +204,11 @@ export class Mobile extends SfdxCommand implements HasRequirements {
         const appActivity = CommandLineUtils.resolveFlag(
             this.flags.appactivity,
             ''
-        );
-        if (isAndroid && appActivity.length == 0) {
+        ).trim();
+        if (isAndroid && appActivity.length === 0) {
             return Promise.reject(
-                new SfError(
-                    messages.getMessage(
-                        'error:invalidAppActivityFlagsDescription'
-                    )
+                Configure.createError(
+                    'error:invalidAppActivityFlagsDescription'
                 )
             );
         } else if (!isAndroid && appActivity.length > 0) {
@@ -290,35 +218,26 @@ export class Mobile extends SfdxCommand implements HasRequirements {
         const appPackage = CommandLineUtils.resolveFlag(
             this.flags.apppackage,
             ''
-        );
-        if (isAndroid && appPackage.length == 0) {
+        ).trim();
+        if (isAndroid && appPackage.length === 0) {
             return Promise.reject(
-                new SfError(
-                    messages.getMessage(
-                        'error:invalidAppPackageFlagsDescription'
-                    )
-                )
+                Configure.createError('error:invalidAppPackageFlagsDescription')
             );
         } else if (!isAndroid && appPackage.length > 0) {
             this.logger.warn(messages.getMessage('appPackageIgnored'));
         }
 
-        const runner = CommandLineUtils.resolveFlag(
-            this.flags.runner,
-            Mobile.supportedTestRunners[0]
-        );
-
-        const port = CommandLineUtils.resolveFlag(this.flags.port, '');
+        const port = CommandLineUtils.resolveFlag(this.flags.port, '').trim();
 
         const baseUrl = CommandLineUtils.resolveFlag(
             this.flags.baseurl,
-            Mobile.defaultTestRunnerBaseUrl
-        );
+            Configure.defaultTestRunnerBaseUrl
+        ).trim();
 
         const injectionConfigsPath = CommandLineUtils.resolveFlag(
             this.flags.injectionconfigs,
             ''
-        );
+        ).trim();
 
         return RequirementProcessor.execute(this.commandRequirements)
             .then(async () => {
@@ -336,13 +255,9 @@ export class Mobile extends SfdxCommand implements HasRequirements {
                     : await IOSUtils.getSimulator(deviceName);
                 if (!device) {
                     return Promise.reject(
-                        new SfError(
-                            util.format(
-                                messages.getMessage(
-                                    'error:deviceNotFoundDescription'
-                                ),
-                                deviceName
-                            )
+                        Configure.createError(
+                            'error:deviceNotFoundDescription',
+                            deviceName
                         )
                     );
                 }
@@ -355,7 +270,6 @@ export class Mobile extends SfdxCommand implements HasRequirements {
                     bundlePath,
                     appActivity,
                     appPackage,
-                    runner,
                     port,
                     baseUrl,
                     injectionConfigsPath
@@ -380,7 +294,6 @@ export class Mobile extends SfdxCommand implements HasRequirements {
         bundlePath: string,
         appActivity: string,
         appPackage: string,
-        testRunner: string,
         testRunnerPort: string,
         testRunnerBaseUrl: string,
         injectionConfigsPath: string
@@ -418,12 +331,16 @@ export class Mobile extends SfdxCommand implements HasRequirements {
                       }
             ],
             framework: testFramework,
-            baseUrl: testRunnerBaseUrl,
-            runner: testRunner
+            baseUrl: testRunnerBaseUrl
         };
 
         if (testRunnerPort.length > 0) {
             config['port'] = testRunnerPort;
+        }
+
+        if (!injectionConfigsPath || injectionConfigsPath.length === 0) {
+            // remove the empty string that was added to the array
+            config.services[1][1].injectionConfigs = [];
         }
 
         const configJSON = JSON.stringify(config, undefined, 2);
