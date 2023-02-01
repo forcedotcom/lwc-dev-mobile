@@ -215,13 +215,29 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Run - UTAM Test",
+            "name": "UTAM Run Test - iOS",
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
-                "force:lightning:lwc:test:utam:run",
+                "force:lightning:lwc:test:ui:run:mobile",
                 "-p",
                 "iOS",
+                "--config",
+                "./wdio.conf.js",
+                "--spec",
+                "./src/cli/commands/force/lightning/lwc/test/ui/run/__tests__test.spec.js",
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "UTAM Run Test - Android",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:lwc:test:ui:run:mobile",
+                "-p",
+                "Android",
                 "--config",
                 "./wdio.conf.js",
                 "--spec",

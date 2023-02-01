@@ -20,7 +20,7 @@ module.exports = {
         "**/dist/**",
         "**/lib/**",
         "**/reports/**",
-        "**/utam/spec/test.spec.js"
+        "**/test/ui/run/spec/test.spec.js"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
