@@ -18,7 +18,7 @@ import process from 'process';
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages(
     '@salesforce/lwc-dev-mobile',
-    'test-ui-run-mobile'
+    'test-ui-mobile-run'
 );
 
 describe('Mobile UI Test Run Tests', () => {

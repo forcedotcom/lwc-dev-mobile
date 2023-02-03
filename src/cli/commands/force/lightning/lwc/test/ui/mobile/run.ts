@@ -20,7 +20,7 @@ Messages.importMessagesDirectory(__dirname);
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages(
     '@salesforce/lwc-dev-mobile',
-    'test-ui-run-mobile'
+    'test-ui-mobile-run'
 );
 
 export class Run extends SfdxCommand {
