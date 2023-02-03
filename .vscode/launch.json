@@ -219,13 +219,11 @@
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
-                "force:lightning:lwc:test:ui:run:mobile",
-                "-p",
-                "iOS",
+                "force:lightning:lwc:test:ui:mobile:run",
                 "--config",
                 "./wdio.conf.js",
                 "--spec",
-                "./src/cli/commands/force/lightning/lwc/test/ui/run/__tests__test.spec.js",
+                "./path/to/my/spec/test.spec.js",
             ]
         },
         {
@@ -235,9 +233,7 @@
             "console": "integratedTerminal",
             "program": "${workspaceFolder}/bin/run",
             "args": [
-                "force:lightning:lwc:test:ui:run:mobile",
-                "-p",
-                "Android",
+                "force:lightning:lwc:test:ui:mobile:run",
                 "--config",
                 "./wdio.conf.js",
                 "--spec",
