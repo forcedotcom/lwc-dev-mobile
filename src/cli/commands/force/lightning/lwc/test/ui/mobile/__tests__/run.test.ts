@@ -12,8 +12,6 @@ import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUt
 import { Run } from '../run';
 import fs from 'fs';
 import util from 'util';
-import path from 'path';
-import process from 'process';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages(
@@ -95,10 +93,8 @@ describe('Mobile UI Test Run Tests', () => {
         await cmd.init();
         await cmd.run();
 
-        const configPath = path.join(process.cwd(), config);
-        const specPath = path.join(process.cwd(), spec);
         expect(resolveOneSpec).toHaveBeenCalledWith(
-            `npx --no-install wdio '${configPath}' --spec '${specPath}'`
+            `npx --no-install wdio '${config}' --spec '${spec}'`
         );
     });
 
@@ -182,13 +178,8 @@ describe('Mobile UI Test Run Tests', () => {
         await cmd.init();
         await cmd.run();
 
-        const configPath = path.join(process.cwd(), config);
-        const spec0Path = path.join(process.cwd(), specFolder0Folder1Test0);
-        const spec1Path = path.join(process.cwd(), specFolder0Folder1Test1);
-        const spec2Path = path.join(process.cwd(), specFolder0Test0);
-
         expect(resolveOneSpec).toHaveBeenCalledWith(
-            `npx --no-install wdio '${configPath}' --spec '${spec0Path}' '${spec1Path}' '${spec2Path}'`
+            `npx --no-install wdio '${config}' --spec '${specFolder0Folder1Test0}' '${specFolder0Folder1Test1}' '${specFolder0Test0}'`
         );
     });
 

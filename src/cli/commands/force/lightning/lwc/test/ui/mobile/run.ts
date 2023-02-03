@@ -74,9 +74,12 @@ export class Run extends SfdxCommand {
     public async run(): Promise<any> {
         this.logger.info(`UTAM run command invoked.`);
 
-        const config = CommandLineUtils.resolveFlag(this.flags.config, '');
+        const config = CommandLineUtils.resolveFlag(
+            this.flags.config,
+            ''
+        ).trim();
         const configPath = path.normalize(
-            path.resolve(CommonUtils.resolveUserHomePath(config))
+            CommonUtils.resolveUserHomePath(config)
         );
         if (!fs.existsSync(configPath)) {
             CommonUtils.stopCliAction();
@@ -86,10 +89,10 @@ export class Run extends SfdxCommand {
         }
 
         let specs = '';
-        const spec = CommandLineUtils.resolveFlag(this.flags.spec, '');
+        const spec = CommandLineUtils.resolveFlag(this.flags.spec, '').trim();
         if (spec.length > 0) {
             const specPath = path.normalize(
-                path.resolve(CommonUtils.resolveUserHomePath(spec))
+                CommonUtils.resolveUserHomePath(spec)
             );
             if (!fs.existsSync(specPath)) {
                 CommonUtils.stopCliAction();
