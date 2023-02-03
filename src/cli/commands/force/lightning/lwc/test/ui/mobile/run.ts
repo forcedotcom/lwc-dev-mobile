@@ -110,6 +110,10 @@ export class Run extends SfdxCommand {
                 this.logger.info(
                     `UTAM test ran successfully:\n${result.stdout}`
                 );
+
+                // TODO: Output using console.log until we decide how to report back to sfdx.
+                //
+                // tslint:disable-next-line: no-console
                 console.log(result.stdout);
 
                 return Promise.resolve();
@@ -118,6 +122,10 @@ export class Run extends SfdxCommand {
                 CommonUtils.stopCliAction();
 
                 this.logger.warn(`Failed to run UTAM test: ${error}`);
+
+                // TODO: Output using console.log until we decide how to report back to sfdx.
+                //
+                // tslint:disable-next-line: no-console
                 console.log(error);
 
                 return Promise.reject(
