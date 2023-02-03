@@ -150,10 +150,11 @@ export class Run extends SfdxCommand {
     }
 
     /**
-     * Recursively collect paths of test files given a starting point.
+     * Recursively collects paths of test files given a starting point.
      * If a valid test file is selected as a starting point then it will
      * be the sole path returned in an array. Otherwise, the array returned
-     * will be collection of
+     * will be collection of files' paths including subfolders' files.
+     *
      * @param path Path to a test file or a folder that contains tests.
      * @returns Array of paths to test files.
      */
