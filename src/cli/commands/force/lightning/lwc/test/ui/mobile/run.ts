@@ -105,8 +105,6 @@ export class Run extends SfdxCommand {
         CommonUtils.startCliAction(messages.getMessage('runningUtamTest'));
         return await this.executeRunUtamTest(configPath, specs)
             .then((result) => {
-                CommonUtils.stopCliAction();
-
                 this.logger.info(
                     `UTAM test ran successfully:\n${result.stdout}`
                 );
@@ -119,8 +117,6 @@ export class Run extends SfdxCommand {
                 return Promise.resolve();
             })
             .catch((error) => {
-                CommonUtils.stopCliAction();
-
                 this.logger.warn(`Failed to run UTAM test: ${error}`);
 
                 // TODO: Output using console.log until we decide how to report back to sfdx.
@@ -140,6 +136,9 @@ export class Run extends SfdxCommand {
                         Run.examples
                     )
                 );
+            })
+            .finally(() => {
+                CommonUtils.stopCliAction();
             });
     }
 
