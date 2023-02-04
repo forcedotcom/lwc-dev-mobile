@@ -32,12 +32,12 @@ export class Run extends SfdxCommand {
         `$ force:lightning:lwc:test:ui:mobile:run --config '/path/to/wdio.conf.js' --spec '/path/to/folderWithSpecs'`
     ];
 
-    private static createError(stringId: string): SfError {
-        return new SfError(
-            messages.getMessage(stringId),
-            'lwc-dev-mobile',
-            Run.examples
-        );
+    private static createError(stringId: string, ...param: any[]): SfError {
+        let msg = messages.getMessage(stringId);
+        if (param.length > 0) {
+            msg = util.format(msg, param);
+        }
+        return new SfError(msg, 'lwc-dev-mobile', Run.examples);
     }
 
     public static flagsConfig = {
@@ -128,16 +128,7 @@ export class Run extends SfdxCommand {
                 console.log(error);
 
                 return Promise.reject(
-                    new SfError(
-                        util.format(
-                            messages.getMessage(
-                                'error:unexpectedErrorDescription'
-                            ),
-                            error
-                        ),
-                        'lwc-dev-mobile',
-                        Run.examples
-                    )
+                    Run.createError('error:unexpectedErrorDescription', error)
                 );
             })
             .finally(() => {

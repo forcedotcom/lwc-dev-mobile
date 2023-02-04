@@ -193,7 +193,12 @@ describe('Mobile UI Test Run Tests', () => {
 
         jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
             () => {
-                return Promise.reject(unexpectedErrorMessage);
+                return Promise.reject(
+                    util.format(
+                        messages.getMessage('error:unexpectedErrorDescription'),
+                        unexpectedErrorMessage
+                    )
+                );
             }
         );
 
