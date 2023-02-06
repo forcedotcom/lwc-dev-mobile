@@ -19,8 +19,7 @@ module.exports = {
         "**/node_modules/**",
         "**/dist/**",
         "**/lib/**",
-        "**/reports/**",
-        "**/test/ui/mobile/__spec__/test.spec.js"
+        "**/reports/**"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
