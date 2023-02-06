@@ -213,6 +213,34 @@
             ]
         },
         {
+            "type": "node",
+            "request": "launch",
+            "name": "UTAM Run Test - iOS",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:lwc:test:ui:mobile:run",
+                "--config",
+                "./wdio.conf.js",
+                "--spec",
+                "./path/to/my/spec/test.spec.js",
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "UTAM Run Test - Android",
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/bin/run",
+            "args": [
+                "force:lightning:lwc:test:ui:mobile:run",
+                "--config",
+                "./wdio.conf.js",
+                "--spec",
+                "./path/to/my/spec/test.spec.js",
+            ]
+        },
+        {
             "name": "ts-node",
             "type": "node",
             "request": "launch",
