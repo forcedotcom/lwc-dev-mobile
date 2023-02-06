@@ -175,9 +175,7 @@ export class Run extends SfdxCommand {
                         ...this.enumerateTestSpecs(`${path}/${item.name}`)
                     ];
                 } else {
-                    if (item.name.endsWith('.spec.js')) {
-                        files.push(`${path}/${item.name}`);
-                    }
+                    files.push(`${path}/${item.name}`);
                 }
             });
         }
