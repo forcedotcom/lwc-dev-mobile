@@ -298,7 +298,27 @@ export class Configure extends SfdxCommand implements HasRequirements {
         testRunnerBaseUrl: string,
         injectionConfigsPath: string
     ): Promise<void> {
+        const placeholders = {
+            specs: '${specs_placeholder}',
+            excludes: '${excludes_placeholder}',
+            utam_wdio_service: '${utam_wdio_service_placeholder}'
+        };
+
+        const placeholder_values = new Map<string, string>([
+            [
+                `${placeholders.specs}`,
+                '// ToDo: define location for spec files here'
+            ],
+            [
+                `${placeholders.excludes}`,
+                '// ToDo: define patterns to exclude here'
+            ],
+            [`${placeholders.utam_wdio_service}`, 'UtamWdioService']
+        ]);
+
         const config: { [k: string]: any } = {
+            specs: [`${placeholders.specs}`],
+            exclude: [`${placeholders.excludes}`],
             services: [
                 [
                     'appium',
@@ -307,7 +327,7 @@ export class Configure extends SfdxCommand implements HasRequirements {
                     }
                 ],
                 [
-                    'UtamWdioService',
+                    `${placeholders.utam_wdio_service}`,
                     {
                         injectionConfigs: [injectionConfigsPath]
                     }
@@ -343,15 +363,20 @@ export class Configure extends SfdxCommand implements HasRequirements {
             config.services[1][1].injectionConfigs = [];
         }
 
-        const configJSON = JSON.stringify(config, undefined, 2);
+        // Convert to JSON, then "sanitize" and convert from JSON to a valid JS.
+        const regex = /"\$\{\w+\}"/g;
+        const configJSON = JSON.stringify(config, undefined, 2).replace(
+            regex,
+            (match) => {
+                const key = match.slice(1, -1);
+                return placeholder_values.get(key) ?? match;
+            }
+        );
 
         const content =
             `const { UtamWdioService } = require("wdio-utam-service")\n\n` +
             // convert from string to object to pickup the one imported using the require statement
-            `exports.config = ${configJSON.replace(
-                '"UtamWdioService"',
-                'UtamWdioService'
-            )}`;
+            `exports.config = ${configJSON}`;
 
         return CommonUtils.createTextFile(output, content);
     }
