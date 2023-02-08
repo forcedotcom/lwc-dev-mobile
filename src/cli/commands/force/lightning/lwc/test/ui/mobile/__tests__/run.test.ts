@@ -134,17 +134,11 @@ describe('Mobile UI Test Run Tests', () => {
         });
         npxWdioCommandSpy.mockImplementationOnce(resolveOneSpec);
 
-        jest.spyOn(fs, 'statSync')
-            .mockReturnValueOnce({
-                isFile: function () {
-                    return false;
-                }
-            } as fs.Stats)
-            .mockReturnValue({
-                isFile: function () {
-                    return false;
-                }
-            } as fs.Stats);
+        jest.spyOn(fs, 'statSync').mockReturnValue({
+            isFile: function () {
+                return false;
+            }
+        } as fs.Stats);
 
         jest.spyOn(fs, 'readdirSync')
             .mockReturnValueOnce([
