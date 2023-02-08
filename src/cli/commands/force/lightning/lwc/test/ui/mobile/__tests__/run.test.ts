@@ -11,6 +11,7 @@ import { Logger, Messages } from '@salesforce/core';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import { Run } from '../run';
 import fs from 'fs';
+import path from 'path';
 import util from 'util';
 
 Messages.importMessagesDirectory(__dirname);
@@ -50,8 +51,7 @@ describe('Mobile UI Test Run Tests', () => {
             spec: 'a path to invalid spec'
         });
 
-        fs.existsSync = jest
-            .fn()
+        jest.spyOn(fs, 'existsSync')
             .mockReturnValueOnce(true)
             .mockReturnValueOnce(false);
 
@@ -66,6 +66,7 @@ describe('Mobile UI Test Run Tests', () => {
     });
 
     test('Validates correct npx wdio command gets called with a test spec', async () => {
+        const quote = process.platform === 'win32' ? '"' : "'";
         const config = 'wdio.config.js';
         const spec = 'mytest.spec.js';
         const cmd = createCommand({
@@ -73,7 +74,7 @@ describe('Mobile UI Test Run Tests', () => {
             spec: spec
         });
 
-        fs.existsSync = jest.fn().mockReturnValue(true);
+        jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 
         const npxWdioCommandSpy = jest.spyOn(
             CommonUtils,
@@ -94,20 +95,33 @@ describe('Mobile UI Test Run Tests', () => {
         await cmd.run();
 
         expect(resolveOneSpec).toHaveBeenCalledWith(
-            `npx --no-install wdio '${config}' --spec '${spec}'`
+            `npx --no-install wdio ${quote}${config}${quote} --spec ${quote}${path.normalize(
+                spec
+            )}${quote}`,
+            true,
+            true
         );
     });
 
     test('Validates correct npx wdio command gets called with a folder containing test specs', async () => {
+        const quote = process.platform === 'win32' ? '"' : "'";
         const config = 'wdio.config.js';
 
         const specTest0 = 'test0.spec.js';
         const specTest1 = 'test1.spec.js';
         const specFolder0 = 'testSpecFolder0';
         const specFolder1 = 'testSpecFolder1';
-        const specFolder0Test0 = `${specFolder0}/${specTest0}`;
-        const specFolder0Folder1Test0 = `${specFolder0}/${specFolder1}/${specTest0}`;
-        const specFolder0Folder1Test1 = `${specFolder0}/${specFolder1}/${specTest1}`;
+        const specFolder0Test0 = path.join(specFolder0, specTest0);
+        const specFolder0Folder1Test0 = path.join(
+            specFolder0,
+            specFolder1,
+            specTest0
+        );
+        const specFolder0Folder1Test1 = path.join(
+            specFolder0,
+            specFolder1,
+            specTest1
+        );
 
         // Going to assert on a virtual directory structure as modeled like below
         //
@@ -122,7 +136,7 @@ describe('Mobile UI Test Run Tests', () => {
             spec: specFolder0
         });
 
-        fs.existsSync = jest.fn().mockReturnValue(true);
+        jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 
         const npxWdioCommandSpy = jest.spyOn(
             CommonUtils,
@@ -133,17 +147,11 @@ describe('Mobile UI Test Run Tests', () => {
         });
         npxWdioCommandSpy.mockImplementationOnce(resolveOneSpec);
 
-        jest.spyOn(fs, 'statSync')
-            .mockReturnValueOnce({
-                isFile: function () {
-                    return false;
-                }
-            } as fs.Stats)
-            .mockReturnValue({
-                isFile: function () {
-                    return false;
-                }
-            } as fs.Stats);
+        jest.spyOn(fs, 'statSync').mockReturnValue({
+            isFile: function () {
+                return false;
+            }
+        } as fs.Stats);
 
         jest.spyOn(fs, 'readdirSync')
             .mockReturnValueOnce([
@@ -179,7 +187,9 @@ describe('Mobile UI Test Run Tests', () => {
         await cmd.run();
 
         expect(resolveOneSpec).toHaveBeenCalledWith(
-            `npx --no-install wdio '${config}' --spec '${specFolder0Folder1Test0}' '${specFolder0Folder1Test1}' '${specFolder0Test0}'`
+            `npx --no-install wdio ${quote}${config}${quote} --spec ${quote}${specFolder0Folder1Test0}${quote} ${quote}${specFolder0Folder1Test1}${quote} ${quote}${specFolder0Test0}${quote}`,
+            true,
+            true
         );
     });
 
@@ -202,13 +212,9 @@ describe('Mobile UI Test Run Tests', () => {
             }
         );
 
-        fs.existsSync = jest.fn().mockReturnValue(true);
+        jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 
-        const enumerateTestSpecsSpy = jest.spyOn(
-            Run.prototype as any,
-            'enumerateTestSpecs'
-        );
-        enumerateTestSpecsSpy.mockReturnValue([]);
+        jest.spyOn(CommonUtils, 'enumerateFiles').mockReturnValue([]);
 
         try {
             await cmd.init();

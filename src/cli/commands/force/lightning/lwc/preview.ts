@@ -105,7 +105,7 @@ export class Preview extends SfdxCommand implements HasRequirements {
         | AndroidAppPreviewConfig
         | undefined;
 
-    public async run(): Promise<any> {
+    public async run(): Promise<void> {
         this.logger.info(`Preview command invoked for ${this.flags.platform}`);
 
         return this.validateInputParameters() // validate input

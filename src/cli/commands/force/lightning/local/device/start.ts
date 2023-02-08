@@ -75,7 +75,7 @@ export class Start extends SfdxCommand implements HasRequirements {
     private target = '';
     private writableSystem = false;
 
-    public async run(): Promise<any> {
+    public async run(): Promise<void> {
         this.logger.info(
             `Device Start command invoked for ${this.flags.platform}`
         );

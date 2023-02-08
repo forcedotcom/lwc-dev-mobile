@@ -87,7 +87,7 @@ export class Create extends SfdxCommand implements HasRequirements {
     public deviceName = '';
     public deviceType = '';
 
-    public async run(): Promise<any> {
+    public async run(): Promise<void> {
         this.logger.info(
             `Device Create command invoked for ${this.flags.platform}`
         );

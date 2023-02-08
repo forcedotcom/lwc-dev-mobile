@@ -71,7 +71,7 @@ export class Run extends SfdxCommand {
             });
     }
 
-    public async run(): Promise<any> {
+    public async run(): Promise<void> {
         this.logger.info(`UTAM run command invoked.`);
 
         const config = CommandLineUtils.resolveFlag(
@@ -82,7 +82,6 @@ export class Run extends SfdxCommand {
             CommonUtils.resolveUserHomePath(config)
         );
         if (!fs.existsSync(configPath)) {
-            CommonUtils.stopCliAction();
             return Promise.reject(
                 Run.createError('error:configFileDoesntExistDescription')
             );
@@ -95,37 +94,29 @@ export class Run extends SfdxCommand {
                 CommonUtils.resolveUserHomePath(spec)
             );
             if (!fs.existsSync(specPath)) {
-                CommonUtils.stopCliAction();
                 return Promise.reject(
                     Run.createError('error:specPathInvalidDescription')
                 );
             }
-            let specsArray = this.enumerateTestSpecs(specPath);
-            specsArray = specsArray.map((spec) => `'${spec}'`);
+            // Get all files ending with .JS or .js since some operating
+            // systems are case sensitive on file names/extensions.
+            let specsArray = CommonUtils.enumerateFiles(
+                specPath,
+                new RegExp('^.*\\.((j|J)(s|S))$')
+            );
+            const quote = process.platform === 'win32' ? '"' : "'";
+            specsArray = specsArray.map((spec) => `${quote}${spec}${quote}`);
             specs = specsArray.join(' ');
         }
 
         CommonUtils.startCliAction(messages.getMessage('runningUtamTest'));
-        return await this.executeRunUtamTest(configPath, specs)
-            .then((result) => {
-                this.logger.info(
-                    `UTAM test ran successfully:\n${result.stdout}`
-                );
-
-                // TODO: Output using console.log until we decide how to report back to sfdx.
-                //
-                // tslint:disable-next-line: no-console
-                console.log(result.stdout);
-
+        return this.executeRunUtamTest(configPath, specs)
+            .then(() => {
+                this.logger.info(`UTAM test ran successfully`);
                 return Promise.resolve();
             })
             .catch((error) => {
                 this.logger.warn(`Failed to run UTAM test: ${error}`);
-
-                // TODO: Output using console.log until we decide how to report back to sfdx.
-                //
-                // tslint:disable-next-line: no-console
-                console.log(error);
 
                 return Promise.reject(
                     Run.createError('error:unexpectedErrorDescription', error)
@@ -139,46 +130,15 @@ export class Run extends SfdxCommand {
     private async executeRunUtamTest(
         configPath: string,
         specs: string
-    ): Promise<any> {
-        let cmd = `npx --no-install wdio '${configPath}'`;
+    ): Promise<{ stdout: string; stderr: string }> {
+        const quote = process.platform === 'win32' ? '"' : "'";
+        let cmd = `npx --no-install wdio ${quote}${configPath}${quote}`;
         if (specs.length > 0) {
             // If the spec flag is set then honor that and use that test over
             // specs that are specified in the config.
             cmd = cmd + ` --spec ${specs}`;
         }
 
-        return CommonUtils.executeCommandAsync(cmd);
-    }
-
-    /**
-     * Recursively collects paths of test files given a starting point.
-     * If a valid test file is selected as a starting point then it will
-     * be the sole path returned in an array. Otherwise, the array returned
-     * will be collection of files' paths including subfolders' files.
-     *
-     * @param path Path to a test file or a folder that contains tests.
-     * @returns Array of paths to test files.
-     */
-    private enumerateTestSpecs(path: string): Array<string> {
-        let files: Array<string> = [];
-        const stat = fs.statSync(path);
-        if (stat.isFile()) {
-            files.push(`${path}`);
-        } else {
-            const items = fs.readdirSync(path, {
-                withFileTypes: true
-            });
-            items.forEach(async (item) => {
-                if (item.isDirectory()) {
-                    files = [
-                        ...files,
-                        ...this.enumerateTestSpecs(`${path}/${item.name}`)
-                    ];
-                } else {
-                    files.push(`${path}/${item.name}`);
-                }
-            });
-        }
-        return files;
+        return CommonUtils.executeCommandAsync(cmd, true, true);
     }
 }
