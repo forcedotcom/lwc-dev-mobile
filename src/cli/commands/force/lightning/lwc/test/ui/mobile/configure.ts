@@ -163,7 +163,7 @@ export class Configure extends SfdxCommand implements HasRequirements {
             });
     }
 
-    public async run(): Promise<any> {
+    public async run(): Promise<void> {
         this.logger.info(
             `Mobile UI Test Configuration command invoked for ${this.flags.platform}`
         );

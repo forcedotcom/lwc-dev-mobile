@@ -71,7 +71,7 @@ export class Run extends SfdxCommand {
             });
     }
 
-    public async run(): Promise<any> {
+    public async run(): Promise<void> {
         this.logger.info(`UTAM run command invoked.`);
 
         const config = CommandLineUtils.resolveFlag(
@@ -82,7 +82,6 @@ export class Run extends SfdxCommand {
             CommonUtils.resolveUserHomePath(config)
         );
         if (!fs.existsSync(configPath)) {
-            CommonUtils.stopCliAction();
             return Promise.reject(
                 Run.createError('error:configFileDoesntExistDescription')
             );
@@ -95,7 +94,6 @@ export class Run extends SfdxCommand {
                 CommonUtils.resolveUserHomePath(spec)
             );
             if (!fs.existsSync(specPath)) {
-                CommonUtils.stopCliAction();
                 return Promise.reject(
                     Run.createError('error:specPathInvalidDescription')
                 );
@@ -112,7 +110,7 @@ export class Run extends SfdxCommand {
         }
 
         CommonUtils.startCliAction(messages.getMessage('runningUtamTest'));
-        return await this.executeRunUtamTest(configPath, specs)
+        return this.executeRunUtamTest(configPath, specs)
             .then(() => {
                 this.logger.info(`UTAM test ran successfully`);
                 return Promise.resolve();
@@ -132,7 +130,7 @@ export class Run extends SfdxCommand {
     private async executeRunUtamTest(
         configPath: string,
         specs: string
-    ): Promise<any> {
+    ): Promise<{ stdout: string; stderr: string }> {
         let cmd = `npx --no-install wdio '${configPath}'`;
         if (specs.length > 0) {
             // If the spec flag is set then honor that and use that test over
@@ -141,37 +139,5 @@ export class Run extends SfdxCommand {
         }
 
         return CommonUtils.executeCommandAsync(cmd, true, true);
-    }
-
-    /**
-     * Recursively collects paths of test files given a starting point.
-     * If a valid test file is selected as a starting point then it will
-     * be the sole path returned in an array. Otherwise, the array returned
-     * will be collection of files' paths including subfolders' files.
-     *
-     * @param path Path to a test file or a folder that contains tests.
-     * @returns Array of paths to test files.
-     */
-    private enumerateTestSpecs(path: string): Array<string> {
-        let files: Array<string> = [];
-        const stat = fs.statSync(path);
-        if (stat.isFile()) {
-            files.push(`${path}`);
-        } else {
-            const items = fs.readdirSync(path, {
-                withFileTypes: true
-            });
-            items.forEach(async (item) => {
-                if (item.isDirectory()) {
-                    files = [
-                        ...files,
-                        ...this.enumerateTestSpecs(`${path}/${item.name}`)
-                    ];
-                } else {
-                    files.push(`${path}/${item.name}`);
-                }
-            });
-        }
-        return files;
     }
 }
