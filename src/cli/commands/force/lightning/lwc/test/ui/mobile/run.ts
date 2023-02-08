@@ -131,7 +131,8 @@ export class Run extends SfdxCommand {
         configPath: string,
         specs: string
     ): Promise<{ stdout: string; stderr: string }> {
-        let cmd = `npx --no-install wdio '${configPath}'`;
+        const quote = process.platform === 'win32' ? '"' : "'";
+        let cmd = `npx --no-install wdio ${quote}${configPath}${quote}`;
         if (specs.length > 0) {
             // If the spec flag is set then honor that and use that test over
             // specs that are specified in the config.
