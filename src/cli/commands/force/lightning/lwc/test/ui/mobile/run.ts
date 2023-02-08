@@ -100,32 +100,25 @@ export class Run extends SfdxCommand {
                     Run.createError('error:specPathInvalidDescription')
                 );
             }
-            let specsArray = this.enumerateTestSpecs(specPath);
-            specsArray = specsArray.map((spec) => `'${spec}'`);
+            // Get all files ending with .JS or .js since some operating
+            // systems are case sensitive on file names/extensions.
+            let specsArray = CommonUtils.enumerateFiles(
+                specPath,
+                new RegExp('^.*\\.((j|J)(s|S))$')
+            );
+            const quote = process.platform === 'win32' ? '"' : "'";
+            specsArray = specsArray.map((spec) => `${quote}${spec}${quote}`);
             specs = specsArray.join(' ');
         }
 
         CommonUtils.startCliAction(messages.getMessage('runningUtamTest'));
         return await this.executeRunUtamTest(configPath, specs)
-            .then((result) => {
-                this.logger.info(
-                    `UTAM test ran successfully:\n${result.stdout}`
-                );
-
-                // TODO: Output using console.log until we decide how to report back to sfdx.
-                //
-                // tslint:disable-next-line: no-console
-                console.log(result.stdout);
-
+            .then(() => {
+                this.logger.info(`UTAM test ran successfully`);
                 return Promise.resolve();
             })
             .catch((error) => {
                 this.logger.warn(`Failed to run UTAM test: ${error}`);
-
-                // TODO: Output using console.log until we decide how to report back to sfdx.
-                //
-                // tslint:disable-next-line: no-console
-                console.log(error);
 
                 return Promise.reject(
                     Run.createError('error:unexpectedErrorDescription', error)
@@ -147,7 +140,7 @@ export class Run extends SfdxCommand {
             cmd = cmd + ` --spec ${specs}`;
         }
 
-        return CommonUtils.executeCommandAsync(cmd);
+        return CommonUtils.executeCommandAsync(cmd, true, true);
     }
 
     /**
