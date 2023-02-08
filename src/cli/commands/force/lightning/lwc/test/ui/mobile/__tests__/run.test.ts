@@ -50,8 +50,7 @@ describe('Mobile UI Test Run Tests', () => {
             spec: 'a path to invalid spec'
         });
 
-        fs.existsSync = jest
-            .fn()
+        jest.spyOn(fs, 'existsSync')
             .mockReturnValueOnce(true)
             .mockReturnValueOnce(false);
 
@@ -73,7 +72,7 @@ describe('Mobile UI Test Run Tests', () => {
             spec: spec
         });
 
-        fs.existsSync = jest.fn().mockReturnValue(true);
+        jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 
         const npxWdioCommandSpy = jest.spyOn(
             CommonUtils,
@@ -94,7 +93,9 @@ describe('Mobile UI Test Run Tests', () => {
         await cmd.run();
 
         expect(resolveOneSpec).toHaveBeenCalledWith(
-            `npx --no-install wdio '${config}' --spec '${spec}'`
+            `npx --no-install wdio '${config}' --spec '${spec}'`,
+            true,
+            true
         );
     });
 
@@ -122,7 +123,7 @@ describe('Mobile UI Test Run Tests', () => {
             spec: specFolder0
         });
 
-        fs.existsSync = jest.fn().mockReturnValue(true);
+        jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 
         const npxWdioCommandSpy = jest.spyOn(
             CommonUtils,
@@ -179,7 +180,9 @@ describe('Mobile UI Test Run Tests', () => {
         await cmd.run();
 
         expect(resolveOneSpec).toHaveBeenCalledWith(
-            `npx --no-install wdio '${config}' --spec '${specFolder0Folder1Test0}' '${specFolder0Folder1Test1}' '${specFolder0Test0}'`
+            `npx --no-install wdio '${config}' --spec '${specFolder0Folder1Test0}' '${specFolder0Folder1Test1}' '${specFolder0Test0}'`,
+            true,
+            true
         );
     });
 
@@ -202,13 +205,9 @@ describe('Mobile UI Test Run Tests', () => {
             }
         );
 
-        fs.existsSync = jest.fn().mockReturnValue(true);
+        jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 
-        const enumerateTestSpecsSpy = jest.spyOn(
-            Run.prototype as any,
-            'enumerateTestSpecs'
-        );
-        enumerateTestSpecsSpy.mockReturnValue([]);
+        jest.spyOn(CommonUtils, 'enumerateFiles').mockReturnValue([]);
 
         try {
             await cmd.init();
