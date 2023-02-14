@@ -76,10 +76,7 @@ describe('Mobile UI Test Run Tests', () => {
 
         jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 
-        const npxWdioCommandSpy = jest.spyOn(
-            CommonUtils,
-            'executeCommandAsync'
-        );
+        const npxWdioCommandSpy = jest.spyOn(CommonUtils, 'spawnCommandAsync');
         const resolveOneSpec = jest.fn(() => {
             return Promise.resolve({ stdout: '', stderr: '' });
         });
@@ -95,11 +92,15 @@ describe('Mobile UI Test Run Tests', () => {
         await cmd.run();
 
         expect(resolveOneSpec).toHaveBeenCalledWith(
-            `npx --no-install wdio ${quote}${config}${quote} --spec ${quote}${path.normalize(
-                spec
-            )}${quote}`,
-            true,
-            true
+            'npx',
+            [
+                '--no-install',
+                'wdio',
+                `${quote}${config}${quote}`,
+                '--spec',
+                `${quote}${spec}${quote}`
+            ],
+            ['inherit', 'inherit', 'inherit']
         );
     });
 
@@ -138,10 +139,7 @@ describe('Mobile UI Test Run Tests', () => {
 
         jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 
-        const npxWdioCommandSpy = jest.spyOn(
-            CommonUtils,
-            'executeCommandAsync'
-        );
+        const npxWdioCommandSpy = jest.spyOn(CommonUtils, 'spawnCommandAsync');
         const resolveOneSpec = jest.fn(() => {
             return Promise.resolve({ stdout: '', stderr: '' });
         });
@@ -187,9 +185,17 @@ describe('Mobile UI Test Run Tests', () => {
         await cmd.run();
 
         expect(resolveOneSpec).toHaveBeenCalledWith(
-            `npx --no-install wdio ${quote}${config}${quote} --spec ${quote}${specFolder0Folder1Test0}${quote} ${quote}${specFolder0Folder1Test1}${quote} ${quote}${specFolder0Test0}${quote}`,
-            true,
-            true
+            'npx',
+            [
+                '--no-install',
+                'wdio',
+                `${quote}wdio.config.js${quote}`,
+                '--spec',
+                `${quote}${specFolder0Folder1Test0}${quote}`,
+                `${quote}${specFolder0Folder1Test1}${quote}`,
+                `${quote}${specFolder0Test0}${quote}`
+            ],
+            ['inherit', 'inherit', 'inherit']
         );
     });
 
@@ -201,16 +207,14 @@ describe('Mobile UI Test Run Tests', () => {
 
         const unexpectedErrorMessage = 'UTAM test run failed';
 
-        jest.spyOn(CommonUtils, 'executeCommandAsync').mockImplementation(
-            () => {
-                return Promise.reject(
-                    util.format(
-                        messages.getMessage('error:unexpectedErrorDescription'),
-                        unexpectedErrorMessage
-                    )
-                );
-            }
-        );
+        jest.spyOn(CommonUtils, 'spawnCommandAsync').mockImplementation(() => {
+            return Promise.reject(
+                util.format(
+                    messages.getMessage('error:unexpectedErrorDescription'),
+                    unexpectedErrorMessage
+                )
+            );
+        });
 
         jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 
