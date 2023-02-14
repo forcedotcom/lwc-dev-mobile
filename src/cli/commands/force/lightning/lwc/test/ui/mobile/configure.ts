@@ -323,7 +323,10 @@ export class Configure extends SfdxCommand implements HasRequirements {
                 [
                     'appium',
                     {
-                        command: 'appium'
+                        command: 'appium',
+                        args: {
+                            allowInsecure: 'chromedriver_autodownload'
+                        }
                     }
                 ],
                 [
@@ -364,13 +367,19 @@ export class Configure extends SfdxCommand implements HasRequirements {
         }
 
         // Convert to JSON, then "sanitize" and convert from JSON to a valid JS.
+        const chromeDriverAutoDownloadComment =
+            '// fetch the appropriate version of chrome driver as needed';
         const regex = /"\$\{\w+\}"/g;
-        const configJSON = JSON.stringify(config, undefined, 2).replace(
+        let configJSON = JSON.stringify(config, undefined, 2).replace(
             regex,
             (match) => {
                 const key = match.slice(1, -1);
                 return placeholder_values.get(key) ?? match;
             }
+        );
+        configJSON = configJSON.replace(
+            '"chromedriver_autodownload"',
+            `"chromedriver_autodownload" ${chromeDriverAutoDownloadComment}`
         );
 
         const content =
