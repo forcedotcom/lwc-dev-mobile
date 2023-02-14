@@ -1079,10 +1079,10 @@
     shx "^0.3.3"
     tslib "^2.2.0"
 
-"@salesforce/lwc-dev-mobile-core@^2.3.0":
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/@salesforce/lwc-dev-mobile-core/-/lwc-dev-mobile-core-2.3.0.tgz#48e2f20860ebf8be3de3da1f116643753f8e92dc"
-  integrity sha512-5F5Tt9DhQHcdbAfwUBFgRNX+9yjjwWiP1K+L7xp0Pepw+wMWRRtZ7FbX6ROfgbEFr3+aFNNg9dR2yJFyw9BkPA==
+"@salesforce/lwc-dev-mobile-core@^2.4.0":
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/@salesforce/lwc-dev-mobile-core/-/lwc-dev-mobile-core-2.4.0.tgz#7c035aa8195297fa9db97b677756dd0348533cbc"
+  integrity sha512-HbLQFqjXUAloOvMyyaPzXx49vO+UI96rtLZ6+DW9oEZPhlmBuU5+swzRCwxpBl2n3NmNhv2af8FoUIBqzTJOwg==
   dependencies:
     "@oclif/core" "^1.24.2"
     "@oclif/plugin-version" "1.2.0"

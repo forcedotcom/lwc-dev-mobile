@@ -9,6 +9,7 @@ import { flags, SfdxCommand } from '@salesforce/command';
 import { Logger, Messages, SfError } from '@salesforce/core';
 import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
+import * as childProcess from 'child_process';
 import util from 'util';
 import fs from 'fs';
 import path from 'path';
@@ -87,7 +88,7 @@ export class Run extends SfdxCommand {
             );
         }
 
-        let specs = '';
+        let specs: string[] = [];
         const spec = CommandLineUtils.resolveFlag(this.flags.spec, '').trim();
         if (spec.length > 0) {
             const specPath = path.normalize(
@@ -100,13 +101,10 @@ export class Run extends SfdxCommand {
             }
             // Get all files ending with .JS or .js since some operating
             // systems are case sensitive on file names/extensions.
-            let specsArray = CommonUtils.enumerateFiles(
+            specs = CommonUtils.enumerateFiles(
                 specPath,
                 new RegExp('^.*\\.((j|J)(s|S))$')
             );
-            const quote = process.platform === 'win32' ? '"' : "'";
-            specsArray = specsArray.map((spec) => `${quote}${spec}${quote}`);
-            specs = specsArray.join(' ');
         }
 
         CommonUtils.startCliAction(messages.getMessage('runningUtamTest'));
@@ -129,16 +127,25 @@ export class Run extends SfdxCommand {
 
     private async executeRunUtamTest(
         configPath: string,
-        specs: string
+        specs: string[]
     ): Promise<{ stdout: string; stderr: string }> {
         const quote = process.platform === 'win32' ? '"' : "'";
-        let cmd = `npx --no-install wdio ${quote}${configPath}${quote}`;
+        const cmd = 'npx';
+        const args = ['--no-install', 'wdio', `${quote}${configPath}${quote}`];
         if (specs.length > 0) {
             // If the spec flag is set then honor that and use that test over
-            // specs that are specified in the config.
-            cmd = cmd + ` --spec ${specs}`;
+            // specs that are specified in the config. We wrap the path to each
+            // spec file in quotes in case the path has whitespace.
+            const specsArray = specs.map((spec) => `${quote}${spec}${quote}`);
+            args.push('--spec');
+            args.push(...specsArray);
         }
 
-        return CommonUtils.executeCommandAsync(cmd, true, true);
+        const stdioOptions: childProcess.StdioOptions = [
+            'inherit',
+            'inherit',
+            'inherit'
+        ]; // have the child process report its STDIO back to the host process
+        return CommonUtils.spawnCommandAsync(cmd, args, stdioOptions);
     }
 }
