@@ -105,7 +105,7 @@ export class Preview extends SfdxCommand implements HasRequirements {
         | AndroidAppPreviewConfig
         | undefined;
 
-    public async run(): Promise<any> {
+    public async run(): Promise<void> {
         this.logger.info(`Preview command invoked for ${this.flags.platform}`);
 
         return this.validateInputParameters() // validate input
@@ -306,7 +306,7 @@ export class Preview extends SfdxCommand implements HasRequirements {
                       this.flags.apilevel
                   )
                 : new IOSEnvironmentRequirements(this.logger);
-            this._requirements.preview = {
+            requirements.preview = {
                 requirements: [
                     new LwcServerPluginInstalledRequirement(this.logger),
                     new LwcServerIsRunningRequirement(this.logger)
