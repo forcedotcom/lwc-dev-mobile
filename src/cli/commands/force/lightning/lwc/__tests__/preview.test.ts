@@ -21,45 +21,54 @@ import {
 } from '../preview';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'preview');
-
-const passedSetupMock = jest.fn(() => {
-    return Promise.resolve();
-});
-
-const failedSetupMock = jest.fn(() => {
-    return Promise.reject(new SfError('Mock Failure in tests!'));
-});
-
-const iosLaunchPreview = jest.fn(() => Promise.resolve());
-const androidLaunchPreview = jest.fn(() => Promise.resolve());
-
-const sampleConfigFile = `
-{
-    "apps": {
-    "ios": [
-        {
-            "id": "com.salesforce.test",
-            "name": "Test App",
-            "get_app_bundle": "configure_ios_test_app.ts",
-            "preview_server_enabled": true
-        }
-    ],
-    "android": [
-        {
-            "id": "com.salesforce.test",
-            "name": "Test App",
-            "get_app_bundle": "configure_android_test_app.ts",
-            "activity": ".MainActivity",
-            "preview_server_enabled": true
-        }
-    ]
-    }
-}
-`;
 
 describe('Preview Tests', () => {
+    const sampleConfigFile = `
+    {
+        "apps": {
+        "ios": [
+            {
+                "id": "com.salesforce.test",
+                "name": "Test App",
+                "get_app_bundle": "configure_ios_test_app.ts",
+                "preview_server_enabled": true
+            }
+        ],
+        "android": [
+            {
+                "id": "com.salesforce.test",
+                "name": "Test App",
+                "get_app_bundle": "configure_android_test_app.ts",
+                "activity": ".MainActivity",
+                "preview_server_enabled": true
+            }
+        ]
+        }
+    }
+    `;
+
+    const messages = Messages.loadMessages(
+        '@salesforce/lwc-dev-mobile',
+        'preview'
+    );
+
+    let passedSetupMock: jest.Mock<any, [], any>;
+    let failedSetupMock: jest.Mock<any, [], any>;
+    let iosLaunchPreview: jest.Mock<any, [], any>;
+    let androidLaunchPreview: jest.Mock<any, [], any>;
+
     beforeEach(() => {
+        passedSetupMock = jest.fn(() => {
+            return Promise.resolve();
+        });
+
+        failedSetupMock = jest.fn(() => {
+            return Promise.reject(new SfError('Mock Failure in tests!'));
+        });
+
+        iosLaunchPreview = jest.fn(() => Promise.resolve());
+        androidLaunchPreview = jest.fn(() => Promise.resolve());
+
         jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
             passedSetupMock
         );

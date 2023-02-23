@@ -11,12 +11,14 @@ import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUt
 import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import { Setup } from '../setup';
 
-const passedSetupMock = jest.fn(() => {
-    return Promise.resolve();
-});
-
 describe('Setup Tests', () => {
+    let passedSetupMock: jest.Mock<any, [], any>;
+
     beforeEach(() => {
+        passedSetupMock = jest.fn(() => {
+            return Promise.resolve();
+        });
+
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
         jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
