@@ -5,9 +5,9 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { FlagsConfig, SfdxCommand } from '@salesforce/command';
-import { Logger, Messages } from '@salesforce/core';
+import { Messages } from '@salesforce/core';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
+import { BaseCommand } from '@salesforce/lwc-dev-mobile-core/lib/common/BaseCommand';
 import {
     CommandLineUtils,
     FlagsConfigType
@@ -16,7 +16,7 @@ import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUt
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { PerformanceMarkers } from '@salesforce/lwc-dev-mobile-core/lib/common/PerformanceMarkers';
 import chalk from 'chalk';
-import { CliUx } from '@oclif/core';
+import { ux } from '@oclif/core';
 import { performance, PerformanceObserver } from 'perf_hooks';
 
 // Initialize Messages with the current plugin directory
@@ -29,16 +29,19 @@ const messages = Messages.loadMessages(
     'device-list'
 );
 
-export class List extends SfdxCommand {
-    public static description = messages.getMessage('commandDescription');
+export class List extends BaseCommand {
+    protected _commandName = 'sfdx force:lightning:local:device:list';
 
-    public static examples = [
+    public static readonly description =
+        messages.getMessage('commandDescription');
+
+    public static readonly examples = [
         `sfdx force:lightning:local:device:list -p iOS`,
         `sfdx force:lightning:local:device:list -p Android`
     ];
 
-    public static readonly flagsConfig: FlagsConfig = {
-        ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
+    public static readonly flags = {
+        ...CommandLineUtils.createFlag(FlagsConfigType.Platform, true)
     };
 
     private perfMarker = PerformanceMarkers.getByName(
@@ -47,28 +50,12 @@ export class List extends SfdxCommand {
 
     public async run(): Promise<any> {
         this.logger.info(
-            `Device List command invoked for ${this.flags.platform}`
+            `Device List command invoked for ${this.flagValues.platform}`
         );
 
-        return CommandLineUtils.platformFlagIsIOS(this.flags.platform)
+        return CommandLineUtils.platformFlagIsIOS(this.flagValues.platform)
             ? this.iOSDeviceList()
             : this.androidDeviceList();
-    }
-
-    public async init(): Promise<void> {
-        if (this.logger) {
-            // already initialized
-            return Promise.resolve();
-        }
-
-        CommandLineUtils.flagFailureActionMessages = List.examples;
-        return super
-            .init()
-            .then(() => Logger.child('force:lightning:local:device:list', {}))
-            .then((logger) => {
-                this.logger = logger;
-                return Promise.resolve();
-            });
     }
 
     private async iOSDeviceList(): Promise<any> {
@@ -114,7 +101,7 @@ export class List extends SfdxCommand {
         );
 
         const message = `DeviceList (${duration.toFixed(3)} sec)`;
-        const tree = CliUx.ux.tree();
+        const tree = ux.tree();
         tree.insert(message);
         const rootNode = tree.nodes[message];
         list.forEach((item) => {

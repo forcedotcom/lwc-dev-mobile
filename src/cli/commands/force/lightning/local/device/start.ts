@@ -5,10 +5,11 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
-import { Logger, Messages, SfError } from '@salesforce/core';
+import { Flags } from '@salesforce/sf-plugins-core';
+import { Messages, SfError } from '@salesforce/core';
 import { AndroidEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidEnvironmentRequirements';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
+import { BaseCommand } from '@salesforce/lwc-dev-mobile-core/lib/common/BaseCommand';
 import {
     CommandLineUtils,
     FlagsConfigType
@@ -18,7 +19,6 @@ import { IOSEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import {
     CommandRequirements,
-    HasRequirements,
     RequirementProcessor
 } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import util from 'util';
@@ -35,54 +35,39 @@ const messages = Messages.loadMessages(
 
 const LWC_DEV_MOBILE = 'lwc-dev-mobile';
 
-export class Start extends SfdxCommand implements HasRequirements {
-    public static description = messages.getMessage('commandDescription');
+export class Start extends BaseCommand {
+    protected _commandName = 'force:lightning:local:device:start';
 
-    public static examples = [
+    public static readonly description =
+        messages.getMessage('commandDescription');
+
+    public static readonly examples = [
         `sfdx force:lightning:local:device:start -p iOS -t MySimulator`,
         `sfdx force:lightning:local:device:create -p Android -t MyEmulator -w`
     ];
 
-    public static readonly flagsConfig: FlagsConfig = {
-        target: flags.string({
+    public static readonly flags = {
+        target: Flags.string({
             char: 't',
             description: messages.getMessage('targetFlagDescription'),
             required: true,
-            validate: (target) => {
-                if (target && target.trim().length > 0) {
-                    return true;
-                } else {
-                    throw new SfError(
-                        messages.getMessage(
-                            'error:invalidTargetFlagsDescription'
-                        ),
-                        LWC_DEV_MOBILE,
-                        Start.examples
-                    );
-                }
+            validate: (target: string) => {
+                return target && target.trim().length > 0;
             }
         }),
-        writablesystem: flags.boolean({
+        writablesystem: Flags.boolean({
             char: 'w',
             description: messages.getMessage('writablesystemFlagDescription'),
             required: false,
             default: false
         }),
-        ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
+        ...CommandLineUtils.createFlag(FlagsConfigType.Platform, true)
     };
-
-    private platform = '';
-    private target = '';
-    private writableSystem = false;
 
     public async run(): Promise<void> {
         this.logger.info(
-            `Device Start command invoked for ${this.flags.platform}`
+            `Device Start command invoked for ${this.flagValues.platform}`
         );
-
-        this.platform = this.flags.platform;
-        this.target = this.flags.target;
-        this.writableSystem = this.flags.writablesystem;
 
         return RequirementProcessor.execute(this.commandRequirements).then(
             () => {
@@ -95,48 +80,32 @@ export class Start extends SfdxCommand implements HasRequirements {
         );
     }
 
-    private _requirements: CommandRequirements = {};
-    public get commandRequirements(): CommandRequirements {
-        if (Object.keys(this._requirements).length === 0) {
-            const requirements: CommandRequirements = {};
-            requirements.setup = CommandLineUtils.platformFlagIsAndroid(
-                this.flags.platform
-            )
-                ? new AndroidEnvironmentRequirements(
-                      this.logger,
-                      this.flags.apilevel
-                  )
-                : new IOSEnvironmentRequirements(this.logger);
-            this._requirements = requirements;
-        }
-        return this._requirements;
+    protected populateCommandRequirements(): void {
+        const requirements: CommandRequirements = {};
+
+        requirements.setup = CommandLineUtils.platformFlagIsAndroid(
+            this.flagValues.platform
+        )
+            ? new AndroidEnvironmentRequirements(
+                  this.logger,
+                  this.flagValues.apilevel
+              )
+            : new IOSEnvironmentRequirements(this.logger);
+
+        this._commandRequirements = requirements;
     }
 
-    public async init(): Promise<void> {
-        if (this.logger) {
-            // already initialized
-            return Promise.resolve();
-        }
-
-        CommandLineUtils.flagFailureActionMessages = Start.examples;
-        return super
-            .init()
-            .then(() => Logger.child('force:lightning:local:device:start', {}))
-            .then((logger) => {
-                this.logger = logger;
-                return Promise.resolve();
-            });
-    }
-
-    private async executeDeviceStart(): Promise<any> {
-        const isAndroid = CommandLineUtils.platformFlagIsAndroid(this.platform);
+    private async executeDeviceStart(): Promise<void> {
+        const isAndroid = CommandLineUtils.platformFlagIsAndroid(
+            this.flagValues.platform
+        );
         return isAndroid
             ? this.executeAndroidDeviceStart()
             : this.executeIOSDeviceStart();
     }
 
     private async executeAndroidDeviceStart(): Promise<void> {
-        return AndroidUtils.hasEmulator(this.target)
+        return AndroidUtils.hasEmulator(this.flagValues.target)
             .then((hasEmulator) => {
                 if (!hasEmulator) {
                     return Promise.reject(
@@ -145,7 +114,7 @@ export class Start extends SfdxCommand implements HasRequirements {
                                 messages.getMessage(
                                     'error:targetDoesNotExistDescription'
                                 ),
-                                this.target
+                                this.flagValues.target
                             ),
                             LWC_DEV_MOBILE
                         )
@@ -155,12 +124,12 @@ export class Start extends SfdxCommand implements HasRequirements {
                         messages.getMessage('deviceStartAction'),
                         util.format(
                             messages.getMessage('deviceStartStatus'),
-                            this.target
+                            this.flagValues.target
                         )
                     );
                     return AndroidUtils.startEmulator(
-                        this.target,
-                        this.writableSystem,
+                        this.flagValues.target,
+                        this.flagValues.writablesystem,
                         false
                     );
                 }
@@ -169,9 +138,9 @@ export class Start extends SfdxCommand implements HasRequirements {
                 CommonUtils.stopCliAction(
                     util.format(
                         messages.getMessage('deviceStartSuccessStatusAndroid'),
-                        this.target,
+                        this.flagValues.target,
                         actualPort,
-                        this.writableSystem
+                        this.flagValues.writablesystem
                     )
                 );
                 return Promise.resolve();
@@ -181,7 +150,7 @@ export class Start extends SfdxCommand implements HasRequirements {
     private async executeIOSDeviceStart(): Promise<void> {
         let simDeviceName = '';
         let simDeviceUDID = '';
-        return IOSUtils.getSimulator(this.target)
+        return IOSUtils.getSimulator(this.flagValues.target)
             .then((simDevice) => {
                 if (simDevice === null) {
                     return Promise.reject(
@@ -190,7 +159,7 @@ export class Start extends SfdxCommand implements HasRequirements {
                                 messages.getMessage(
                                     'error:targetDoesNotExistDescription'
                                 ),
-                                this.target
+                                this.flagValues.target
                             ),
                             LWC_DEV_MOBILE
                         )

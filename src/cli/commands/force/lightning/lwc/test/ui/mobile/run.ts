@@ -5,8 +5,9 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { flags, SfdxCommand } from '@salesforce/command';
-import { Logger, Messages, SfError } from '@salesforce/core';
+import { Flags } from '@salesforce/sf-plugins-core';
+import { Messages, SfError } from '@salesforce/core';
+import { BaseCommand } from '@salesforce/lwc-dev-mobile-core/lib/common/BaseCommand';
 import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import * as childProcess from 'child_process';
@@ -24,13 +25,16 @@ const messages = Messages.loadMessages(
     'test-ui-mobile-run'
 );
 
-export class Run extends SfdxCommand {
-    public static description = messages.getMessage('commandDescription');
+export class Run extends BaseCommand {
+    protected _commandName = 'force:lightning:lwc:test:ui:mobile:run';
 
-    public static examples = [
-        `$ force:lightning:lwc:test:ui:mobile:run --config '/path/to/wdio.conf.js'`,
-        `$ force:lightning:lwc:test:ui:mobile:run --config '/path/to/wdio.conf.js' --spec '/path/to/myTest.spec.js'`,
-        `$ force:lightning:lwc:test:ui:mobile:run --config '/path/to/wdio.conf.js' --spec '/path/to/folderWithSpecs'`
+    public static readonly description =
+        messages.getMessage('commandDescription');
+
+    public static readonly examples = [
+        `sfdx force:lightning:lwc:test:ui:mobile:run --config '/path/to/wdio.conf.js'`,
+        `sfdx force:lightning:lwc:test:ui:mobile:run --config '/path/to/wdio.conf.js' --spec '/path/to/myTest.spec.js'`,
+        `sfdx force:lightning:lwc:test:ui:mobile:run --config '/path/to/wdio.conf.js' --spec '/path/to/folderWithSpecs'`
     ];
 
     private static createError(stringId: string, ...param: any[]): SfError {
@@ -41,42 +45,24 @@ export class Run extends SfdxCommand {
         return new SfError(msg, 'lwc-dev-mobile', Run.examples);
     }
 
-    public static flagsConfig = {
-        config: flags.string({
+    public static readonly flags = {
+        config: Flags.string({
             description: messages.getMessage('configFlagDescription'),
             char: 'f',
             required: true
         }),
-        spec: flags.string({
+        spec: Flags.string({
             description: messages.getMessage('specFlagDescription'),
             char: 's',
             required: false
         })
     };
 
-    public async init(): Promise<void> {
-        if (this.logger) {
-            // already initialized
-            return Promise.resolve();
-        }
-
-        CommandLineUtils.flagFailureActionMessages = Run.examples;
-        return super
-            .init()
-            .then(() =>
-                Logger.child('force:lightning:lwc:test:ui:mobile:run', {})
-            )
-            .then((logger) => {
-                this.logger = logger;
-                return Promise.resolve();
-            });
-    }
-
     public async run(): Promise<void> {
         this.logger.info(`UTAM run command invoked.`);
 
         const config = CommandLineUtils.resolveFlag(
-            this.flags.config,
+            this.flagValues.config,
             ''
         ).trim();
         const configPath = path.normalize(
@@ -89,7 +75,10 @@ export class Run extends SfdxCommand {
         }
 
         let specs: string[] = [];
-        const spec = CommandLineUtils.resolveFlag(this.flags.spec, '').trim();
+        const spec = CommandLineUtils.resolveFlag(
+            this.flagValues.spec,
+            ''
+        ).trim();
         if (spec.length > 0) {
             const specPath = path.normalize(
                 CommonUtils.resolveUserHomePath(spec)
