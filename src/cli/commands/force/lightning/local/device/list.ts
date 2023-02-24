@@ -41,6 +41,8 @@ export class List extends BaseCommand {
     ];
 
     public static readonly flags = {
+        ...CommandLineUtils.createFlag(FlagsConfigType.Json, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevel, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.Platform, true)
     };
 

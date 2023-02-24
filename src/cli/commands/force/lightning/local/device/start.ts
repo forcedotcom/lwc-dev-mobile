@@ -47,6 +47,9 @@ export class Start extends BaseCommand {
     ];
 
     public static readonly flags = {
+        ...CommandLineUtils.createFlag(FlagsConfigType.Json, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevel, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.Platform, true),
         target: Flags.string({
             char: 't',
             description: messages.getMessage('targetFlagDescription'),
@@ -60,8 +63,7 @@ export class Start extends BaseCommand {
             description: messages.getMessage('writablesystemFlagDescription'),
             required: false,
             default: false
-        }),
-        ...CommandLineUtils.createFlag(FlagsConfigType.Platform, true)
+        })
     };
 
     public async run(): Promise<void> {

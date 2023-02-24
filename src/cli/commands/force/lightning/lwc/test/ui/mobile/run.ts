@@ -8,7 +8,10 @@
 import { Flags } from '@salesforce/sf-plugins-core';
 import { Messages, SfError } from '@salesforce/core';
 import { BaseCommand } from '@salesforce/lwc-dev-mobile-core/lib/common/BaseCommand';
-import { CommandLineUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
+import {
+    FlagsConfigType,
+    CommandLineUtils
+} from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
 import * as childProcess from 'child_process';
 import util from 'util';
@@ -46,6 +49,8 @@ export class Run extends BaseCommand {
     }
 
     public static readonly flags = {
+        ...CommandLineUtils.createFlag(FlagsConfigType.Json, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevel, false),
         config: Flags.string({
             description: messages.getMessage('configFlagDescription'),
             char: 'f',
@@ -96,7 +101,6 @@ export class Run extends BaseCommand {
             );
         }
 
-        CommonUtils.startCliAction(messages.getMessage('runningUtamTest'));
         return this.executeRunUtamTest(configPath, specs)
             .then(() => {
                 this.logger.info(`UTAM test ran successfully`);
@@ -108,9 +112,6 @@ export class Run extends BaseCommand {
                 return Promise.reject(
                     Run.createError('error:unexpectedErrorDescription', error)
                 );
-            })
-            .finally(() => {
-                CommonUtils.stopCliAction();
             });
     }
 

@@ -60,6 +60,9 @@ export class Preview extends BaseCommand {
     }
 
     public static readonly flags = {
+        ...CommandLineUtils.createFlag(FlagsConfigType.Json, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevel, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.Platform, true),
         componentname: Flags.string({
             char: 'n',
             description: messages.getMessage('componentnameFlagDescription'),
@@ -89,8 +92,7 @@ export class Preview extends BaseCommand {
             char: 'a',
             description: messages.getMessage('targetAppFlagDescription'),
             required: false
-        }),
-        ...CommandLineUtils.createFlag(FlagsConfigType.Platform, true)
+        })
     };
 
     // Set this to true if your command requires a project workspace; 'requiresProject' is false by default

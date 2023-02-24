@@ -1016,10 +1016,10 @@
     shx "^0.3.3"
     tslib "^2.5.0"
 
-"@salesforce/lwc-dev-mobile-core@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@salesforce/lwc-dev-mobile-core/-/lwc-dev-mobile-core-3.0.0.tgz#3db2a878c0a9643499819bae8adfea8b253dfe22"
-  integrity sha512-6VoW9yuODljhIPBK3ZCj9ur3Z4LRujQBie+eVMCyiwiSUUQ6vEvlRXrOgvxRy/UgsdAF+5129a0DDR6vrONR0w==
+"@salesforce/lwc-dev-mobile-core@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@salesforce/lwc-dev-mobile-core/-/lwc-dev-mobile-core-3.0.1.tgz#7a598396d0cf64e4f9cece4416ec5b4b8288c66a"
+  integrity sha512-b78g/WxNLcULrpez125WQoo8kuLXR9TLSOiLINh4yGD3zWCJ+YzNIABwycCBNT8dwYcVSQv8NnGcTrXrkWqWqw==
   dependencies:
     "@oclif/core" "^2.2.1"
     "@oclif/plugin-version" "1.2.1"
@@ -1036,9 +1036,9 @@
   integrity sha512-EKFBURBuON7cj8XZCW+ybeSRRw7wUP1XUXZVHzFgx8KiYmSeGiRHBYbDjQOsQMho2uOLsTozMPEt2ehYnji0YA==
 
 "@salesforce/sf-plugins-core@^2.2.0":
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/@salesforce/sf-plugins-core/-/sf-plugins-core-2.2.2.tgz#ddecd6abc3a76a9bc201703f6f2971c8cf79b308"
-  integrity sha512-MQtfbpBJQbHpIxK1o5rpfPzPto4tWxBywJUvc1baTblafGyX7IZUt9Sl2Ld4XKgWga/7lxJNFfAnrbJLuIVe9Q==
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/@salesforce/sf-plugins-core/-/sf-plugins-core-2.2.3.tgz#f491156fbd83b18d01d943a43396a57009d10b42"
+  integrity sha512-B+ITa19o2ChAQXWNjmqxtXy7Bn0+dOcFwxqUhVR4YJ7wBzgvvGQ/pvG/WOah+v/uza91Jqfokq59D14fNAQfPw==
   dependencies:
     "@oclif/core" "^2.2.1"
     "@salesforce/core" "^3.33.1"
@@ -1667,9 +1667,9 @@ available-typed-arrays@^1.0.5:
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
 
 aws-sdk@^2.1231.0:
-  version "2.1322.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1322.0.tgz#9535f5bd66320cd06f24e734bc0db4c60e7efaf2"
-  integrity sha512-y1gSjcxKjL7VT5B8TA2/0etuG/GhrMbPC20zrqpI82LCilRTHkQ8UiXFdWSgoEuqtn16ZK/EbqCNXlgcv90xow==
+  version "2.1323.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1323.0.tgz#ee27583ae502ce37fa644657f3d90a02ce468f2c"
+  integrity sha512-GoLwk2SuG9A6eWgc1mGmm548dklheDmkeptHRw2RhCvq2GZqlc4AzStFUjUURy4O4NQmd2ZiQIoeseue4RwurA==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
@@ -2594,9 +2594,9 @@ ejs@^3.1.8:
     jake "^10.8.5"
 
 electron-to-chromium@^1.4.284:
-  version "1.4.309"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.309.tgz#82158606da135ffffc16a2e1eb853fa0a10955e7"
-  integrity sha512-U7DTiKe4h+irqBG6h4EZ0XXaZuJj4md3xIXXaGSYhwiumPZ4BSc6rgf9UD0hVUMaeP/jB0q5pKWCPxvhO8fvZA==
+  version "1.4.311"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.311.tgz#953bc9a4767f5ce8ec125f9a1ad8e00e8f67e479"
+  integrity sha512-RoDlZufvrtr2Nx3Yx5MB8jX3aHIxm8nRWPJm3yVvyHmyKaRvn90RjzB6hNnt0AkhS3IInJdyRfQb4mWhPvUjVw==
 
 emittery@^0.13.1:
   version "0.13.1"
@@ -5099,9 +5099,9 @@ minipass@^3.0.0, minipass@^3.1.0, minipass@^3.1.1, minipass@^3.1.3, minipass@^3.
     yallist "^4.0.0"
 
 minipass@^4.0.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/minipass/-/minipass-4.2.0.tgz#4bf124d8c87c14e99846f9a27c3219d956998c0e"
-  integrity sha512-ExlilAIS7zJ2EWUMaVXi14H+FnZ18kr17kFkGemMqBx6jW0m8P6XfqwYVPEG53ENlgsED+alVP9ZxC3JzkK23Q==
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/minipass/-/minipass-4.2.1.tgz#084031141113657662d40f66f9c2329036892128"
+  integrity sha512-KS4CHIsDfOZetnT+u6fwxyFADXLamtkPxkGScmmtTW//MlRrImV+LtbmbJpLQ86Hw7km/utbfEfndhGBrfwvlA==
 
 minizlib@^2.0.0, minizlib@^2.1.1, minizlib@^2.1.2:
   version "2.1.2"

@@ -46,6 +46,10 @@ export class Create extends BaseCommand {
     ];
 
     public static readonly flags = {
+        ...CommandLineUtils.createFlag(FlagsConfigType.Json, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevel, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.ApiLevel, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.Platform, true),
         devicename: Flags.string({
             char: 'n',
             description: messages.getMessage('deviceNameFlagDescription'),
@@ -61,9 +65,7 @@ export class Create extends BaseCommand {
             validate: (deviceType: string) => {
                 return deviceType && deviceType.trim().length > 0;
             }
-        }),
-        ...CommandLineUtils.createFlag(FlagsConfigType.ApiLevel, false),
-        ...CommandLineUtils.createFlag(FlagsConfigType.Platform, true)
+        })
     };
 
     public async run(): Promise<void> {
