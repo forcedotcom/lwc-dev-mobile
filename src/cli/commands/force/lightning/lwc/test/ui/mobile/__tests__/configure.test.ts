@@ -16,95 +16,69 @@ import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/I
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import { Configure } from '../configure';
+import util from 'util';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages(
-    '@salesforce/lwc-dev-mobile',
-    'test-ui-mobile-configure'
-);
-
-const passedSetupMock = jest.fn(() => {
-    return Promise.resolve();
-});
-
-const failedSetupMock = jest.fn(() => {
-    return Promise.reject(new SfError('Mock Failure in tests!'));
-});
-
-let isAndroidArg: boolean;
-let deviceArg: AndroidVirtualDevice | IOSSimulatorDevice;
-let outputArg: string;
-let testFrameworkArg: string;
-let bundlePathArg: string;
-let appActivityArg: string;
-let appPackageArg: string;
-let portArg: string;
-let baseUrlArg: string;
-let injectionConfigsPathArg: string;
-
-const executeCreateConfigFile = jest.fn(
-    (
-        isAndroid,
-        device,
-        output,
-        testFramework,
-        bundlePath,
-        appActivity,
-        appPackage,
-        port,
-        baseUrl,
-        injectionConfigsPath
-    ) => {
-        isAndroidArg = isAndroid;
-        deviceArg = device;
-        outputArg = output;
-        testFrameworkArg = testFramework;
-        bundlePathArg = bundlePath;
-        appActivityArg = appActivity;
-        appPackageArg = appPackage;
-        portArg = port;
-        baseUrlArg = baseUrl;
-        injectionConfigsPathArg = injectionConfigsPath;
-        return Promise.resolve();
-    }
-);
-
-let destArg: string;
-let contentArg: string;
-
-const createTextFile = jest.fn((dest, content) => {
-    destArg = dest;
-    contentArg = content;
-    return Promise.resolve();
-});
-
-const iOSDevice = new IOSSimulatorDevice(
-    'iPhone-8',
-    'udid-iPhone-8',
-    'active',
-    'iOS-13',
-    true
-);
-
-const androidDevice = new AndroidVirtualDevice(
-    'Pixel_XL',
-    'Pixel XL',
-    'pixel-xl-path',
-    'Google APIs',
-    'Android 9',
-    Version.from('28')!
-);
-
-const getSimulatorMock = jest.fn((): Promise<IOSSimulatorDevice> => {
-    return Promise.resolve(iOSDevice);
-});
-
-const fetchEmulatorMock = jest.fn((): Promise<AndroidVirtualDevice> => {
-    return Promise.resolve(androidDevice);
-});
 
 describe('Mobile UI Test Configuration Tests', () => {
+    const messages = Messages.loadMessages(
+        '@salesforce/lwc-dev-mobile',
+        'test-ui-mobile-configure'
+    );
+    const coreMessages = Messages.loadMessages(
+        '@salesforce/lwc-dev-mobile-core',
+        'common'
+    );
+
+    const iOSDevice = new IOSSimulatorDevice(
+        'iPhone-8',
+        'udid-iPhone-8',
+        'active',
+        'iOS-13',
+        true
+    );
+
+    const androidDevice = new AndroidVirtualDevice(
+        'Pixel_XL',
+        'Pixel XL',
+        'pixel-xl-path',
+        'Google APIs',
+        'Android 9',
+        Version.from('28')!
+    );
+
+    let destArg: string;
+    let contentArg: string;
+
+    let passedSetupMock: jest.Mock<any, [], any>;
+    let failedSetupMock: jest.Mock<any, [], any>;
+    let createTextFile: jest.Mock<any, [any, any], any>;
+    let getSimulatorMock: jest.Mock<any, [], any>;
+    let fetchEmulatorMock: jest.Mock<any, [], any>;
+
     beforeEach(() => {
+        passedSetupMock = jest.fn(() => {
+            return Promise.resolve();
+        });
+
+        failedSetupMock = jest.fn(() => {
+            return Promise.reject(new SfError('Mock Failure in tests!'));
+        });
+
+        createTextFile = jest.fn((dest, content) => {
+            destArg = dest;
+            contentArg = content;
+            return Promise.resolve();
+        });
+
+        getSimulatorMock = jest.fn((): Promise<IOSSimulatorDevice> => {
+            return Promise.resolve(iOSDevice);
+        });
+
+        fetchEmulatorMock = jest.fn((): Promise<AndroidVirtualDevice> => {
+            return Promise.resolve(androidDevice);
+        });
+
         jest.spyOn(RequirementProcessor, 'execute').mockImplementation(
             passedSetupMock
         );
@@ -132,8 +106,11 @@ describe('Mobile UI Test Configuration Tests', () => {
             await cmd1.init();
             await cmd1.run();
         } catch (error) {
-            expect((error as any).message).toContain(
-                messages.getMessage('error:invalidPlatformFlagsDescription')
+            expect((error as SfError).message).toContain(
+                util.format(
+                    coreMessages.getMessage('error:invalidFlagValue'),
+                    'blah'
+                )
             );
         }
 
@@ -142,8 +119,11 @@ describe('Mobile UI Test Configuration Tests', () => {
             await cmd2.init();
             await cmd2.run();
         } catch (error) {
-            expect((error as any).message).toContain(
-                messages.getMessage('error:invalidPlatformFlagsDescription')
+            expect((error as SfError).message).toContain(
+                util.format(
+                    coreMessages.getMessage('error:invalidFlagValue'),
+                    ' '
+                )
             );
         }
     });
@@ -202,24 +182,26 @@ describe('Mobile UI Test Configuration Tests', () => {
             appPackage: 'com.example.android.myApp'
         });
 
-        jest.spyOn(
-            Configure.prototype,
-            'executeCreateConfigFile'
-        ).mockImplementation(executeCreateConfigFile);
-
         await cmd.init();
         await cmd.run();
 
-        expect(isAndroidArg).toBe(true);
-        expect(deviceArg).toBeTruthy();
-        expect(outputArg).toBe(Configure.defaultOutputFile);
-        expect(testFrameworkArg).toBe(Configure.supportedTestFrameworks[0]);
-        expect(bundlePathArg).toBe('');
-        expect(appActivityArg).toBe('.MainActivity');
-        expect(appPackageArg).toBe('com.example.android.myApp');
-        expect(portArg).toBe('');
-        expect(baseUrlArg).toBe(Configure.defaultTestRunnerBaseUrl);
-        expect(injectionConfigsPathArg).toBe('');
+        expect(destArg).toBe(Configure.defaultOutputFile);
+        expect(contentArg).toContain('"appium:platformName": "Android"');
+        expect(contentArg).toContain('"appium:automationName": "UiAutomator2"');
+        expect(contentArg).toContain('"appium:app": ""');
+        expect(contentArg).toContain('"appium:appActivity": ".MainActivity"');
+        expect(contentArg).toContain(
+            '"appium:appPackage": "com.example.android.myApp"'
+        );
+        expect(contentArg).toContain(`"appium:avd": "${androidDevice.name}"`);
+        expect(contentArg).toContain(
+            `"framework": "${Configure.supportedTestFrameworks[0]}"`
+        );
+        expect(contentArg).not.toContain('"port":');
+        expect(contentArg).toContain(
+            `"baseUrl": "${Configure.defaultTestRunnerBaseUrl}"`
+        );
+        expect(contentArg).toContain('"injectionConfigs": []');
     });
 
     test('Checks that setup is invoked', async () => {
@@ -228,15 +210,23 @@ describe('Mobile UI Test Configuration Tests', () => {
             deviceName: 'iPhone 8'
         });
 
-        jest.spyOn(
-            Configure.prototype,
-            'executeCreateConfigFile'
-        ).mockImplementation(executeCreateConfigFile);
-
         await cmd.init();
         await cmd.run();
         expect(passedSetupMock).toHaveBeenCalled();
-        expect(executeCreateConfigFile).toHaveBeenCalled();
+
+        expect(destArg).toBe(Configure.defaultOutputFile);
+        expect(contentArg).toContain('"appium:platformName": "iOS"');
+        expect(contentArg).toContain('"appium:automationName": "XCUITest"');
+        expect(contentArg).toContain('"appium:app": ""');
+        expect(contentArg).toContain(`"appium:udid": "${iOSDevice.udid}"`);
+        expect(contentArg).toContain(
+            `"framework": "${Configure.supportedTestFrameworks[0]}"`
+        );
+        expect(contentArg).not.toContain('"port":');
+        expect(contentArg).toContain(
+            `"baseUrl": "${Configure.defaultTestRunnerBaseUrl}"`
+        );
+        expect(contentArg).toContain('"injectionConfigs": []');
     });
 
     test('Should throw an error if setup fails', async () => {

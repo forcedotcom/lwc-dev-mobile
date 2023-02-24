@@ -15,75 +15,80 @@ import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/I
 import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { List } from '../list';
 
-const iOSDevices: IOSSimulatorDevice[] = [
-    new IOSSimulatorDevice(
-        'iPhone-8',
-        'udid-iPhone-8',
-        'active',
-        'iOS-13',
-        true
-    ),
-    new IOSSimulatorDevice(
-        'iPhone-X',
-        'udid-iPhone-X',
-        'active',
-        'iOS-13',
-        true
-    ),
-    new IOSSimulatorDevice(
-        'iPhone-11',
-        'udid-iPhone-11',
-        'active',
-        'iOS-14.2',
-        true
-    ),
-    new IOSSimulatorDevice(
-        'iPhone-11Pro',
-        'udid-iPhone-11Pro',
-        'active',
-        'iOS-14.2',
-        true
-    )
-];
-
-const androidDevices: AndroidVirtualDevice[] = [
-    new AndroidVirtualDevice(
-        'Pixel_XL',
-        'Pixel XL',
-        'pixel-xl-path',
-        'Google APIs',
-        'Android 9',
-        Version.from('28')!
-    ),
-    new AndroidVirtualDevice(
-        'Nexus_5X',
-        'Nexus 5X',
-        'nexus-5x-path',
-        'Google APIs',
-        'Android 10',
-        Version.from('29')!
-    ),
-    new AndroidVirtualDevice(
-        'Pixel_4_XL',
-        'Pixel 4 XL',
-        'pixel-4-xl-path',
-        'Google APIs',
-        'Android 11',
-        Version.from('30')!
-    )
-];
-
-const getSupportedSimulatorsMock = jest.fn(
-    (): Promise<IOSSimulatorDevice[]> => {
-        return Promise.resolve(iOSDevices);
-    }
-);
-
-const fetchEmulatorsMock = jest.fn((): Promise<AndroidVirtualDevice[]> => {
-    return Promise.resolve(androidDevices);
-});
-
 describe('List Tests', () => {
+    const iOSDevices: IOSSimulatorDevice[] = [
+        new IOSSimulatorDevice(
+            'iPhone-8',
+            'udid-iPhone-8',
+            'active',
+            'iOS-13',
+            true
+        ),
+        new IOSSimulatorDevice(
+            'iPhone-X',
+            'udid-iPhone-X',
+            'active',
+            'iOS-13',
+            true
+        ),
+        new IOSSimulatorDevice(
+            'iPhone-11',
+            'udid-iPhone-11',
+            'active',
+            'iOS-14.2',
+            true
+        ),
+        new IOSSimulatorDevice(
+            'iPhone-11Pro',
+            'udid-iPhone-11Pro',
+            'active',
+            'iOS-14.2',
+            true
+        )
+    ];
+
+    const androidDevices: AndroidVirtualDevice[] = [
+        new AndroidVirtualDevice(
+            'Pixel_XL',
+            'Pixel XL',
+            'pixel-xl-path',
+            'Google APIs',
+            'Android 9',
+            Version.from('28')!
+        ),
+        new AndroidVirtualDevice(
+            'Nexus_5X',
+            'Nexus 5X',
+            'nexus-5x-path',
+            'Google APIs',
+            'Android 10',
+            Version.from('29')!
+        ),
+        new AndroidVirtualDevice(
+            'Pixel_4_XL',
+            'Pixel 4 XL',
+            'pixel-4-xl-path',
+            'Google APIs',
+            'Android 11',
+            Version.from('30')!
+        )
+    ];
+
+    let getSupportedSimulatorsMock: jest.Mock<any, [], any>;
+    let fetchEmulatorsMock: jest.Mock<any, [], any>;
+
+    beforeEach(() => {
+        getSupportedSimulatorsMock = jest.fn(
+            (): Promise<IOSSimulatorDevice[]> => {
+                return Promise.resolve(iOSDevices);
+            }
+        );
+
+        fetchEmulatorsMock = jest.fn((): Promise<AndroidVirtualDevice[]> => {
+            return Promise.resolve(androidDevices);
+        });
+    });
+
     afterEach(() => {
         jest.restoreAllMocks();
     });

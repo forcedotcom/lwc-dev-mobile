@@ -15,27 +15,34 @@ import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import { Start } from '../start';
 
-const targetName = 'MyDevice';
-const targetUDID = 'myUDID';
-const emulatorPort = 5572;
-const hasEmulatorMock = jest.fn(() => Promise.resolve(true));
-const getSimulatorMock = jest.fn(() =>
-    Promise.resolve(
-        new IOSSimulatorDevice(
-            targetName,
-            targetUDID,
-            'active',
-            'runtimeID',
-            true
-        )
-    )
-);
-const passedSetupMock = jest.fn(() => {
-    return Promise.resolve();
-});
-
 describe('Start Tests', () => {
+    const targetName = 'MyDevice';
+    const targetUDID = 'myUDID';
+    const emulatorPort = 5572;
+
+    let hasEmulatorMock: jest.Mock<any, [], any>;
+    let getSimulatorMock: jest.Mock<any, [], any>;
+    let passedSetupMock: jest.Mock<any, [], any>;
+
     beforeEach(() => {
+        hasEmulatorMock = jest.fn(() => Promise.resolve(true));
+
+        getSimulatorMock = jest.fn(() =>
+            Promise.resolve(
+                new IOSSimulatorDevice(
+                    targetName,
+                    targetUDID,
+                    'active',
+                    'runtimeID',
+                    true
+                )
+            )
+        );
+
+        passedSetupMock = jest.fn(() => {
+            return Promise.resolve();
+        });
+
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
         jest.spyOn(RequirementProcessor, 'execute').mockImplementation(

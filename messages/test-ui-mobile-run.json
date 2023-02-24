@@ -2,7 +2,6 @@
     "commandDescription": "Run UTAM test by specifying a WDIO configuration. Test specs to run can be explicitly specified by using a flag.",
     "configFlagDescription": "Specify a path to WDIO config file with UTAM configuration.",
     "specFlagDescription": "Specify a path to a test spec or a folder with test specs.",
-    "runningUtamTest": "Running UTAM test",
     "error:unexpectedErrorDescription": "Unexpected error: %s",
     "error:configFileDoesntExistDescription": "WDIO config file doesn't exist at the specified path.",
     "error:specPathInvalidDescription": "A test spec or a folder containing test specs was not found at the specified path."

@@ -15,12 +15,13 @@ import path from 'path';
 import util from 'util';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages(
-    '@salesforce/lwc-dev-mobile',
-    'test-ui-mobile-run'
-);
 
 describe('Mobile UI Test Run Tests', () => {
+    const messages = Messages.loadMessages(
+        '@salesforce/lwc-dev-mobile',
+        'test-ui-mobile-run'
+    );
+
     beforeEach(() => {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         jest.spyOn(CommonUtils, 'startCliAction').mockImplementation(() => {});
@@ -245,6 +246,14 @@ describe('Mobile UI Test Run Tests', () => {
         });
 
         await cmd.init();
+
+        try {
+            await cmd.run();
+        } catch {
+            // we are running the command without setting up mocks
+            // just so that we can test logger being initialized so
+            // ignore the error
+        }
         expect(loggerSpy).toHaveBeenCalled();
     });
 

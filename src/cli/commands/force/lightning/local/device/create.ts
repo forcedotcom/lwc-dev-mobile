@@ -5,10 +5,11 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
-import { Logger, Messages, SfError } from '@salesforce/core';
+import { Flags } from '@salesforce/sf-plugins-core';
+import { Logger, Messages } from '@salesforce/core';
 import { AndroidEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidEnvironmentRequirements';
 import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
+import { BaseCommand } from '@salesforce/lwc-dev-mobile-core/lib/common/BaseCommand';
 import {
     CommandLineUtils,
     FlagsConfigType
@@ -19,8 +20,7 @@ import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
 import {
     Requirement,
     CommandRequirements,
-    RequirementProcessor,
-    HasRequirements
+    RequirementProcessor
 } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
 import util from 'util';
 
@@ -34,67 +34,44 @@ const messages = Messages.loadMessages(
     'device-create'
 );
 
-export class Create extends SfdxCommand implements HasRequirements {
-    public static description = messages.getMessage('commandDescription');
+export class Create extends BaseCommand {
+    protected _commandName = 'force:lightning:local:device:create';
 
-    public static examples = [
+    public static readonly description =
+        messages.getMessage('commandDescription');
+
+    public static readonly examples = [
         `sfdx force:lightning:local:device:create -p iOS -n MyNewVirtualDevice -d iPhone-8`,
         `sfdx force:lightning:local:device:create -p Android -n MyNewVirtualDevice -d pixel_xl`
     ];
 
-    public static readonly flagsConfig: FlagsConfig = {
-        devicename: flags.string({
+    public static readonly flags = {
+        ...CommandLineUtils.createFlag(FlagsConfigType.Json, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevel, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.ApiLevel, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.Platform, true),
+        devicename: Flags.string({
             char: 'n',
             description: messages.getMessage('deviceNameFlagDescription'),
             required: true,
-            validate: (deviceName) => {
-                if (deviceName && deviceName.trim().length > 0) {
-                    return true;
-                } else {
-                    throw new SfError(
-                        messages.getMessage(
-                            'error:invalidDeviceNameFlagsDescription'
-                        ),
-                        'lwc-dev-mobile',
-                        Create.examples
-                    );
-                }
+            validate: (deviceName: string) => {
+                return deviceName && deviceName.trim().length > 0;
             }
         }),
-        devicetype: flags.string({
+        devicetype: Flags.string({
             char: 'd',
             description: messages.getMessage('deviceTypeFlagDescription'),
             required: true,
-            validate: (deviceType) => {
-                if (deviceType && deviceType.trim().length > 0) {
-                    return true;
-                } else {
-                    throw new SfError(
-                        messages.getMessage(
-                            'error:invalidDeviceTypeFlagsDescription'
-                        ),
-                        'lwc-dev-mobile',
-                        Create.examples
-                    );
-                }
+            validate: (deviceType: string) => {
+                return deviceType && deviceType.trim().length > 0;
             }
-        }),
-        ...CommandLineUtils.createFlagConfig(FlagsConfigType.ApiLevel, false),
-        ...CommandLineUtils.createFlagConfig(FlagsConfigType.Platform, true)
+        })
     };
-
-    public platform = '';
-    public deviceName = '';
-    public deviceType = '';
 
     public async run(): Promise<void> {
         this.logger.info(
-            `Device Create command invoked for ${this.flags.platform}`
+            `Device Create command invoked for ${this.flagValues.platform}`
         );
-
-        this.platform = this.flags.platform as string;
-        this.deviceName = this.flags.devicename as string;
-        this.deviceType = this.flags.devicetype as string;
 
         return RequirementProcessor.execute(this.commandRequirements)
             .then(() => {
@@ -106,8 +83,8 @@ export class Create extends SfdxCommand implements HasRequirements {
                     messages.getMessage('deviceCreateAction'),
                     util.format(
                         messages.getMessage('deviceCreateStatus'),
-                        this.deviceName,
-                        this.deviceType
+                        this.flagValues.devicename,
+                        this.flagValues.devicetype
                     )
                 );
                 return this.executeDeviceCreate();
@@ -115,8 +92,8 @@ export class Create extends SfdxCommand implements HasRequirements {
             .then(() => {
                 const message = util.format(
                     messages.getMessage('deviceCreateSuccessStatus'),
-                    this.deviceName,
-                    this.deviceType
+                    this.flagValues.devicename,
+                    this.flagValues.devicetype
                 );
                 CommonUtils.stopCliAction(message);
             })
@@ -125,55 +102,39 @@ export class Create extends SfdxCommand implements HasRequirements {
                     messages.getMessage('deviceCreateFailureStatus')
                 );
                 this.logger.warn(
-                    `Device Create failed for ${this.flags.platform}.`
+                    `Device Create failed for ${this.flagValues.platform}.`
                 );
                 return Promise.reject(error);
             });
     }
 
-    public async init(): Promise<void> {
-        if (this.logger) {
-            // already initialized
-            return Promise.resolve();
-        }
+    protected populateCommandRequirements(): void {
+        const requirements: CommandRequirements = {};
 
-        CommandLineUtils.flagFailureActionMessages = Create.examples;
-        return super
-            .init()
-            .then(() => Logger.child('force:lightning:local:device:create', {}))
-            .then((logger) => {
-                this.logger = logger;
-                return Promise.resolve();
-            });
-    }
+        requirements.setup = CommandLineUtils.platformFlagIsAndroid(
+            this.flagValues.platform
+        )
+            ? new AndroidEnvironmentRequirements(
+                  this.logger,
+                  this.flagValues.apilevel
+              )
+            : new IOSEnvironmentRequirements(this.logger);
 
-    private _requirements: CommandRequirements = {};
-    public get commandRequirements(): CommandRequirements {
-        if (Object.keys(this._requirements).length === 0) {
-            const requirements: CommandRequirements = {};
-            requirements.setup = CommandLineUtils.platformFlagIsAndroid(
-                this.flags.platform
-            )
-                ? new AndroidEnvironmentRequirements(
-                      this.logger,
-                      this.flags.apilevel
-                  )
-                : new IOSEnvironmentRequirements(this.logger);
+        requirements.create = {
+            requirements: [
+                new DeviceNameAvailableRequirement(this, this.logger),
+                new ValidDeviceTypeRequirement(this, this.logger)
+            ],
+            enabled: true
+        };
 
-            requirements.create = {
-                requirements: [
-                    new DeviceNameAvailableRequirement(this, this.logger),
-                    new ValidDeviceTypeRequirement(this, this.logger)
-                ],
-                enabled: true
-            };
-            this._requirements = requirements;
-        }
-        return this._requirements;
+        this._commandRequirements = requirements;
     }
 
     private async executeDeviceCreate(): Promise<any> {
-        const isAndroid = CommandLineUtils.platformFlagIsAndroid(this.platform);
+        const isAndroid = CommandLineUtils.platformFlagIsAndroid(
+            this.flagValues.platform
+        );
         return isAndroid
             ? this.executeAndroidDeviceCreate()
             : this.executeIOSDeviceCreate();
@@ -181,16 +142,16 @@ export class Create extends SfdxCommand implements HasRequirements {
 
     private async executeAndroidDeviceCreate(): Promise<void> {
         return AndroidUtils.fetchSupportedEmulatorImagePackage(
-            this.flags.apilevel
+            this.flagValues.apilevel
         ).then((preferredPack) => {
             const emuImage = preferredPack.platformEmulatorImage || 'default';
             const androidApi = preferredPack.platformAPI;
             const abi = preferredPack.abi;
             return AndroidUtils.createNewVirtualDevice(
-                this.deviceName,
+                this.flagValues.devicename,
                 emuImage,
                 androidApi,
-                this.deviceType,
+                this.flagValues.devicetype,
                 abi
             );
         });
@@ -199,8 +160,8 @@ export class Create extends SfdxCommand implements HasRequirements {
     private async executeIOSDeviceCreate(): Promise<string> {
         return IOSUtils.getSupportedRuntimes().then((supportedRuntimes) =>
             IOSUtils.createNewDevice(
-                this.deviceName,
-                this.deviceType,
+                this.flagValues.devicename,
+                this.flagValues.devicetype,
                 supportedRuntimes[0]
             )
         );
@@ -227,9 +188,9 @@ class DeviceNameAvailableRequirement implements Requirement {
     // ensure a virtual device with the same name doesn't exist already
     public async checkFunction(): Promise<string> {
         const isAndroid = CommandLineUtils.platformFlagIsAndroid(
-            this.owner.platform
+            this.owner.flagValues.platform
         );
-        const deviceName = this.owner.deviceName;
+        const deviceName = this.owner.flagValues.devicename;
 
         const deviceAlreadyExists = isAndroid
             ? await AndroidUtils.hasEmulator(deviceName)
@@ -261,9 +222,9 @@ class ValidDeviceTypeRequirement implements Requirement {
     // check whether device type is valid (i.e. it matches one of the possible values of available device types)
     public async checkFunction(): Promise<string> {
         const isAndroid = CommandLineUtils.platformFlagIsAndroid(
-            this.owner.platform
+            this.owner.flagValues.platform
         );
-        const deviceType = this.owner.deviceType;
+        const deviceType = this.owner.flagValues.devicetype;
 
         const supportedDevices = isAndroid
             ? await AndroidUtils.getSupportedDevices()
