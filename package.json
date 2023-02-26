@@ -32,16 +32,17 @@
   "bugs": "https://github.com/forcedotcom/lwc-dev-mobile/issues",
   "dependencies": {
     "@oclif/core": "^2.2.1",
-    "@oclif/plugin-version": "1.2.1",
+    "@oclif/plugin-version": "^1.2.1",
     "@salesforce/sf-plugins-core": "^2.2.0",
     "@salesforce/core": "^3.33.1",
-    "@salesforce/lwc-dev-mobile-core": "^3.0.1",
+    "@salesforce/lwc-dev-mobile-core": "^3.0.2",
     "chalk": "^4.1.2"
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.3",
     "@types/jest": "^29.4.0",
     "@types/node": "^18.14.0",
+    "@types/sinon": "^10.0.13",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "@typescript-eslint/parser": "^5.53.0",
     "eslint": "^8.34.0",
