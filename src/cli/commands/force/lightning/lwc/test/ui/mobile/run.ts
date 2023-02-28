@@ -101,6 +101,7 @@ export class Run extends BaseCommand {
             );
         }
 
+        CommonUtils.startCliAction(messages.getMessage('runningUtamTest'));
         return this.executeRunUtamTest(configPath, specs)
             .then(() => {
                 this.logger.info(`UTAM test ran successfully`);
@@ -112,6 +113,9 @@ export class Run extends BaseCommand {
                 return Promise.reject(
                     Run.createError('error:unexpectedErrorDescription', error)
                 );
+            })
+            .finally(() => {
+                CommonUtils.stopCliAction();
             });
     }
 
