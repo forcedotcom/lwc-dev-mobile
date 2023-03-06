@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/lwc-dev-mobile",
   "description": "Salesforce CLI plugin for mobile extensions to Local Development",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "author": {
     "name": "Raj Rao",
     "email": "rao.r@salesforce.com",
