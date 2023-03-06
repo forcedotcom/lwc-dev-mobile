@@ -35,7 +35,7 @@
     "@oclif/plugin-version": "^1.2.1",
     "@salesforce/sf-plugins-core": "^2.2.0",
     "@salesforce/core": "^3.33.1",
-    "@salesforce/lwc-dev-mobile-core": "^3.0.3",
+    "@salesforce/lwc-dev-mobile-core": "^3.1.0",
     "chalk": "^4.1.2"
   },
   "devDependencies": {
