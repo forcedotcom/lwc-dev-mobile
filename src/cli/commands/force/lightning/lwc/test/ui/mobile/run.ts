@@ -7,12 +7,12 @@
 
 import { Flags } from '@salesforce/sf-plugins-core';
 import { Messages, SfError } from '@salesforce/core';
-import { BaseCommand } from '@salesforce/lwc-dev-mobile-core/lib/common/BaseCommand';
 import {
-    FlagsConfigType,
-    CommandLineUtils
-} from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
-import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
+    BaseCommand,
+    CommandLineUtils,
+    CommonUtils,
+    FlagsConfigType
+} from '@salesforce/lwc-dev-mobile-core';
 import * as childProcess from 'child_process';
 import util from 'util';
 import fs from 'fs';

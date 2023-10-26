@@ -6,15 +6,15 @@
  */
 
 import { Messages } from '@salesforce/core';
-import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
-import { BaseCommand } from '@salesforce/lwc-dev-mobile-core/lib/common/BaseCommand';
 import {
+    AndroidUtils,
+    BaseCommand,
     CommandLineUtils,
-    FlagsConfigType
-} from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
-import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
-import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
-import { PerformanceMarkers } from '@salesforce/lwc-dev-mobile-core/lib/common/PerformanceMarkers';
+    CommonUtils,
+    FlagsConfigType,
+    IOSUtils,
+    PerformanceMarkers
+} from '@salesforce/lwc-dev-mobile-core';
 import chalk from 'chalk';
 import { ux } from '@oclif/core';
 import { performance, PerformanceObserver } from 'perf_hooks';

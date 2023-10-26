@@ -7,20 +7,18 @@
 
 import { Flags } from '@salesforce/sf-plugins-core';
 import { Messages, SfError } from '@salesforce/core';
-import { AndroidEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidEnvironmentRequirements';
-import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
-import { BaseCommand } from '@salesforce/lwc-dev-mobile-core/lib/common/BaseCommand';
 import {
+    AndroidEnvironmentRequirements,
+    AndroidUtils,
+    BaseCommand,
     CommandLineUtils,
-    FlagsConfigType
-} from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
-import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
-import { IOSEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSEnvironmentRequirements';
-import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
-import {
     CommandRequirements,
+    CommonUtils,
+    FlagsConfigType,
+    IOSEnvironmentRequirements,
+    IOSUtils,
     RequirementProcessor
-} from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+} from '@salesforce/lwc-dev-mobile-core';
 import util from 'util';
 
 // Initialize Messages with the current plugin directory

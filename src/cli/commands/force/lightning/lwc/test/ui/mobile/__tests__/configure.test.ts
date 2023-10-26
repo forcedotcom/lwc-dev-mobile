@@ -8,13 +8,15 @@
 import { Config } from '@oclif/core/lib/config';
 import { Options } from '@oclif/core/lib/interfaces';
 import { Logger, Messages, SfError } from '@salesforce/core';
-import { AndroidVirtualDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
-import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
-import { Version } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
-import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
-import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSTypes';
-import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
-import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+import {
+    AndroidVirtualDevice,
+    AndroidUtils,
+    CommonUtils,
+    IOSSimulatorDevice,
+    IOSUtils,
+    RequirementProcessor,
+    Version
+} from '@salesforce/lwc-dev-mobile-core';
 import { Configure } from '../configure';
 import util from 'util';
 

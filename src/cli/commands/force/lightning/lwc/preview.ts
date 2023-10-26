@@ -7,27 +7,23 @@
 
 import { Flags } from '@salesforce/sf-plugins-core';
 import { Logger, Messages, SfError } from '@salesforce/core';
-import { AndroidEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidEnvironmentRequirements';
-import { AndroidLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidLauncher';
-import { BaseCommand } from '@salesforce/lwc-dev-mobile-core/lib/common/BaseCommand';
 import {
-    CommandLineUtils,
-    FlagsConfigType
-} from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
-import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
-import { IOSEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSEnvironmentRequirements';
-import { IOSLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSLauncher';
-import { PlatformConfig } from '@salesforce/lwc-dev-mobile-core/lib/common/PlatformConfig';
-import {
+    AndroidEnvironmentRequirements,
+    AndroidLauncher,
     AndroidAppPreviewConfig,
-    IOSAppPreviewConfig
-} from '@salesforce/lwc-dev-mobile-core/lib/common/PreviewConfigFile';
-import { PreviewUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/PreviewUtils';
-import {
+    BaseCommand,
+    CommandLineUtils,
+    CommonUtils,
     CommandRequirements,
+    FlagsConfigType,
+    IOSEnvironmentRequirements,
+    IOSLauncher,
+    IOSAppPreviewConfig,
+    PlatformConfig,
+    PreviewUtils,
     Requirement,
     RequirementProcessor
-} from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+} from '@salesforce/lwc-dev-mobile-core';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';

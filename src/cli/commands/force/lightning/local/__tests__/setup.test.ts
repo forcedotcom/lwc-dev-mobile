@@ -7,8 +7,10 @@
 
 import { Config } from '@oclif/core/lib/config';
 import { Options } from '@oclif/core/lib/interfaces';
-import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
-import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+import {
+    CommonUtils,
+    RequirementProcessor
+} from '@salesforce/lwc-dev-mobile-core';
 import { Setup } from '../setup';
 
 describe('Setup Tests', () => {
