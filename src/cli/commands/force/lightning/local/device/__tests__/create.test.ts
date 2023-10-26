@@ -8,12 +8,14 @@
 import { Config } from '@oclif/core/lib/config';
 import { Options } from '@oclif/core/lib/interfaces';
 import { Logger } from '@salesforce/core';
-import { AndroidPackage } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
-import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
-import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
-import { Version } from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
-import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
-import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+import {
+    AndroidPackage,
+    AndroidUtils,
+    CommonUtils,
+    IOSUtils,
+    RequirementProcessor,
+    Version
+} from '@salesforce/lwc-dev-mobile-core';
 import { Create } from '../create';
 
 describe('Create Tests', () => {

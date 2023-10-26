@@ -8,7 +8,7 @@
 import { Config } from '@oclif/core/lib/config';
 import { Options } from '@oclif/core/lib/interfaces';
 import { Logger, Messages } from '@salesforce/core';
-import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
+import { CommonUtils } from '@salesforce/lwc-dev-mobile-core';
 import { Run } from '../run';
 import fs from 'fs';
 import path from 'path';

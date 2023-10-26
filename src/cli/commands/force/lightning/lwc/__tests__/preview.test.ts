@@ -9,11 +9,13 @@ process.env['SFDX_ENV'] = 'test'; // run sfdx in test mode when running unit tes
 import { Config } from '@oclif/core/lib/config';
 import { Options } from '@oclif/core/lib/interfaces';
 import { Logger, Messages, SfError } from '@salesforce/core';
-import { AndroidLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidLauncher';
-import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
-import { IOSLauncher } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSLauncher';
-import { PreviewUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/PreviewUtils';
-import { RequirementProcessor } from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+import {
+    AndroidLauncher,
+    CommonUtils,
+    IOSLauncher,
+    PreviewUtils,
+    RequirementProcessor
+} from '@salesforce/lwc-dev-mobile-core';
 import fs from 'fs';
 import {
     LwcServerIsRunningRequirement,

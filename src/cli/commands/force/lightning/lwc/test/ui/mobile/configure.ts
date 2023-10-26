@@ -7,22 +7,20 @@
 
 import { Flags } from '@salesforce/sf-plugins-core';
 import { Messages, SfError } from '@salesforce/core';
-import { AndroidEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidEnvironmentRequirements';
-import { AndroidVirtualDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidTypes';
-import { AndroidUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/AndroidUtils';
-import { BaseCommand } from '@salesforce/lwc-dev-mobile-core/lib/common/BaseCommand';
 import {
+    AndroidEnvironmentRequirements,
+    AndroidVirtualDevice,
+    AndroidUtils,
+    BaseCommand,
     CommandLineUtils,
-    FlagsConfigType
-} from '@salesforce/lwc-dev-mobile-core/lib/common/Common';
-import { CommonUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/CommonUtils';
-import { IOSEnvironmentRequirements } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSEnvironmentRequirements';
-import { IOSSimulatorDevice } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSTypes';
-import { IOSUtils } from '@salesforce/lwc-dev-mobile-core/lib/common/IOSUtils';
-import {
-    RequirementProcessor,
-    CommandRequirements
-} from '@salesforce/lwc-dev-mobile-core/lib/common/Requirements';
+    CommandRequirements,
+    CommonUtils,
+    FlagsConfigType,
+    IOSEnvironmentRequirements,
+    IOSSimulatorDevice,
+    IOSUtils,
+    RequirementProcessor
+} from '@salesforce/lwc-dev-mobile-core';
 import fs from 'fs';
 import util from 'util';
 

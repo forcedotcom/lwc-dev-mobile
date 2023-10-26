@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { Setup as CoreSetup } from '@salesforce/lwc-dev-mobile-core/lib/cli/commands/force/lightning/local/setup';
+import { Setup as CoreSetup } from '@salesforce/lwc-dev-mobile-core';
 
 export class Setup extends CoreSetup {
     public async run(): Promise<void> {
