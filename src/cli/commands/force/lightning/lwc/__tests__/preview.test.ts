@@ -13,6 +13,7 @@ import {
     AndroidLauncher,
     CommonUtils,
     IOSLauncher,
+    LoggerSetup,
     PreviewUtils,
     RequirementProcessor
 } from '@salesforce/lwc-dev-mobile-core';
@@ -271,13 +272,16 @@ describe('Preview Tests', () => {
     });
 
     test('Logger must be initialized and invoked', async () => {
-        const logger = new Logger('test-preview');
-        const loggerSpy = jest.spyOn(logger, 'info');
-        jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
+        const LoggerSetupSpy = jest.spyOn(
+            LoggerSetup,
+            'initializePluginLoggers'
+        );
         const preview = makePreview('compname', 'android', 'sfdxdebug');
         await preview.init();
+        const loggerSpy = jest.spyOn(preview.logger, 'info');
         await preview.run();
         expect(loggerSpy).toHaveBeenCalled();
+        expect(LoggerSetupSpy).toHaveBeenCalled();
     });
 
     test('Messages folder should be loaded', async () => {
