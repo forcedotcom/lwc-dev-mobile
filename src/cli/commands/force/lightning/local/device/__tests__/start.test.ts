@@ -7,12 +7,12 @@
 
 import { Config } from '@oclif/core/lib/config';
 import { Options } from '@oclif/core/lib/interfaces';
-import { Logger } from '@salesforce/core';
 import {
     AndroidUtils,
     CommonUtils,
     IOSSimulatorDevice,
     IOSUtils,
+    LoggerSetup,
     RequirementProcessor
 } from '@salesforce/lwc-dev-mobile-core';
 import { Start } from '../start';
@@ -116,9 +116,10 @@ describe('Start Tests', () => {
     });
 
     test('Logger must be initialized and invoked', async () => {
-        const logger = new Logger('test-logger');
-        const loggerSpy = jest.spyOn(logger, 'info');
-        jest.spyOn(Logger, 'child').mockReturnValue(Promise.resolve(logger));
+        const LoggerSetupSpy = jest.spyOn(
+            LoggerSetup,
+            'initializePluginLoggers'
+        );
 
         const bootDeviceMock = jest.fn(() => Promise.resolve());
         const launchSimulatorAppMock = jest.fn(() => Promise.resolve());
@@ -135,8 +136,10 @@ describe('Start Tests', () => {
 
         const start = makeStart('iOS', targetName);
         await start.init();
+        const loggerSpy = jest.spyOn(start.logger, 'info');
         await start.run();
         expect(loggerSpy).toHaveBeenCalled();
+        expect(LoggerSetupSpy).toHaveBeenCalled();
     });
 
     test('Messages folder should be loaded', async () => {
