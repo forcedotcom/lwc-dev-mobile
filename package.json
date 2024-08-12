@@ -60,7 +60,7 @@
     "jest-extended": "^4.0.2",
     "jest-junit": "^16.0.0",
     "lint-staged": "^15.2.7",
-    "oclif": "^4.14.12",
+    "oclif": "^4.14.19",
     "prettier": "^3.3.3",
     "ts-jest": "^29.2.4",
     "typescript": "^5.5.4"
