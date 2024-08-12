@@ -1418,10 +1418,10 @@
     ansis "^3.3.1"
     fast-levenshtein "^3.0.0"
 
-"@oclif/plugin-version@^2.0.3", "@oclif/plugin-version@^2.2.9":
-  version "2.2.9"
-  resolved "https://registry.npmjs.org/@oclif/plugin-version/-/plugin-version-2.2.9.tgz"
-  integrity sha512-iQXONngNCTW1OWZS8GS8Bd5xwEvrg5MSmfE8CBS7PqyeR/J+nVUn61TH5/kTX7wk+uXOF6XY7op28Ou5alxoBg==
+"@oclif/plugin-version@^2.0.3", "@oclif/plugin-version@^2.2.10":
+  version "2.2.10"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-version/-/plugin-version-2.2.10.tgz#5e0926ff008f0833a8c2bdd38eaae649d7bf3872"
+  integrity sha512-eyM9DxSnqDfW2PArmxrcV+48GYuhR7hzqIVhpdrkkyLr6STD61ZKIcuU8YJ/5PT1RA+8FgA1RJllH3JswWxhrQ==
   dependencies:
     "@oclif/core" "^4"
     ansis "^3.3.1"
