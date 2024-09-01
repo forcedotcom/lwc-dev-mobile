@@ -59,7 +59,7 @@
     "jest-chain": "^1.1.6",
     "jest-extended": "^4.0.2",
     "jest-junit": "^16.0.0",
-    "lint-staged": "^15.2.7",
+    "lint-staged": "^15.2.10",
     "oclif": "^4.14.19",
     "prettier": "^3.3.3",
     "ts-jest": "^29.2.4",
