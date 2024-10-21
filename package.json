@@ -31,7 +31,7 @@
   ],
   "bugs": "https://github.com/forcedotcom/lwc-dev-mobile/issues",
   "dependencies": {
-    "@oclif/core": "^3.8.0",
+    "@oclif/core": "^4.0.29",
     "@oclif/plugin-version": "^2.2.10",
     "@salesforce/core": "^5.3.12",
     "@salesforce/lwc-dev-mobile-core": "^3.3.1",
