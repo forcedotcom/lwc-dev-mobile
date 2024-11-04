@@ -66,7 +66,11 @@
     "typescript": "^5.5.4"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
+  },
+  "volta": {
+    "node": "20.18.0",
+    "yarn": "1.22.22"
   },
   "main": "lib/index.js",
   "files": [
