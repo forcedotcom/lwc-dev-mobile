@@ -1,0 +1,72 @@
+name: Auto-Merge Dependabot PRs (minor/patch only)
+
+on:
+    pull_request:
+        types:
+            - labeled # Triggered when a label is added to a pull request
+
+jobs:
+    auto-merge:
+        if: github.event.pull_request.user.login == 'dependabot[bot]' # Ensures this only runs for Dependabot PRs
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check if the PR has the 'dependencies' label
+              uses: actions/github-script@v6
+              id: check-label
+              with:
+                  script: |
+                      const { labels } = context.payload.pull_request;
+
+                      // When dependabot creates PRs, it adds 'dependencies' as a label to the PRs.
+                      // Here we check to see if 'dependencies' label is present
+                      const hasDependenciesLabel = labels.some(label => label.name === 'dependencies');
+
+                      if (!hasDependenciesLabel) {
+                        console.log("The 'dependencies' label is missing. Auto-merge aborted.");
+                        process.exit(0);
+                      }
+
+            - name: Fetch Dependabot metadata
+              id: metadata
+              uses: dependabot/fetch-metadata@v2
+
+            - name: Check if update is a minor or patch group or individual minor/patch update
+              run: |
+                  if [[ "${{ steps.metadata.outputs.update-type }}" != *":semver-minor"* && \
+                        "${{ steps.metadata.outputs.update-type }}" != *":semver-patch"* && \
+                        "${{ github.event.pull_request.title }}" != *"minor-and-patch group"* ]]; then
+                    echo "This PR is not a minor or patch update. Auto-merge aborted."
+                    exit 0
+                  fi
+
+            - name: Check if CI passed
+              uses: actions/github-script@v6
+              with:
+                  script: |
+                      const { pull_request } = context.payload;
+
+                      // Ensure that all other PR job statuses have passed (e.g. build, test, lint, etc)
+                      const { data: statuses } = await github.rest.repos.getCombinedStatusForRef({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        ref: pull_request.head.sha,
+                      });
+
+                      const allStatusesSuccessful = statuses.statuses.every(status => status.state === 'success');
+
+                      if (!allStatusesSuccessful) {
+                        console.log("Not all CI checks passed. Auto-merge aborted.");
+                        process.exit(0);
+                      }
+
+            - name: Auto-Approve PR
+              run: gh pr review --approve "$PR_URL"
+              env:
+                  PR_URL: ${{github.event.pull_request.html_url}}
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Auto-Merge PR
+              run: gh pr merge --squash --delete-branch "$PR_URL"
+              env:
+                  PR_URL: ${{github.event.pull_request.html_url}}
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
