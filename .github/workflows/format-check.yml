@@ -1,5 +1,5 @@
-name: lint
-run-name: Installs project and runs linting
+name: prettier
+run-name: Installs project and runs prettier checks
 on: [push, pull_request]
 jobs:
     lint:
@@ -7,11 +7,11 @@ jobs:
         strategy:
             matrix:
                 node: [20]
-        name: Linting on Ubuntu with Node ${{ matrix.node }}
+        name: Prettier on Ubuntu with Node ${{ matrix.node }}
         steps:
             - uses: actions/checkout@v3
             - uses: actions/setup-node@v3
               with:
                   node-version: ${{ matrix.node }}
             - run: yarn install
-            - run: yarn lint
+            - run: yarn format:check

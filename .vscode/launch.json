@@ -1,6 +1,56 @@
 {
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Attach",
+            "port": 9229,
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        },
+        {
+            "name": "Run All Tests",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/mocha",
+            "args": [
+                "--inspect",
+                "--colors",
+                "test/unit/**/*.test.ts"
+            ],
+            "env": {
+                "NODE_ENV": "development",
+                "SFDX_ENV": "development"
+            },
+            "sourceMaps": true,
+            "smartStep": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "preLaunchTask": "Compile tests"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run Current Test",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/mocha",
+            "args": [
+                "--inspect",
+                "--colors",
+                "${file}"
+            ],
+            "env": {
+                "NODE_ENV": "development",
+                "SFDX_ENV": "development"
+            },
+            "sourceMaps": true,
+            "smartStep": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "preLaunchTask": "Compile tests"
+        },
         {
             "type": "node",
             "request": "launch",
@@ -10,11 +60,11 @@
             "args": [
                 "force:lightning:local:device:create",
                 "-p",
-                "iOS",
+                "ios",
                 "-n",
                 "sfdxdebug",
                 "-d",
-                "iPhone-8"
+                "iPhone-16"
             ]
         },
         {
@@ -42,7 +92,7 @@
             "args": [
                 "force:lightning:local:device:list",
                 "-p",
-                "iOS"
+                "ios"
             ]
         },
         {
@@ -66,9 +116,9 @@
             "args": [
                 "force:lightning:local:device:start",
                 "-p",
-                "iOS",
+                "ios",
                 "-t",
-                "sfdxdebug"
+                "iPhone 16"
             ]
         },
         {
@@ -80,9 +130,9 @@
             "args": [
                 "force:lightning:local:device:start",
                 "-p",
-                "iOS",
+                "ios",
                 "-t",
-                "<replace with udid for sfdxdebug device>"
+                "3627EBD5-E9EC-4EC4-8E89-C6A0232C920D"
             ]
         },
         {
@@ -96,40 +146,8 @@
                 "-p",
                 "android",
                 "-t",
-                "sfdxdebug",
+                "Pixel 5 API 30",
                 "-w"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Preview - iOS",
-            "console": "integratedTerminal",
-            "program": "${workspaceFolder}/bin/run",
-            "args": [
-                "force:lightning:lwc:preview",
-                "-p",
-                "iOS",
-                "-n",
-                "c/helloWorld",
-                "-t",
-                "sfdxdebug"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Preview - Android",
-            "console": "integratedTerminal",
-            "program": "${workspaceFolder}/bin/run",
-            "args": [
-                "force:lightning:lwc:preview",
-                "-p",
-                "android",
-                "-n",
-                "c/helloWorld",
-                "-t",
-                "sfdxdebug"
             ]
         },
         {
@@ -141,7 +159,7 @@
             "args": [
                 "force:lightning:local:setup",
                 "-p",
-                "iOS"
+                "ios"
             ]
         },
         {
@@ -165,9 +183,9 @@
             "args": [
                 "force:lightning:lwc:test:ui:mobile:configure",
                 "-p",
-                "iOS",
+                "ios",
                 "-d",
-                "iPhone 12",
+                "iPhone 16",
                 "--output",
                 "./wdio.conf.js",
                 "--testframework",
@@ -193,7 +211,7 @@
                 "-p",
                 "android",
                 "-d",
-                "Pixel_5_API_33",
+                "Pixel 5 API 33",
                 "--output",
                 "./wdio.conf.js",
                 "--testframework",
@@ -225,27 +243,6 @@
                 "--spec",
                 "./path/to/my/spec/test.spec.js"
             ]
-        },
-        {
-            "name": "ts-node",
-            "type": "node",
-            "request": "launch",
-            "args": ["${relativeFile}"],
-            "runtimeArgs": ["-r", "ts-node/register"],
-            "cwd": "${workspaceRoot}",
-            "protocol": "inspector",
-            "internalConsoleOptions": "openOnSessionStart"
-        },
-        {
-            "type": "node",
-            "name": "vscode-jest-tests",
-            "request": "launch",
-            "args": ["--runInBand"],
-            "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
-            "disableOptimisticBPs": true,
-            "program": "${workspaceFolder}/node_modules/jest/bin/jest"
         }
     ]
 }

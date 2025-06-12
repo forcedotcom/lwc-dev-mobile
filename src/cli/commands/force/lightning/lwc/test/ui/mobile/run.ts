@@ -1,128 +1,93 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
+ * Copyright (c) 2021, salesforce.com, inc.
  * All rights reserved.
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
+import fs from 'node:fs';
+import path from 'node:path';
 import { Flags } from '@salesforce/sf-plugins-core';
 import { Messages, SfError } from '@salesforce/core';
-import {
-    BaseCommand,
-    CommandLineUtils,
-    CommonUtils,
-    FlagsConfigType
-} from '@salesforce/lwc-dev-mobile-core';
-import * as childProcess from 'child_process';
-import util from 'util';
-import fs from 'fs';
-import path from 'path';
+import { BaseCommand, CommandLineUtils, CommonUtils, FlagsConfigType } from '@salesforce/lwc-dev-mobile-core';
 
-// Initialize Messages with the current plugin directory
-Messages.importMessagesDirectory(__dirname);
-
-// Load the specific messages for this file. Messages from @salesforce/command, @salesforce/core,
-// or any library that is using the messages framework can also be loaded this way.
-const messages = Messages.loadMessages(
-    '@salesforce/lwc-dev-mobile',
-    'test-ui-mobile-run'
-);
+Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
+const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'test-ui-mobile-run');
 
 export class Run extends BaseCommand {
-    protected _commandName = 'force:lightning:lwc:test:ui:mobile:run';
+    public static readonly summary = messages.getMessage('summary');
+    public static readonly examples = messages.getMessages('examples');
 
-    public static readonly description =
-        messages.getMessage('commandDescription');
-
-    public static readonly examples = [
-        `sfdx force:lightning:lwc:test:ui:mobile:run --config '/path/to/wdio.conf.js'`,
-        `sfdx force:lightning:lwc:test:ui:mobile:run --config '/path/to/wdio.conf.js' --spec '/path/to/myTest.spec.js'`,
-        `sfdx force:lightning:lwc:test:ui:mobile:run --config '/path/to/wdio.conf.js' --spec '/path/to/folderWithSpecs'`
-    ];
-
-    private static createError(stringId: string, ...param: any[]): SfError {
-        let msg = messages.getMessage(stringId);
-        if (param.length > 0) {
-            msg = util.format(msg, param);
-        }
-        return new SfError(msg, 'lwc-dev-mobile', Run.examples);
-    }
-
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     public static readonly flags = {
-        ...CommandLineUtils.createFlag(FlagsConfigType.Json, false),
-        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevel, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.JsonFlag, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevelFlag, false),
         config: Flags.string({
-            description: messages.getMessage('configFlagDescription'),
             char: 'f',
-            required: true
+            description: messages.getMessage('flags.config.description'),
+            required: true,
+            validate: (config: string) => config && config.trim().length > 0
         }),
         spec: Flags.string({
-            description: messages.getMessage('specFlagDescription'),
-            char: 's',
-            required: false
+            description: messages.getMessage('flags.spec.description'),
+            required: false,
+            validate: (spec: string) => spec && spec.trim().length > 0
         })
     };
 
-    public async run(): Promise<void> {
-        this.logger.info(`UTAM run command invoked.`);
+    protected _commandName = 'force:lightning:lwc:test:ui:mobile:run';
 
-        const config = CommandLineUtils.resolveFlag(
-            this.flagValues.config,
-            ''
-        ).trim();
-        const configPath = path.normalize(
-            CommonUtils.resolveUserHomePath(config)
-        );
+    private get configFlag(): string {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        return CommandLineUtils.resolveFlag(this.flagValues.config, '').trim();
+    }
+    private get specFlag(): string {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        return CommandLineUtils.resolveFlag(this.flagValues.spec, '').trim();
+    }
+
+    public async run(): Promise<void> {
+        this.logger.info('Mobile UI Test Run command invoked.');
+
+        const configPath = path.normalize(CommonUtils.resolveUserHomePath(this.configFlag));
         if (!fs.existsSync(configPath)) {
-            return Promise.reject(
-                Run.createError('error:configFileDoesntExistDescription')
-            );
+            return Promise.reject(this.createError(messages.getMessage('error.configFile.pathInvalid', [configPath])));
         }
 
         let specs: string[] = [];
-        const spec = CommandLineUtils.resolveFlag(
-            this.flagValues.spec,
-            ''
-        ).trim();
-        if (spec.length > 0) {
-            const specPath = path.normalize(
-                CommonUtils.resolveUserHomePath(spec)
-            );
+        if (this.specFlag.length > 0) {
+            const specPath = path.normalize(CommonUtils.resolveUserHomePath(this.specFlag));
             if (!fs.existsSync(specPath)) {
-                return Promise.reject(
-                    Run.createError('error:specPathInvalidDescription')
-                );
+                return Promise.reject(this.createError(messages.getMessage('error.spec.pathInvalid', [specPath])));
             }
             // Get all files ending with .JS or .js since some operating
             // systems are case sensitive on file names/extensions.
-            specs = CommonUtils.enumerateFiles(
-                specPath,
-                new RegExp('^.*\\.((j|J)(s|S))$')
-            );
+            specs = CommonUtils.enumerateFiles(specPath, new RegExp('^.*\\.((j|J)(s|S))$'));
         }
 
         CommonUtils.startCliAction(messages.getMessage('runningUtamTest'));
         return this.executeRunUtamTest(configPath, specs)
             .then(() => {
-                this.logger.info(`UTAM test ran successfully`);
+                this.logger.info('Tests ran successfully');
                 return Promise.resolve();
             })
-            .catch((error) => {
-                this.logger.warn(`Failed to run UTAM test: ${error}`);
+            .catch((error: Error) => {
+                this.logger.warn(`Failed to run tests: ${error.message}`);
 
-                return Promise.reject(
-                    Run.createError('error:unexpectedErrorDescription', error)
-                );
+                return Promise.reject(this.createError(messages.getMessage('error.unexpected', [error.message])));
             })
             .finally(() => {
                 CommonUtils.stopCliAction();
             });
     }
 
-    private async executeRunUtamTest(
-        configPath: string,
-        specs: string[]
-    ): Promise<{ stdout: string; stderr: string }> {
+    // eslint-disable-next-line class-methods-use-this
+    private createError(message: string): SfError {
+        return new SfError(message, 'lwc-dev-mobile', Run.examples);
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    private async executeRunUtamTest(configPath: string, specs: string[]): Promise<{ stdout: string; stderr: string }> {
         const quote = process.platform === 'win32' ? '"' : "'";
         const cmd = 'npx';
         const args = ['--no-install', 'wdio', `${quote}${configPath}${quote}`];
@@ -135,11 +100,7 @@ export class Run extends BaseCommand {
             args.push(...specsArray);
         }
 
-        const stdioOptions: childProcess.StdioOptions = [
-            'inherit',
-            'inherit',
-            'inherit'
-        ]; // have the child process report its STDIO back to the host process
-        return CommonUtils.spawnCommandAsync(cmd, args, stdioOptions);
+        // Have the child process inherit host process STDIO for reporting
+        return CommonUtils.spawnCommandAsync(cmd, args, ['inherit', 'inherit', 'inherit']);
     }
 }

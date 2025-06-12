@@ -1,17 +1,24 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "typescript",
-			"tsconfig": "tsconfig.json",
-			"problemMatcher": [
-				"$tsc"
-			],
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"label": "tsc: build - tsconfig.json"
-		}
-	]
+    "version": "2.0.0",
+    "problemMatcher": "$tsc",
+    "tasks": [
+        {
+            "label": "Compile tests",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "command": "yarn",
+            "type": "shell",
+            "presentation": {
+                "focus": false,
+                "panel": "dedicated"
+            },
+            "args": [
+                "run",
+                "pretest"
+            ],
+            "isBackground": false
+        }
+    ]
 }

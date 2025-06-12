@@ -1,92 +1,81 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2021, salesforce.com, inc.
  * All rights reserved.
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
+import chalk from 'chalk';
+import archy from 'archy';
 import { Messages } from '@salesforce/core';
 import {
-    AndroidUtils,
+    AndroidDevice,
+    AndroidDeviceManager,
+    AppleDevice,
+    AppleDeviceManager,
     BaseCommand,
     CommandLineUtils,
     CommonUtils,
     FlagsConfigType,
-    IOSUtils,
     PerformanceMarkers
 } from '@salesforce/lwc-dev-mobile-core';
-import chalk from 'chalk';
-import { ux } from '@oclif/core';
-import { performance, PerformanceObserver } from 'perf_hooks';
 
-// Initialize Messages with the current plugin directory
-Messages.importMessagesDirectory(__dirname);
-
-// Load the specific messages for this file. Messages from @salesforce/command, @salesforce/core,
-// or any library that is using the messages framework can also be loaded this way.
-const messages = Messages.loadMessages(
-    '@salesforce/lwc-dev-mobile',
-    'device-list'
-);
+Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
+const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'device-list');
 
 export class List extends BaseCommand {
-    protected _commandName = 'sfdx force:lightning:local:device:list';
+    public static readonly summary = messages.getMessage('summary');
+    public static readonly examples = messages.getMessages('examples');
 
-    public static readonly description =
-        messages.getMessage('commandDescription');
-
-    public static readonly examples = [
-        `sfdx force:lightning:local:device:list -p iOS`,
-        `sfdx force:lightning:local:device:list -p Android`
-    ];
-
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     public static readonly flags = {
-        ...CommandLineUtils.createFlag(FlagsConfigType.Json, false),
-        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevel, false),
-        ...CommandLineUtils.createFlag(FlagsConfigType.Platform, true)
+        ...CommandLineUtils.createFlag(FlagsConfigType.JsonFlag, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevelFlag, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.PlatformFlag, true)
     };
 
-    private perfMarker = PerformanceMarkers.getByName(
-        PerformanceMarkers.FETCH_DEVICES_MARKER_KEY
-    )!;
+    protected _commandName = 'force:lightning:local:device:list';
 
-    public async run(): Promise<any> {
-        this.logger.info(
-            `Device List command invoked for ${this.flagValues.platform}`
-        );
+    private perfMarker = PerformanceMarkers.getByName(PerformanceMarkers.FETCH_DEVICES_MARKER_KEY)!;
 
-        return CommandLineUtils.platformFlagIsIOS(this.flagValues.platform)
-            ? this.iOSDeviceList()
-            : this.androidDeviceList();
+    private get platform(): string {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return this.flagValues.platform as string;
     }
 
-    private async iOSDeviceList(): Promise<any> {
+    public async run(): Promise<AndroidDevice[] | AppleDevice[]> {
+        this.logger.info(`Device List command invoked for ${this.platform}`);
+
+        return CommandLineUtils.platformFlagIsIOS(this.platform) ? this.iOSDeviceList() : this.androidDeviceList();
+    }
+
+    private async iOSDeviceList(): Promise<AppleDevice[]> {
         CommonUtils.startCliAction(
-            messages.getMessage('deviceListAction'),
-            messages.getMessage('deviceListStatus')
+            messages.getMessage('device.list.action'),
+            messages.getMessage('device.list.status')
         );
         performance.mark(this.perfMarker.startMarkName);
-        const result = await IOSUtils.getSupportedSimulators();
+        const devices = await new AppleDeviceManager().enumerateDevices();
         performance.mark(this.perfMarker.endMarkName);
         CommonUtils.stopCliAction();
-        this.showDeviceList(result);
-        return Promise.resolve(result);
+        this.showDeviceList(devices);
+        return Promise.resolve(devices);
     }
 
-    private async androidDeviceList(): Promise<any> {
+    private async androidDeviceList(): Promise<AndroidDevice[]> {
         CommonUtils.startCliAction(
-            messages.getMessage('deviceListAction'),
-            messages.getMessage('deviceListStatus')
+            messages.getMessage('device.list.action'),
+            messages.getMessage('device.list.status')
         );
         performance.mark(this.perfMarker.startMarkName);
-        const result = await AndroidUtils.fetchEmulators();
+        const devices = await new AndroidDeviceManager().enumerateDevices();
         performance.mark(this.perfMarker.endMarkName);
         CommonUtils.stopCliAction();
-        this.showDeviceList(result);
-        return Promise.resolve(result);
+        this.showDeviceList(devices);
+        return Promise.resolve(devices);
     }
 
-    private showDeviceList(list: any[]) {
+    private showDeviceList(devices: AndroidDevice[] | AppleDevice[]): void {
         let duration = 0;
 
         const obs = new PerformanceObserver((items, observer) => {
@@ -96,19 +85,14 @@ export class List extends BaseCommand {
         });
         obs.observe({ entryTypes: ['measure'] });
 
-        performance.measure(
-            this.perfMarker.name,
-            this.perfMarker.startMarkName,
-            this.perfMarker.endMarkName
-        );
+        performance.measure(this.perfMarker.name, this.perfMarker.startMarkName, this.perfMarker.endMarkName);
 
-        const message = `DeviceList (${duration.toFixed(3)} sec)`;
-        const tree = ux.tree();
-        tree.insert(message);
-        const rootNode = tree.nodes[message];
-        list.forEach((item) => {
-            rootNode.insert(chalk.bold.green(item));
-        });
-        tree.display();
+        const tree = {
+            label: `DeviceList (${duration.toFixed(3)} sec)`,
+            nodes: devices.flatMap((device) => chalk.bold.green(device.toString()))
+        };
+
+        // eslint-disable-next-line no-console
+        console.log(archy(tree));
     }
 }
