@@ -7,7 +7,7 @@
 import { Logger, Messages } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
-import { IOSUtils, RequirementProcessor } from '@salesforce/lwc-dev-mobile-core';
+import { AppleDeviceManager, IOSUtils, RequirementProcessor } from '@salesforce/lwc-dev-mobile-core';
 import { expect } from 'chai';
 import { Create } from '../../../../../../../../src/cli/commands/force/lightning/local/device/create.js';
 
@@ -28,6 +28,7 @@ describe('Create Tests', () => {
 
     it('Logger must be initialized and invoked', async () => {
         const loggerMock = stubMethod($$.SANDBOX, Logger.prototype, 'info');
+        stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'enumerateRuntimes').resolves([]);
         stubMethod($$.SANDBOX, IOSUtils, 'createNewDevice').resolves('TestUDID');
         await Create.run(['-p', 'ios', '-n', 'MyNewVirtualDevice', '-d', 'iPhone-8']);
         expect(loggerMock.called).to.be.true;
