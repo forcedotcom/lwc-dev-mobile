@@ -262,7 +262,7 @@ describe('Mobile UI Test Configuration Tests', () => {
 
     it('Logger must be initialized and invoked', async () => {
         const loggerMock = stubMethod($$.SANDBOX, Logger.prototype, 'info');
-        stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'getDevice').resolves(androidDevice);
+        stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'getDevice').resolves(appleDevice);
         stubMethod($$.SANDBOX, CommonUtils, 'createTextFile').resolves();
         await Configure.run(['-p', 'ios', '-d', 'iPhone 16']);
         expect(loggerMock.called).to.be.true;
