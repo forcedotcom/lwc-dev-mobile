@@ -175,8 +175,8 @@ export class Configure extends BaseCommand {
             .then(() => {
                 this.logger.info(`Config file created at ${this.output}`);
             })
-            .catch((error) => {
-                this.logger.warn(`Failed to created config file - ${error}`);
+            .catch((error: Error) => {
+                this.logger.warn(`Failed to created config file - ${error.message}`);
                 return Promise.reject(error);
             });
     }
@@ -236,19 +236,19 @@ export class Configure extends BaseCommand {
             capabilities: [
                 isAndroid
                     ? {
-                          'appium:platformName': 'Android',
-                          'appium:automationName': 'UiAutomator2',
-                          'appium:app': this.bundlePath,
-                          'appium:appActivity': this.appActivity,
-                          'appium:appPackage': this.appPackage,
-                          'appium:avd': device.name
-                      }
+                        'appium:platformName': 'Android',
+                        'appium:automationName': 'UiAutomator2',
+                        'appium:app': this.bundlePath,
+                        'appium:appActivity': this.appActivity,
+                        'appium:appPackage': this.appPackage,
+                        'appium:avd': device.name
+                    }
                     : {
-                          'appium:platformName': 'iOS',
-                          'appium:automationName': 'XCUITest',
-                          'appium:app': this.bundlePath,
-                          'appium:udid': (device as AppleDevice).id
-                      }
+                        'appium:platformName': 'iOS',
+                        'appium:automationName': 'XCUITest',
+                        'appium:app': this.bundlePath,
+                        'appium:udid': (device as AppleDevice).id
+                    }
             ],
             framework: this.testFramework,
             baseUrl: this.baseUrl
