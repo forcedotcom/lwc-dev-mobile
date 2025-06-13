@@ -9,7 +9,18 @@ import sinon from 'sinon';
 import { Logger } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
-import { AndroidDevice, AndroidDeviceManager, AndroidOSType, AppleDevice, AppleDeviceManager, AppleOSType, BootMode, DeviceType, RequirementProcessor, Version } from '@salesforce/lwc-dev-mobile-core';
+import {
+    AndroidDevice,
+    AndroidDeviceManager,
+    AndroidOSType,
+    AppleDevice,
+    AppleDeviceManager,
+    AppleOSType,
+    BootMode,
+    DeviceType,
+    RequirementProcessor,
+    Version
+} from '@salesforce/lwc-dev-mobile-core';
 import { expect } from 'chai';
 import { Start } from '../../../../../../../../src/cli/commands/force/lightning/local/device/start.js';
 
@@ -31,7 +42,7 @@ describe('Device Start Tests', () => {
         DeviceType.mobile,
         AppleOSType.iOS,
         new Version(18, 5, 0)
-    )
+    );
 
     let executeSetupMock: sinon.SinonStub<any[], any>;
 
@@ -45,7 +56,9 @@ describe('Device Start Tests', () => {
     });
 
     it('Starts up Android emulator', async () => {
-        const getDeviceMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'getDevice').resolves(androidDevice);
+        const getDeviceMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'getDevice').resolves(
+            androidDevice
+        );
         const bootMock = stubMethod($$.SANDBOX, AndroidDevice.prototype, 'boot').resolves();
         await Start.run(['-p', 'android', '-t', androidDevice.name, '-w']);
 
@@ -63,7 +76,6 @@ describe('Device Start Tests', () => {
         expect(getDeviceMock.called).to.be.true;
         expect(bootMock.calledWith(true)).to.be.true;
     });
-
 
     it('Logger must be initialized and invoked', async () => {
         const loggerMock = stubMethod($$.SANDBOX, Logger.prototype, 'info');

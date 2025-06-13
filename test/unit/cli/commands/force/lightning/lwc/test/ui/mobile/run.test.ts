@@ -27,7 +27,9 @@ describe('Mobile UI Test Run Tests', () => {
         try {
             await Run.run(['--config', 'blah']);
         } catch (error) {
-            expect(error).to.be.an('error').with.property('message', messages.getMessage('error.configFile.pathInvalid', ['blah']));
+            expect(error)
+                .to.be.an('error')
+                .with.property('message', messages.getMessage('error.configFile.pathInvalid', ['blah']));
         }
     });
 
@@ -38,7 +40,9 @@ describe('Mobile UI Test Run Tests', () => {
         try {
             await Run.run(['--config', './wdio.conf.js', '--spec', 'blah']);
         } catch (error) {
-            expect(error).to.be.an('error').with.property('message', messages.getMessage('error.spec.pathInvalid', ['blah']));
+            expect(error)
+                .to.be.an('error')
+                .with.property('message', messages.getMessage('error.spec.pathInvalid', ['blah']));
         }
     });
 
@@ -54,19 +58,14 @@ describe('Mobile UI Test Run Tests', () => {
 
         await Run.run(['--config', config, '--spec', spec]);
 
-        expect(npxWdioCommandMock.calledWith(
-            'npx',
-            [
-                '--no-install',
-                'wdio',
-                `${quote}${config}${quote}`,
-                '--spec',
-                `${quote}${spec}${quote}`
-            ],
-            ['inherit', 'inherit', 'inherit']
-        )).to.be.true;
+        expect(
+            npxWdioCommandMock.calledWith(
+                'npx',
+                ['--no-install', 'wdio', `${quote}${config}${quote}`, '--spec', `${quote}${spec}${quote}`],
+                ['inherit', 'inherit', 'inherit']
+            )
+        ).to.be.true;
     });
-
 
     it('Catches error when npx wdio command fails', async () => {
         const errorMessage = 'UTAM test run failed';
@@ -79,7 +78,9 @@ describe('Mobile UI Test Run Tests', () => {
         try {
             await Run.run(['--config', 'wdio.config.js', '--spec', 'mytest.spec.js']);
         } catch (error) {
-            expect(error).to.be.an('error').with.property('message', messages.getMessage('error.unexpected', [errorMessage]));
+            expect(error)
+                .to.be.an('error')
+                .with.property('message', messages.getMessage('error.unexpected', [errorMessage]));
         }
     });
 

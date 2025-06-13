@@ -236,19 +236,19 @@ export class Configure extends BaseCommand {
             capabilities: [
                 isAndroid
                     ? {
-                        'appium:platformName': 'Android',
-                        'appium:automationName': 'UiAutomator2',
-                        'appium:app': this.bundlePath,
-                        'appium:appActivity': this.appActivity,
-                        'appium:appPackage': this.appPackage,
-                        'appium:avd': device.name
-                    }
+                          'appium:platformName': 'Android',
+                          'appium:automationName': 'UiAutomator2',
+                          'appium:app': this.bundlePath,
+                          'appium:appActivity': this.appActivity,
+                          'appium:appPackage': this.appPackage,
+                          'appium:avd': device.name
+                      }
                     : {
-                        'appium:platformName': 'iOS',
-                        'appium:automationName': 'XCUITest',
-                        'appium:app': this.bundlePath,
-                        'appium:udid': (device as AppleDevice).id
-                    }
+                          'appium:platformName': 'iOS',
+                          'appium:automationName': 'XCUITest',
+                          'appium:app': this.bundlePath,
+                          'appium:udid': (device as AppleDevice).id
+                      }
             ],
             framework: this.testFramework,
             baseUrl: this.baseUrl

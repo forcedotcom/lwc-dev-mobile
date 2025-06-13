@@ -9,7 +9,18 @@ import sinon from 'sinon';
 import { Logger, Messages } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
-import { AndroidDevice, AndroidDeviceManager, AndroidOSType, AppleDevice, AppleDeviceManager, AppleOSType, CommonUtils, DeviceType, RequirementProcessor, Version } from '@salesforce/lwc-dev-mobile-core';
+import {
+    AndroidDevice,
+    AndroidDeviceManager,
+    AndroidOSType,
+    AppleDevice,
+    AppleDeviceManager,
+    AppleOSType,
+    CommonUtils,
+    DeviceType,
+    RequirementProcessor,
+    Version
+} from '@salesforce/lwc-dev-mobile-core';
 import { expect } from 'chai';
 import { Configure } from '../../../../../../../../../../src/cli/commands/force/lightning/lwc/test/ui/mobile/configure.js';
 
@@ -34,7 +45,7 @@ describe('Mobile UI Test Configuration Tests', () => {
         DeviceType.mobile,
         AppleOSType.iOS,
         new Version(18, 5, 0)
-    )
+    );
 
     let executeSetupMock: sinon.SinonStub<any[], any>;
 
@@ -128,7 +139,9 @@ describe('Mobile UI Test Configuration Tests', () => {
                 'com.example.android.myApp'
             ]);
         } catch (error) {
-            expect(error).to.be.an('error').with.property('message', messages.getMessage('error.notFound.device', ['Pixel 5 API 33']));
+            expect(error)
+                .to.be.an('error')
+                .with.property('message', messages.getMessage('error.notFound.device', ['Pixel 5 API 33']));
         }
     });
 
@@ -155,7 +168,9 @@ describe('Mobile UI Test Configuration Tests', () => {
                 '/path/to/my.app'
             ]);
         } catch (error) {
-            expect(error).to.be.an('error').with.property('message', messages.getMessage('error.notFound.device', ['iPhone 16']));
+            expect(error)
+                .to.be.an('error')
+                .with.property('message', messages.getMessage('error.notFound.device', ['iPhone 16']));
         }
     });
 
@@ -196,14 +211,7 @@ describe('Mobile UI Test Configuration Tests', () => {
         const createTextFileMock = stubMethod($$.SANDBOX, CommonUtils, 'createTextFile');
         createTextFileMock.resolves();
 
-        await Configure.run([
-            '-p',
-            'ios',
-            '-d',
-            appleDevice.name,
-            '--bundlepath',
-            '/path/to/my.app',
-        ]);
+        await Configure.run(['-p', 'ios', '-d', appleDevice.name, '--bundlepath', '/path/to/my.app']);
 
         expect(executeSetupMock.called).to.be.true;
 
@@ -251,7 +259,6 @@ describe('Mobile UI Test Configuration Tests', () => {
         expect(args[1]).to.contain('"appium:appActivity": ".MainActivity"');
         expect(args[1]).to.contain('"appium:appPackage": "com.example.android.myApp"');
     });
-
 
     it('Logger must be initialized and invoked', async () => {
         const loggerMock = stubMethod($$.SANDBOX, Logger.prototype, 'info');

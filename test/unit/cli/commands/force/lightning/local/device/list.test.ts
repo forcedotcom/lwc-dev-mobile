@@ -8,7 +8,17 @@
 import { Logger } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
-import { AndroidDevice, AndroidDeviceManager, AndroidOSType, AppleDevice, AppleDeviceManager, AppleOSType, DeviceType, IOSUtils, Version } from '@salesforce/lwc-dev-mobile-core';
+import {
+    AndroidDevice,
+    AndroidDeviceManager,
+    AndroidOSType,
+    AppleDevice,
+    AppleDeviceManager,
+    AppleOSType,
+    DeviceType,
+    IOSUtils,
+    Version
+} from '@salesforce/lwc-dev-mobile-core';
 import { expect } from 'chai';
 import { List } from '../../../../../../../../src/cli/commands/force/lightning/local/device/list.js';
 
@@ -30,20 +40,24 @@ describe('Device List Tests', () => {
         DeviceType.mobile,
         AppleOSType.iOS,
         new Version(18, 5, 0)
-    )
+    );
 
     afterEach(() => {
         $$.restore();
     });
 
     it('Lists Android emulators', async () => {
-        const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([androidDevice]);
+        const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([
+            androidDevice
+        ]);
         await List.run(['-p', 'android']);
         expect(enumerateMock.called).to.be.true;
     });
 
     it('Lists iOS simulators', async () => {
-        const enumerateMock = stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'enumerateDevices').resolves([appleDevice]);
+        const enumerateMock = stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'enumerateDevices').resolves([
+            appleDevice
+        ]);
         await List.run(['-p', 'ios']);
         expect(enumerateMock.called).to.be.true;
     });

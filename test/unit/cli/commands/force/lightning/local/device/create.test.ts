@@ -9,7 +9,15 @@ import sinon from 'sinon';
 import { Logger } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
-import { AndroidPackage, AndroidUtils, AppleDeviceManager, AppleRuntime, IOSUtils, RequirementProcessor, Version } from '@salesforce/lwc-dev-mobile-core';
+import {
+    AndroidPackage,
+    AndroidUtils,
+    AppleDeviceManager,
+    AppleRuntime,
+    IOSUtils,
+    RequirementProcessor,
+    Version
+} from '@salesforce/lwc-dev-mobile-core';
 import { expect } from 'chai';
 import { Create } from '../../../../../../../../src/cli/commands/force/lightning/local/device/create.js';
 
@@ -43,7 +51,7 @@ describe('Device Create Tests', () => {
                 'Google APIs Intel x86 Atom_64 System Image',
                 `system-images/${androidApi}/${androidImage}/${androidABI}/`
             )
-        )
+        );
 
         const createAvdMock = stubMethod($$.SANDBOX, AndroidUtils, 'createNewVirtualDevice');
         createAvdMock.resolves();
@@ -52,7 +60,16 @@ describe('Device Create Tests', () => {
 
         expect(executeSetupMock.called).to.be.true;
         expect(emulatorImagesMock.called).to.be.true;
-        expect(createAvdMock.calledWith(deviceName, androidImage, androidApi, androidDeviceType, androidABI, sinon.match.any)).to.be.true;
+        expect(
+            createAvdMock.calledWith(
+                deviceName,
+                androidImage,
+                androidApi,
+                androidDeviceType,
+                androidABI,
+                sinon.match.any
+            )
+        ).to.be.true;
     });
 
     it('Creates new iOS simulator', async () => {

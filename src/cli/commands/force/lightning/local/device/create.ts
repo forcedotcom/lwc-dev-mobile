@@ -124,7 +124,14 @@ export class Create extends BaseCommand {
         const emuImage = preferredPack.platformEmulatorImage ?? 'default';
         const androidApi = preferredPack.platformAPI;
         const abi = preferredPack.abi;
-        return AndroidUtils.createNewVirtualDevice(this.deviceName, emuImage, androidApi, this.deviceType, abi, this.logger);
+        return AndroidUtils.createNewVirtualDevice(
+            this.deviceName,
+            emuImage,
+            androidApi,
+            this.deviceType,
+            abi,
+            this.logger
+        );
     }
 
     private async executeIOSDeviceCreate(): Promise<void> {
@@ -202,8 +209,8 @@ class ValidDeviceTypeRequirement implements Requirement {
         return match !== undefined
             ? Promise.resolve(util.format(this.fulfilledMessage, this.owner.deviceType))
             : Promise.reject(
-                util.format(this.unfulfilledMessage, this.owner.deviceType, supportedDeviceTypes.join(', '))
-            );
+                  util.format(this.unfulfilledMessage, this.owner.deviceType, supportedDeviceTypes.join(', '))
+              );
     }
 }
 
