@@ -175,8 +175,8 @@ export class Configure extends BaseCommand {
             .then(() => {
                 this.logger.info(`Config file created at ${this.output}`);
             })
-            .catch((error) => {
-                this.logger.warn(`Failed to created config file - ${error}`);
+            .catch((error: Error) => {
+                this.logger.warn(`Failed to created config file - ${error.message}`);
                 return Promise.reject(error);
             });
     }

@@ -4,17 +4,33 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import { Logger, Messages } from '@salesforce/core';
+
+import sinon from 'sinon';
+import { Logger } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
-import { AppleDeviceManager, IOSUtils, RequirementProcessor } from '@salesforce/lwc-dev-mobile-core';
+import {
+    AndroidPackage,
+    AndroidUtils,
+    AppleDeviceManager,
+    AppleRuntime,
+    IOSUtils,
+    RequirementProcessor,
+    Version
+} from '@salesforce/lwc-dev-mobile-core';
 import { expect } from 'chai';
 import { Create } from '../../../../../../../../src/cli/commands/force/lightning/local/device/create.js';
 
-Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
-
-describe('Create Tests', () => {
+describe('Device Create Tests', () => {
     const $$ = new TestContext();
+
+    const deviceName = 'MyDeviceName';
+    const iOSDeviceType = 'iPhone-16';
+    const androidDeviceType = 'pixel_xl';
+    const androidApi = 'android-35';
+    const androidImage = 'google_apis';
+    const androidABI = 'x86_64';
+
     let executeSetupMock: sinon.SinonStub<any[], any>;
 
     beforeEach(() => {
@@ -24,6 +40,71 @@ describe('Create Tests', () => {
 
     afterEach(() => {
         $$.restore();
+    });
+
+    it('Creates new Android emulator', async () => {
+        const emulatorImagesMock = stubMethod($$.SANDBOX, AndroidUtils, 'fetchSupportedEmulatorImagePackage');
+        emulatorImagesMock.resolves(
+            new AndroidPackage(
+                `${androidApi};${androidImage};${androidABI}`,
+                new Version(35, 0, 0),
+                'Google APIs Intel x86 Atom_64 System Image',
+                `system-images/${androidApi}/${androidImage}/${androidABI}/`
+            )
+        );
+
+        const createAvdMock = stubMethod($$.SANDBOX, AndroidUtils, 'createNewVirtualDevice');
+        createAvdMock.resolves();
+
+        await Create.run(['-p', 'android', '-n', deviceName, '-d', androidDeviceType]);
+
+        expect(executeSetupMock.called).to.be.true;
+        expect(emulatorImagesMock.called).to.be.true;
+        expect(
+            createAvdMock.calledWith(
+                deviceName,
+                androidImage,
+                androidApi,
+                androidDeviceType,
+                androidABI,
+                sinon.match.any
+            )
+        ).to.be.true;
+    });
+
+    it('Creates new iOS simulator', async () => {
+        const runtimesMock = stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'enumerateRuntimes');
+        runtimesMock.resolves([
+            {
+                bundlePath:
+                    '/Library/Developer/CoreSimulator/Volumes/iOS_21F79/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 18.5.simruntime',
+                identifier: 'com.apple.CoreSimulator.SimRuntime.iOS-18-5',
+                isAvailable: true,
+                isInternal: false,
+                name: 'iOS 18.5',
+                platform: 'iOS',
+                runtimeRoot:
+                    '/Library/Developer/CoreSimulator/Volumes/iOS_21F79/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 18.5.simruntime/Contents/Resources/RuntimeRoot',
+                version: '18.5',
+                supportedDeviceTypes: [
+                    {
+                        bundlePath: '/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone 16.simdevicetype',
+                        identifier: 'com.apple.CoreSimulator.SimDeviceType.iPhone-16',
+                        name: 'iPhone 16',
+                        productFamily: 'iPhone'
+                    }
+                ]
+            } as AppleRuntime
+        ]);
+
+        const createSimMock = stubMethod($$.SANDBOX, IOSUtils, 'createNewDevice');
+        createSimMock.resolves('TestUDID');
+
+        await Create.run(['-p', 'ios', '-n', deviceName, '-d', iOSDeviceType]);
+
+        expect(executeSetupMock.called).to.be.true;
+        expect(runtimesMock.called).to.be.true;
+        expect(createSimMock.calledWith(deviceName, iOSDeviceType, 'iOS-18-5', sinon.match.any)).to.be.true;
     });
 
     it('Logger must be initialized and invoked', async () => {

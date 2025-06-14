@@ -87,9 +87,9 @@ export class Create extends BaseCommand {
                 const message = messages.getMessage('device.create.successStatus', [this.deviceName, this.deviceType]);
                 CommonUtils.stopCliAction(message);
             })
-            .catch((error) => {
+            .catch((error: Error) => {
                 CommonUtils.stopCliAction(messages.getMessage('device.create.failureStatus'));
-                this.logger.warn(`Device Create failed for ${this.platform}.`);
+                this.logger.warn(`Device Create failed for ${this.platform} - ${error.message}`);
                 return Promise.reject(error);
             });
     }
@@ -124,7 +124,14 @@ export class Create extends BaseCommand {
         const emuImage = preferredPack.platformEmulatorImage ?? 'default';
         const androidApi = preferredPack.platformAPI;
         const abi = preferredPack.abi;
-        return AndroidUtils.createNewVirtualDevice(this.deviceName, emuImage, androidApi, this.deviceType, abi);
+        return AndroidUtils.createNewVirtualDevice(
+            this.deviceName,
+            emuImage,
+            androidApi,
+            this.deviceType,
+            abi,
+            this.logger
+        );
     }
 
     private async executeIOSDeviceCreate(): Promise<void> {
