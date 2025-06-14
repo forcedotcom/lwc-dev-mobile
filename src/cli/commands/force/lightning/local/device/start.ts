@@ -6,189 +6,113 @@
  */
 
 import { Flags } from '@salesforce/sf-plugins-core';
-import { Messages, SfError } from '@salesforce/core';
+import { Messages } from '@salesforce/core';
 import {
+    AndroidDevice,
+    AndroidDeviceManager,
     AndroidEnvironmentRequirements,
-    AndroidUtils,
+    AppleDevice,
+    AppleDeviceManager,
     BaseCommand,
+    BootMode,
     CommandLineUtils,
     CommandRequirements,
     CommonUtils,
     FlagsConfigType,
     IOSEnvironmentRequirements,
-    IOSUtils,
     RequirementProcessor
 } from '@salesforce/lwc-dev-mobile-core';
-import util from 'util';
 
-// Initialize Messages with the current plugin directory
-Messages.importMessagesDirectory(__dirname);
-
-// Load the specific messages for this file. Messages from @salesforce/command, @salesforce/core,
-// or any library that is using the messages framework can also be loaded this way.
-const messages = Messages.loadMessages(
-    '@salesforce/lwc-dev-mobile',
-    'device-start'
-);
-
-const LWC_DEV_MOBILE = 'lwc-dev-mobile';
+Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
+const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'device-start');
 
 export class Start extends BaseCommand {
-    protected _commandName = 'force:lightning:local:device:start';
+    public static readonly summary = messages.getMessage('summary');
+    public static readonly examples = messages.getMessages('examples');
 
-    public static readonly description =
-        messages.getMessage('commandDescription');
-
-    public static readonly examples = [
-        `sfdx force:lightning:local:device:start -p iOS -t MySimulator`,
-        `sfdx force:lightning:local:device:create -p Android -t MyEmulator -w`
-    ];
-
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     public static readonly flags = {
-        ...CommandLineUtils.createFlag(FlagsConfigType.Json, false),
-        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevel, false),
-        ...CommandLineUtils.createFlag(FlagsConfigType.Platform, true),
+        ...CommandLineUtils.createFlag(FlagsConfigType.JsonFlag, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevelFlag, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.PlatformFlag, true),
         target: Flags.string({
             char: 't',
-            description: messages.getMessage('targetFlagDescription'),
+            description: messages.getMessage('flags.target.description'),
             required: true,
-            validate: (target: string) => {
-                return target && target.trim().length > 0;
-            }
+            validate: (target: string) => target && target.trim().length > 0
         }),
         writablesystem: Flags.boolean({
             char: 'w',
-            description: messages.getMessage('writablesystemFlagDescription'),
+            description: messages.getMessage('flags.writablesystem.description'),
             required: false,
             default: false
         })
     };
 
-    public async run(): Promise<void> {
-        this.logger.info(
-            `Device Start command invoked for ${this.flagValues.platform}`
-        );
+    protected _commandName = 'force:lightning:local:device:start';
 
-        return RequirementProcessor.execute(this.commandRequirements).then(
-            () => {
-                // execute the create command
-                this.logger.info(
-                    'Setup requirements met, continuing with Device Start'
-                );
-                return this.executeDeviceStart();
-            }
-        );
+    private get platform(): string {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return this.flagValues.platform as string;
+    }
+    private get target(): string {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return this.flagValues.target as string;
+    }
+    private get writablesystem(): boolean {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return this.flagValues.writablesystem as boolean;
+    }
+
+    public async run(): Promise<void> {
+        this.logger.info(`Device Start command invoked for ${this.platform}`);
+
+        return RequirementProcessor.execute(this.commandRequirements).then(() => {
+            // execute the start command
+            this.logger.info('Setup requirements met, continuing with Device Start');
+            return this.executeDeviceStart();
+        });
     }
 
     protected populateCommandRequirements(): void {
         const requirements: CommandRequirements = {};
 
-        requirements.setup = CommandLineUtils.platformFlagIsAndroid(
-            this.flagValues.platform
-        )
-            ? new AndroidEnvironmentRequirements(
-                  this.logger,
-                  this.flagValues.apilevel
-              )
+        requirements.setup = CommandLineUtils.platformFlagIsAndroid(this.platform)
+            ? new AndroidEnvironmentRequirements(this.logger)
             : new IOSEnvironmentRequirements(this.logger);
 
-        this._commandRequirements = requirements;
+        this.commandRequirements = requirements;
     }
 
     private async executeDeviceStart(): Promise<void> {
-        const isAndroid = CommandLineUtils.platformFlagIsAndroid(
-            this.flagValues.platform
+        const isAndroid = CommandLineUtils.platformFlagIsAndroid(this.platform);
+
+        const device = isAndroid
+            ? await new AndroidDeviceManager().getDevice(this.target)
+            : await new AppleDeviceManager().getDevice(this.target);
+
+        if (!device) {
+            return Promise.reject(messages.getMessage('error.target.doesNotExist', [this.target]));
+        }
+
+        CommonUtils.startCliAction(
+            messages.getMessage('device.start.action'),
+            messages.getMessage('device.start.status', [this.target])
         );
-        return isAndroid
-            ? this.executeAndroidDeviceStart()
-            : this.executeIOSDeviceStart();
-    }
 
-    private async executeAndroidDeviceStart(): Promise<void> {
-        return AndroidUtils.hasEmulator(this.flagValues.target)
-            .then((hasEmulator) => {
-                if (!hasEmulator) {
-                    return Promise.reject(
-                        new SfError(
-                            util.format(
-                                messages.getMessage(
-                                    'error:targetDoesNotExistDescription'
-                                ),
-                                this.flagValues.target
-                            ),
-                            LWC_DEV_MOBILE
-                        )
-                    );
-                } else {
-                    CommonUtils.startCliAction(
-                        messages.getMessage('deviceStartAction'),
-                        util.format(
-                            messages.getMessage('deviceStartStatus'),
-                            this.flagValues.target
-                        )
-                    );
-                    return AndroidUtils.startEmulator(
-                        this.flagValues.target,
-                        this.flagValues.writablesystem,
-                        false
-                    );
-                }
-            })
-            .then((actualPort) => {
-                CommonUtils.stopCliAction(
-                    util.format(
-                        messages.getMessage('deviceStartSuccessStatusAndroid'),
-                        this.flagValues.target,
-                        actualPort,
-                        this.flagValues.writablesystem
-                    )
-                );
-                return Promise.resolve();
-            });
-    }
-
-    private async executeIOSDeviceStart(): Promise<void> {
-        let simDeviceName = '';
-        let simDeviceUDID = '';
-        return IOSUtils.getSimulator(this.flagValues.target)
-            .then((simDevice) => {
-                if (simDevice === null) {
-                    return Promise.reject(
-                        new SfError(
-                            util.format(
-                                messages.getMessage(
-                                    'error:targetDoesNotExistDescription'
-                                ),
-                                this.flagValues.target
-                            ),
-                            LWC_DEV_MOBILE
-                        )
-                    );
-                } else {
-                    simDeviceName = simDevice.name;
-                    simDeviceUDID = simDevice.udid;
-                    return Promise.resolve();
-                }
-            })
-            .then(() => {
-                CommonUtils.startCliAction(
-                    messages.getMessage('deviceStartAction'),
-                    util.format(
-                        messages.getMessage('deviceStartStatus'),
-                        `${simDeviceName} (${simDeviceUDID})`
-                    )
-                );
-                return IOSUtils.bootDevice(simDeviceUDID, false);
-            })
-            .then(() => IOSUtils.launchSimulatorApp())
-            .then(() => {
-                CommonUtils.stopCliAction(
-                    util.format(
-                        messages.getMessage('deviceStartSuccessStatusIOS'),
-                        `${simDeviceName} (${simDeviceUDID})`
-                    )
-                );
-                return Promise.resolve();
-            });
+        if (isAndroid) {
+            const avd = device as AndroidDevice;
+            await avd.boot(true, this.writablesystem ? BootMode.systemWritableMandatory : BootMode.normal);
+            CommonUtils.stopCliAction(
+                messages.getMessage('device.start.successStatus.android', [
+                    this.target,
+                    avd.emulatorPort(),
+                    this.writablesystem
+                ])
+            );
+        } else {
+            await (device as AppleDevice).boot(true);
+            CommonUtils.stopCliAction(messages.getMessage('device.start.successStatus.ios', [this.target]));
+        }
     }
 }

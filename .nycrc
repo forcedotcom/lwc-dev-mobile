@@ -1,0 +1,12 @@
+{
+  "check-coverage": true,
+  "lines": 75,
+  "statements": 80,
+  "functions": 75,
+  "branches": 75,
+  "temp-directory": "coverage",
+  "reporter": [
+    "text",
+    "html"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "test": {
+    "testsPath": "test/unit/**/*.test.ts"
+  },
+  "wireit": {
+    "test": {
+      "dependencies": [
+        "test:compile",
+        "test:only",
+        "lint"
+      ]
+    }
+  }
+}

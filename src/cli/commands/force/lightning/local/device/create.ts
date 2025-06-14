@@ -5,11 +5,14 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
+import util from 'node:util';
 import { Flags } from '@salesforce/sf-plugins-core';
 import { Logger, Messages } from '@salesforce/core';
 import {
+    AndroidDeviceManager,
     AndroidEnvironmentRequirements,
     AndroidUtils,
+    AppleDeviceManager,
     BaseCommand,
     CommandLineUtils,
     CommandRequirements,
@@ -20,88 +23,73 @@ import {
     Requirement,
     RequirementProcessor
 } from '@salesforce/lwc-dev-mobile-core';
-import util from 'util';
 
-// Initialize Messages with the current plugin directory
-Messages.importMessagesDirectory(__dirname);
-
-// Load the specific messages for this file. Messages from @salesforce/command, @salesforce/core,
-// or any library that is using the messages framework can also be loaded this way.
-const messages = Messages.loadMessages(
-    '@salesforce/lwc-dev-mobile',
-    'device-create'
-);
+Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
+const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'device-create');
 
 export class Create extends BaseCommand {
-    protected _commandName = 'force:lightning:local:device:create';
+    public static readonly summary = messages.getMessage('summary');
+    public static readonly examples = messages.getMessages('examples');
 
-    public static readonly description =
-        messages.getMessage('commandDescription');
-
-    public static readonly examples = [
-        `sfdx force:lightning:local:device:create -p iOS -n MyNewVirtualDevice -d iPhone-8`,
-        `sfdx force:lightning:local:device:create -p Android -n MyNewVirtualDevice -d pixel_xl`
-    ];
-
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     public static readonly flags = {
-        ...CommandLineUtils.createFlag(FlagsConfigType.Json, false),
-        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevel, false),
-        ...CommandLineUtils.createFlag(FlagsConfigType.ApiLevel, false),
-        ...CommandLineUtils.createFlag(FlagsConfigType.Platform, true),
+        ...CommandLineUtils.createFlag(FlagsConfigType.JsonFlag, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.LogLevelFlag, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.ApiLevelFlag, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.PlatformFlag, true),
         devicename: Flags.string({
             char: 'n',
-            description: messages.getMessage('deviceNameFlagDescription'),
+            description: messages.getMessage('flags.deviceName.description'),
             required: true,
-            validate: (deviceName: string) => {
-                return deviceName && deviceName.trim().length > 0;
-            }
+            validate: (deviceName: string) => deviceName && deviceName.trim().length > 0
         }),
         devicetype: Flags.string({
             char: 'd',
-            description: messages.getMessage('deviceTypeFlagDescription'),
+            description: messages.getMessage('flags.deviceType.description'),
             required: true,
-            validate: (deviceType: string) => {
-                return deviceType && deviceType.trim().length > 0;
-            }
+            validate: (deviceType: string) => deviceType && deviceType.trim().length > 0
         })
     };
 
+    protected _commandName = 'force:lightning:local:device:create';
+
+    public get platform(): string {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return this.flagValues.platform as string;
+    }
+    public get deviceName(): string {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return this.flagValues.devicename as string;
+    }
+    public get deviceType(): string {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return this.flagValues.devicetype as string;
+    }
+    public get apiLevel(): string | undefined {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return this.flagValues.apilevel as string | undefined;
+    }
+
     public async run(): Promise<void> {
-        this.logger.info(
-            `Device Create command invoked for ${this.flagValues.platform}`
-        );
+        this.logger.info(`Device Create command invoked for ${this.platform}`);
 
         return RequirementProcessor.execute(this.commandRequirements)
             .then(() => {
                 // execute the create command
-                this.logger.info(
-                    'Setup requirements met, continuing with Device Create'
-                );
+                this.logger.info('Setup requirements met, continuing with Device Create');
                 CommonUtils.startCliAction(
-                    messages.getMessage('deviceCreateAction'),
-                    util.format(
-                        messages.getMessage('deviceCreateStatus'),
-                        this.flagValues.devicename,
-                        this.flagValues.devicetype
-                    )
+                    messages.getMessage('device.create.action'),
+                    messages.getMessage('device.create.status', [this.deviceName, this.deviceType])
                 );
                 return this.executeDeviceCreate();
             })
             .then(() => {
-                const message = util.format(
-                    messages.getMessage('deviceCreateSuccessStatus'),
-                    this.flagValues.devicename,
-                    this.flagValues.devicetype
-                );
+                const message = messages.getMessage('device.create.successStatus', [this.deviceName, this.deviceType]);
                 CommonUtils.stopCliAction(message);
             })
-            .catch((error) => {
-                CommonUtils.stopCliAction(
-                    messages.getMessage('deviceCreateFailureStatus')
-                );
-                this.logger.warn(
-                    `Device Create failed for ${this.flagValues.platform}.`
-                );
+            .catch((error: Error) => {
+                CommonUtils.stopCliAction(messages.getMessage('device.create.failureStatus'));
+                this.logger.warn(`Device Create failed for ${this.platform} - ${error.message}`);
                 return Promise.reject(error);
             });
     }
@@ -109,13 +97,8 @@ export class Create extends BaseCommand {
     protected populateCommandRequirements(): void {
         const requirements: CommandRequirements = {};
 
-        requirements.setup = CommandLineUtils.platformFlagIsAndroid(
-            this.flagValues.platform
-        )
-            ? new AndroidEnvironmentRequirements(
-                  this.logger,
-                  this.flagValues.apilevel
-              )
+        requirements.setup = CommandLineUtils.platformFlagIsAndroid(this.platform)
+            ? new AndroidEnvironmentRequirements(this.logger, this.apiLevel)
             : new IOSEnvironmentRequirements(this.logger);
 
         requirements.create = {
@@ -126,118 +109,125 @@ export class Create extends BaseCommand {
             enabled: true
         };
 
-        this._commandRequirements = requirements;
+        this.commandRequirements = requirements;
     }
 
-    private async executeDeviceCreate(): Promise<any> {
-        const isAndroid = CommandLineUtils.platformFlagIsAndroid(
-            this.flagValues.platform
-        );
-        return isAndroid
-            ? this.executeAndroidDeviceCreate()
-            : this.executeIOSDeviceCreate();
+    private async executeDeviceCreate(): Promise<void> {
+        const isAndroid = CommandLineUtils.platformFlagIsAndroid(this.platform);
+
+        return isAndroid ? this.executeAndroidDeviceCreate() : this.executeIOSDeviceCreate();
     }
 
     private async executeAndroidDeviceCreate(): Promise<void> {
-        return AndroidUtils.fetchSupportedEmulatorImagePackage(
-            this.flagValues.apilevel
-        ).then((preferredPack) => {
-            const emuImage = preferredPack.platformEmulatorImage || 'default';
-            const androidApi = preferredPack.platformAPI;
-            const abi = preferredPack.abi;
-            return AndroidUtils.createNewVirtualDevice(
-                this.flagValues.devicename,
-                emuImage,
-                androidApi,
-                this.flagValues.devicetype,
-                abi
-            );
-        });
+        const preferredPack = await AndroidUtils.fetchSupportedEmulatorImagePackage(this.apiLevel, this.logger);
+
+        const emuImage = preferredPack.platformEmulatorImage ?? 'default';
+        const androidApi = preferredPack.platformAPI;
+        const abi = preferredPack.abi;
+        return AndroidUtils.createNewVirtualDevice(
+            this.deviceName,
+            emuImage,
+            androidApi,
+            this.deviceType,
+            abi,
+            this.logger
+        );
     }
 
-    private async executeIOSDeviceCreate(): Promise<string> {
-        return IOSUtils.getSupportedRuntimes().then((supportedRuntimes) =>
-            IOSUtils.createNewDevice(
-                this.flagValues.devicename,
-                this.flagValues.devicetype,
-                supportedRuntimes[0]
-            )
+    private async executeIOSDeviceCreate(): Promise<void> {
+        const appleDeviceManager = new AppleDeviceManager();
+        const runtimes = await appleDeviceManager.enumerateRuntimes();
+        const match = runtimes.find((runtime) => {
+            const castedRuntime = runtime as unknown as { supportedDeviceTypes: Array<{ identifier: string }> };
+            return (
+                castedRuntime.supportedDeviceTypes.find((deviceType) =>
+                    deviceType.identifier.endsWith(this.deviceType)
+                ) !== undefined
+            );
+        });
+        await IOSUtils.createNewDevice(
+            this.deviceName,
+            this.deviceType,
+            StringHelper.getSubstringAfterLastPeriod(match?.identifier ?? ''),
+            this.logger
         );
     }
 }
 
-// tslint:disable-next-line: max-classes-per-file
 class DeviceNameAvailableRequirement implements Requirement {
-    public title: string = messages.getMessage('reqs:devicename:title');
-    public fulfilledMessage: string = messages.getMessage(
-        'reqs:devicename:fulfilledMessage'
-    );
-    public unfulfilledMessage: string = messages.getMessage(
-        'reqs:devicename:unfulfilledMessage'
-    );
+    public title: string = messages.getMessage('reqs.deviceName.title');
+    // eslint-disable-next-line sf-plugin/no-missing-messages
+    public fulfilledMessage: string = messages.getMessage('reqs.deviceName:fulfilledMessage');
+    // eslint-disable-next-line sf-plugin/no-missing-messages
+    public unfulfilledMessage: string = messages.getMessage('reqs.deviceName:unfulfilledMessage');
     public logger: Logger;
     private owner: Create;
 
-    constructor(owner: Create, logger: Logger) {
+    public constructor(owner: Create, logger: Logger) {
         this.owner = owner;
         this.logger = logger;
     }
 
     // ensure a virtual device with the same name doesn't exist already
     public async checkFunction(): Promise<string> {
-        const isAndroid = CommandLineUtils.platformFlagIsAndroid(
-            this.owner.flagValues.platform
-        );
-        const deviceName = this.owner.flagValues.devicename;
+        const isAndroid = CommandLineUtils.platformFlagIsAndroid(this.owner.platform);
 
         const deviceAlreadyExists = isAndroid
-            ? await AndroidUtils.hasEmulator(deviceName)
-            : (await IOSUtils.getSimulator(deviceName)) != null;
+            ? await new AndroidDeviceManager().getDevice(this.owner.deviceName)
+            : await new AppleDeviceManager().getDevice(this.owner.deviceName);
 
         return deviceAlreadyExists
-            ? Promise.reject(util.format(this.unfulfilledMessage, deviceName))
-            : Promise.resolve(util.format(this.fulfilledMessage, deviceName));
+            ? Promise.reject(util.format(this.unfulfilledMessage, this.owner.deviceName))
+            : Promise.resolve(util.format(this.fulfilledMessage, this.owner.deviceName));
     }
 }
 
-// tslint:disable-next-line: max-classes-per-file
 class ValidDeviceTypeRequirement implements Requirement {
-    public title: string = messages.getMessage('reqs:devicetype:title');
-    public fulfilledMessage: string = messages.getMessage(
-        'reqs:devicetype:fulfilledMessage'
-    );
-    public unfulfilledMessage: string = messages.getMessage(
-        'reqs:devicetype:unfulfilledMessage'
-    );
+    public title: string = messages.getMessage('reqs.deviceType.title');
+    // eslint-disable-next-line sf-plugin/no-missing-messages
+    public fulfilledMessage: string = messages.getMessage('reqs.deviceType.fulfilledMessage');
+    // eslint-disable-next-line sf-plugin/no-missing-messages
+    public unfulfilledMessage: string = messages.getMessage('reqs.deviceType:unfulfilledMessage');
     public logger: Logger;
     private owner: Create;
 
-    constructor(owner: Create, logger: Logger) {
+    public constructor(owner: Create, logger: Logger) {
         this.owner = owner;
         this.logger = logger;
     }
 
     // check whether device type is valid (i.e. it matches one of the possible values of available device types)
     public async checkFunction(): Promise<string> {
-        const isAndroid = CommandLineUtils.platformFlagIsAndroid(
-            this.owner.flagValues.platform
-        );
-        const deviceType = this.owner.flagValues.devicetype;
+        const isAndroid = CommandLineUtils.platformFlagIsAndroid(this.owner.platform);
 
-        const supportedDevices = isAndroid
-            ? await AndroidUtils.getSupportedDevices()
-            : await IOSUtils.getSupportedDevices();
+        const supportedDeviceTypes = isAndroid
+            ? await AndroidUtils.getSupportedDevices() // todo - rename to getSupportedDeviceTypes
+            : await AppleDeviceHelper.getSupportedDeviceTypes(this.logger); // todo - move to AppleDeviceManager
 
-        const match = supportedDevices.find((device) => device === deviceType);
+        const match = supportedDeviceTypes.find((deviceType) => deviceType === this.owner.deviceType);
 
         return match !== undefined
-            ? Promise.resolve(util.format(this.fulfilledMessage, deviceType))
+            ? Promise.resolve(util.format(this.fulfilledMessage, this.owner.deviceType))
             : Promise.reject(
-                  util.format(
-                      this.unfulfilledMessage,
-                      deviceType,
-                      supportedDevices.join(', ')
-                  )
+                  util.format(this.unfulfilledMessage, this.owner.deviceType, supportedDeviceTypes.join(', '))
               );
+    }
+}
+
+// todo - move to AppleDeviceManager
+class AppleDeviceHelper {
+    public static async getSupportedDeviceTypes(logger?: Logger): Promise<string[]> {
+        const { stdout } = await CommonUtils.executeCommandAsync('/usr/bin/xcrun simctl list devicetypes -j', logger);
+
+        const json = JSON.parse(stdout) as { devicetypes: Array<{ identifier: string }> };
+
+        return json.devicetypes.flatMap((item) => StringHelper.getSubstringAfterLastPeriod(item.identifier));
+    }
+}
+
+class StringHelper {
+    public static getSubstringAfterLastPeriod(input: string): string {
+        const lastIndex = input.lastIndexOf('.');
+        return lastIndex !== -1 ? input.substring(lastIndex + 1) : input;
     }
 }

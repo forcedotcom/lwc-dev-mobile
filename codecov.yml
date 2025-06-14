@@ -1,18 +1,18 @@
-# Copyright (c) 2020, salesforce.com, inc.
+# Copyright (c) 2021, salesforce.com, inc.
 # All rights reserved.
 # SPDX-License-Identifier: MIT
 # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
 comment:
-  layout: "header, diff, tree"
-  behavior: default
-  require_changes: false  # if true: only post the comment if coverage changes
-  branches: null
-  flags: null
-  paths: null
+    layout: 'header, diff, tree'
+    behavior: default
+    require_changes: false # if true: only post the comment if coverage changes
+    branches: null
+    flags: null
+    paths: null
 flags:
-  frontend:
-    paths:
-      - modules/
-  backend:
-    paths:
-      - src/
+    frontend:
+        paths:
+            - modules/
+    backend:
+        paths:
+            - src/
