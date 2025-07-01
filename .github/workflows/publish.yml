@@ -6,6 +6,8 @@ on:
 jobs:
     publish:
         runs-on: ubuntu-latest
+
+        # Make sure you have created an environment named "npm-publish" in github under Settings > Environments
         environment:
             name: npm-publish
 
@@ -40,6 +42,12 @@ jobs:
 
             - name: Install dependencies
               run: yarn install
+
+            # Remove the .npmrc and .yarnrc that is checked into the repo so that "npm publish" would recreate it with the added NPM_TOKEN secret
+            - name: Cleanup npmrc and yarnrc
+              run: |
+                  rm -f .npmrc
+                  rm -f .yarnrc
 
             - name: Publish to NPM
               env:
