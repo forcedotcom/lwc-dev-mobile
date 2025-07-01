@@ -82,16 +82,20 @@ describe('Device Create Tests', () => {
                 isAvailable: true,
                 isInternal: false,
                 name: 'iOS 18.5',
+                runtimeName: 'iOS-18-5',
                 platform: 'iOS',
                 runtimeRoot:
                     '/Library/Developer/CoreSimulator/Volumes/iOS_21F79/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 18.5.simruntime/Contents/Resources/RuntimeRoot',
                 version: '18.5',
+                buildversion: '21F79',
+                supportedArchitectures: ['x86_64', 'arm64'],
                 supportedDeviceTypes: [
                     {
                         bundlePath: '/Library/Developer/CoreSimulator/Profiles/DeviceTypes/iPhone 16.simdevicetype',
                         identifier: 'com.apple.CoreSimulator.SimDeviceType.iPhone-16',
                         name: 'iPhone 16',
-                        productFamily: 'iPhone'
+                        productFamily: 'iPhone',
+                        typeName: 'iPhone-16'
                     }
                 ]
             } as AppleRuntime
