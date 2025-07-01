@@ -137,20 +137,11 @@ export class Create extends BaseCommand {
     private async executeIOSDeviceCreate(): Promise<void> {
         const appleDeviceManager = new AppleDeviceManager();
         const runtimes = await appleDeviceManager.enumerateRuntimes();
-        const match = runtimes.find((runtime) => {
-            const castedRuntime = runtime as unknown as { supportedDeviceTypes: Array<{ identifier: string }> };
-            return (
-                castedRuntime.supportedDeviceTypes.find((deviceType) =>
-                    deviceType.identifier.endsWith(this.deviceType)
-                ) !== undefined
-            );
-        });
-        await IOSUtils.createNewDevice(
-            this.deviceName,
-            this.deviceType,
-            StringHelper.getSubstringAfterLastPeriod(match?.identifier ?? ''),
-            this.logger
+        const match = runtimes.find(
+            (runtime) =>
+                runtime.supportedDeviceTypes.find((deviceType) => deviceType.typeName === this.deviceType) !== undefined
         );
+        await IOSUtils.createNewDevice(this.deviceName, this.deviceType, match?.runtimeName ?? '', this.logger);
     }
 }
 
@@ -201,8 +192,8 @@ class ValidDeviceTypeRequirement implements Requirement {
         const isAndroid = CommandLineUtils.platformFlagIsAndroid(this.owner.platform);
 
         const supportedDeviceTypes = isAndroid
-            ? await AndroidUtils.getSupportedDevices() // todo - rename to getSupportedDeviceTypes
-            : await AppleDeviceHelper.getSupportedDeviceTypes(this.logger); // todo - move to AppleDeviceManager
+            ? await AndroidUtils.getSupportedDeviceTypes()
+            : await IOSUtils.getSupportedDeviceTypes(this.logger);
 
         const match = supportedDeviceTypes.find((deviceType) => deviceType === this.owner.deviceType);
 
@@ -211,23 +202,5 @@ class ValidDeviceTypeRequirement implements Requirement {
             : Promise.reject(
                   util.format(this.unfulfilledMessage, this.owner.deviceType, supportedDeviceTypes.join(', '))
               );
-    }
-}
-
-// todo - move to AppleDeviceManager
-class AppleDeviceHelper {
-    public static async getSupportedDeviceTypes(logger?: Logger): Promise<string[]> {
-        const { stdout } = await CommonUtils.executeCommandAsync('/usr/bin/xcrun simctl list devicetypes -j', logger);
-
-        const json = JSON.parse(stdout) as { devicetypes: Array<{ identifier: string }> };
-
-        return json.devicetypes.flatMap((item) => StringHelper.getSubstringAfterLastPeriod(item.identifier));
-    }
-}
-
-class StringHelper {
-    public static getSubstringAfterLastPeriod(input: string): string {
-        const lastIndex = input.lastIndexOf('.');
-        return lastIndex !== -1 ? input.substring(lastIndex + 1) : input;
     }
 }
