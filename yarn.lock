@@ -1505,10 +1505,10 @@
   dependencies:
     "@salesforce/ts-types" "^2.0.12"
 
-"@salesforce/lwc-dev-mobile-core@^4.0.0-alpha.12":
-  version "4.0.0-alpha.12"
-  resolved "https://registry.yarnpkg.com/@salesforce/lwc-dev-mobile-core/-/lwc-dev-mobile-core-4.0.0-alpha.12.tgz#a49fb38e3b37675d0d56ea5b9e9a20a25fe03919"
-  integrity sha512-XA3arv5ipI7zremXPA8+Amo++pFXhmJSGj/Jj4521OisWRCUhqfimLNH3NkZsDUjALUYi/EmwE0Vd11hi7/DaA==
+"@salesforce/lwc-dev-mobile-core@^4.0.0-alpha.13":
+  version "4.0.0-alpha.13"
+  resolved "https://registry.yarnpkg.com/@salesforce/lwc-dev-mobile-core/-/lwc-dev-mobile-core-4.0.0-alpha.13.tgz#cab1ffc74646c7fa33add0f7d2b9600b4847df10"
+  integrity sha512-L76zOvWZE/D/rOKan8IXhNtL9dth+7sqBKwoBZ7dfxOESZ/33yI6bvJASHn04NcRCK1sawKVJ4YltDuVBn0T+A==
   dependencies:
     "@oclif/core" "^4.4.0"
     "@salesforce/core" "^8.15.0"
