@@ -85,41 +85,46 @@ export class Create extends BaseCommand {
             this.deviceType
         ]);
 
-        if (this.jsonEnabled()) {
-            // if in JSON mode, just execute the create command and return the device
-            await this.executeDeviceCreate();
-            const device = await (CommandLineUtils.platformFlagIsAndroid(this.platform)
-                ? new AndroidDeviceManager()
-                : new AppleDeviceManager()
-            ).getDevice(this.deviceName);
-
-            const deviceInfo = DeviceSchema.parse(device);
-            return {
-                device: deviceInfo,
-                success: true,
-                message: creationSuccessMessage
-            };
-        }
-
-        // do the RequirementProcessor.execute if not in JSON mode and then execute the create command
-        return RequirementProcessor.execute(this.commandRequirements)
-            .then(() => {
-                // execute the create command
+        try {
+            // if not in JSON mode, execute the requirements and start the CLI action
+            if (!this.jsonEnabled()) {
+                await RequirementProcessor.execute(this.commandRequirements);
                 this.logger.info('Setup requirements met, continuing with Device Create');
+
                 CommonUtils.startCliAction(
                     messages.getMessage('device.create.action'),
                     messages.getMessage('device.create.status', [this.deviceName, this.deviceType])
                 );
-                return this.executeDeviceCreate();
-            })
-            .then(() => {
+            }
+
+            // execute the device create command
+            await this.executeDeviceCreate();
+
+            if (this.jsonEnabled()) {
+                // In JSON mode, get the device and return it in the format of the DeviceSchema
+                const device = await (CommandLineUtils.platformFlagIsAndroid(this.platform)
+                    ? new AndroidDeviceManager()
+                    : new AppleDeviceManager()
+                ).getDevice(this.deviceName);
+
+                const deviceInfo = DeviceSchema.parse(device);
+                return {
+                    device: deviceInfo,
+                    success: true,
+                    message: creationSuccessMessage
+                };
+            } else {
+                // if cli mode, stop the CLI action
                 CommonUtils.stopCliAction(creationSuccessMessage);
-            })
-            .catch((error: Error) => {
+            }
+        } catch (error) {
+            if (!this.jsonEnabled()) {
+                // if cli mode, stop the CLI action
                 CommonUtils.stopCliAction(messages.getMessage('device.create.failureStatus'));
-                this.logger.warn(`Device Create failed for ${this.platform} - ${error.message}`);
-                throw error;
-            });
+            }
+            this.logger.warn(`Device Create failed for ${this.platform} - ${(error as Error).message}`);
+            throw error;
+        }
     }
 
     protected populateCommandRequirements(): void {

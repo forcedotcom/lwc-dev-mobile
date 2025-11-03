@@ -54,10 +54,6 @@ export class List extends BaseCommand {
     public async run(): Promise<AndroidDevice[] | AppleDevice[]> {
         this.logger.info(`Device List command invoked for ${this.platform}`);
 
-        return CommandLineUtils.platformFlagIsIOS(this.platform) ? this.iOSDeviceList() : this.androidDeviceList();
-    }
-
-    private async iOSDeviceList(): Promise<AppleDevice[]> {
         if (!this.jsonEnabled()) {
             CommonUtils.startCliAction(
                 messages.getMessage('device.list.action'),
@@ -66,26 +62,9 @@ export class List extends BaseCommand {
         }
         performance.mark(this.perfMarker.startMarkName);
 
-        const devices = await new AppleDeviceManager().enumerateDevices();
-
-        performance.mark(this.perfMarker.endMarkName);
-        if (!this.jsonEnabled()) {
-            CommonUtils.stopCliAction();
-            this.showDeviceList(devices);
-        }
-        return devices;
-    }
-
-    private async androidDeviceList(): Promise<AndroidDevice[]> {
-        if (!this.jsonEnabled()) {
-            CommonUtils.startCliAction(
-                messages.getMessage('device.list.action'),
-                messages.getMessage('device.list.status')
-            );
-        }
-        performance.mark(this.perfMarker.startMarkName);
-
-        const devices = await new AndroidDeviceManager().enumerateDevices();
+        const devices = CommandLineUtils.platformFlagIsAndroid(this.platform)
+            ? await new AndroidDeviceManager().enumerateDevices()
+            : await new AppleDeviceManager().enumerateDevices();
 
         performance.mark(this.perfMarker.endMarkName);
         if (!this.jsonEnabled()) {
