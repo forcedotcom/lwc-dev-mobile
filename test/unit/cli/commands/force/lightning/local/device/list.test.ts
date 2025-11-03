@@ -15,6 +15,7 @@ import {
     AppleDevice,
     AppleDeviceManager,
     AppleOSType,
+    CommonUtils,
     DeviceType,
     IOSUtils,
     Version
@@ -42,24 +43,62 @@ describe('Device List Tests', () => {
         new Version(18, 5, 0)
     );
 
+    let startCliActionMock: sinon.SinonStub<any[], any>;
+    let stopCliActionMock: sinon.SinonStub<any[], any>;
+
+    beforeEach(() => {
+        startCliActionMock = stubMethod($$.SANDBOX, CommonUtils, 'startCliAction');
+        stopCliActionMock = stubMethod($$.SANDBOX, CommonUtils, 'stopCliAction');
+    });
+
     afterEach(() => {
+        startCliActionMock.resetHistory();
+        stopCliActionMock.resetHistory();
         $$.restore();
     });
 
-    it('Lists Android emulators', async () => {
+    it('Lists Android emulators for cli mode', async () => {
         const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([
             androidDevice
         ]);
         await List.run(['-p', 'android']);
+
         expect(enumerateMock.called).to.be.true;
+        expect(startCliActionMock.called).to.be.true;
+        expect(stopCliActionMock.called).to.be.true;
     });
 
-    it('Lists iOS simulators', async () => {
+    it('Lists Android emulators for json mode', async () => {
+        const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([
+            androidDevice
+        ]);
+        await List.run(['-p', 'android', '--json']);
+
+        expect(enumerateMock.called).to.be.true;
+        expect(startCliActionMock.called).to.be.false;
+        expect(stopCliActionMock.called).to.be.false;
+    });
+
+    it('Lists iOS simulators for cli mode', async () => {
         const enumerateMock = stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'enumerateDevices').resolves([
             appleDevice
         ]);
         await List.run(['-p', 'ios']);
+
         expect(enumerateMock.called).to.be.true;
+        expect(startCliActionMock.called).to.be.true;
+        expect(stopCliActionMock.called).to.be.true;
+    });
+
+    it('Lists iOS simulators for json mode', async () => {
+        const enumerateMock = stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'enumerateDevices').resolves([
+            appleDevice
+        ]);
+        await List.run(['-p', 'ios', '-f', 'api']);
+
+        expect(enumerateMock.called).to.be.true;
+        expect(startCliActionMock.called).to.be.false;
+        expect(stopCliActionMock.called).to.be.false;
     });
 
     it('Logger must be initialized and invoked', async () => {

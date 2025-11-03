@@ -24,11 +24,11 @@ starting device %s
 
 # device.start.successStatus.android
 
-device %s started on port %s, writable system = %s
+device '%s' started on port %s, writable system = %s
 
 # device.start.successStatus.ios
 
-device %s started
+device '%s' started
 
 # examples
 
