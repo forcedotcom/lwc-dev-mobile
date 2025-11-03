@@ -24,14 +24,14 @@ starting device %s
 
 # device.start.successStatus.android
 
-device %s started on port %s, writable system = %s
+device '%s' started on port %s, writable system = %s
 
 # device.start.successStatus.ios
 
-device %s started
+device '%s' started
 
 # examples
 
-- <%= config.bin %> <%= command.id %> -p ios -t 'iPhone 16'
-- <%= config.bin %> <%= command.id %> -p ios -t '3627EBD5-E9EC-4EC4-8E89-C6A0232C920D'
-- <%= config.bin %> <%= command.id %> -p android -t 'Pixel 9 API 35' -w
+-   <%= config.bin %> <%= command.id %> -p ios -t 'iPhone 16'
+-   <%= config.bin %> <%= command.id %> -p ios -t '3627EBD5-E9EC-4EC4-8E89-C6A0232C920D'
+-   <%= config.bin %> <%= command.id %> -p android -t 'Pixel 9 API 35' -w

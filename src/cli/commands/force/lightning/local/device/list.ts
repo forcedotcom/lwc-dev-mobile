@@ -8,6 +8,8 @@
 import chalk from 'chalk';
 import archy from 'archy';
 import { Messages } from '@salesforce/core';
+import { z } from 'zod';
+
 import {
     AndroidDevice,
     AndroidDeviceManager,
@@ -19,6 +21,7 @@ import {
     FlagsConfigType,
     PerformanceMarkers
 } from '@salesforce/lwc-dev-mobile-core';
+import { DeviceListSchema } from '../schema/device.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'device-list');
@@ -30,6 +33,7 @@ export class List extends BaseCommand {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     public static readonly flags = {
         ...CommandLineUtils.createFlag(FlagsConfigType.JsonFlag, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.OutputFormatFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.LogLevelFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.PlatformFlag, true)
     };
@@ -43,36 +47,32 @@ export class List extends BaseCommand {
         return this.flagValues.platform as string;
     }
 
+    protected static getOutputSchema(): z.ZodTypeAny {
+        return DeviceListSchema;
+    }
+
     public async run(): Promise<AndroidDevice[] | AppleDevice[]> {
         this.logger.info(`Device List command invoked for ${this.platform}`);
 
-        return CommandLineUtils.platformFlagIsIOS(this.platform) ? this.iOSDeviceList() : this.androidDeviceList();
-    }
-
-    private async iOSDeviceList(): Promise<AppleDevice[]> {
-        CommonUtils.startCliAction(
-            messages.getMessage('device.list.action'),
-            messages.getMessage('device.list.status')
-        );
+        if (!this.jsonEnabled()) {
+            CommonUtils.startCliAction(
+                messages.getMessage('device.list.action'),
+                messages.getMessage('device.list.status')
+            );
+        }
         performance.mark(this.perfMarker.startMarkName);
-        const devices = await new AppleDeviceManager().enumerateDevices();
-        performance.mark(this.perfMarker.endMarkName);
-        CommonUtils.stopCliAction();
-        this.showDeviceList(devices);
-        return Promise.resolve(devices);
-    }
 
-    private async androidDeviceList(): Promise<AndroidDevice[]> {
-        CommonUtils.startCliAction(
-            messages.getMessage('device.list.action'),
-            messages.getMessage('device.list.status')
-        );
-        performance.mark(this.perfMarker.startMarkName);
-        const devices = await new AndroidDeviceManager().enumerateDevices();
+        const devices = CommandLineUtils.platformFlagIsAndroid(this.platform)
+            ? await new AndroidDeviceManager().enumerateDevices()
+            : await new AppleDeviceManager().enumerateDevices();
+
         performance.mark(this.perfMarker.endMarkName);
-        CommonUtils.stopCliAction();
-        this.showDeviceList(devices);
-        return Promise.resolve(devices);
+        if (!this.jsonEnabled()) {
+            CommonUtils.stopCliAction();
+            this.showDeviceList(devices);
+        }
+
+        return devices;
     }
 
     private showDeviceList(devices: AndroidDevice[] | AppleDevice[]): void {
