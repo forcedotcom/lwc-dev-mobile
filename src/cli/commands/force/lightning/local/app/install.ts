@@ -19,6 +19,8 @@ import {
     IOSEnvironmentRequirements,
     RequirementProcessor
 } from '@salesforce/lwc-dev-mobile-core';
+import { z } from 'zod';
+import { DeviceOperationResultSchema, DeviceOperationResultType, DeviceSchema } from '../schema/device.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'app-install');
@@ -30,6 +32,7 @@ export class Install extends BaseCommand {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     public static readonly flags = {
         ...CommandLineUtils.createFlag(FlagsConfigType.JsonFlag, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.OutputFormatFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.LogLevelFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.PlatformFlag, true),
         target: Flags.string({
@@ -62,28 +65,58 @@ export class Install extends BaseCommand {
         return this.flagValues.appbundlepath as string;
     }
 
-    public async run(): Promise<void> {
+    protected static getOutputSchema(): z.ZodTypeAny {
+        return DeviceOperationResultSchema;
+    }
+
+    public async run(): Promise<DeviceOperationResultType | void> {
         this.logger.info(`app install command invoked for ${this.platform}`);
 
-        return RequirementProcessor.execute(this.commandRequirements)
-            .then(() => {
-                // environment requirements met, continue with app install
+        const successMessage = messages.getMessage('app.install.successStatus', [this.appBundlePath, this.target]);
+
+        try {
+            // if not in JSON mode, execute the requirements and start the CLI action
+            if (!this.jsonEnabled()) {
+                await RequirementProcessor.execute(this.commandRequirements);
                 this.logger.info('Setup requirements met, continuing with app install');
                 CommonUtils.startCliAction(
                     messages.getMessage('app.install.action'),
                     messages.getMessage('app.install.status', [this.appBundlePath, this.target])
                 );
-                return this.executeAppInstall();
-            })
-            .then(() => {
-                const message = messages.getMessage('app.install.successStatus', [this.appBundlePath, this.target]);
-                CommonUtils.stopCliAction(message);
-            })
-            .catch((error: Error) => {
-                this.logger.warn(`App Install failed for ${this.platform} - ${error.message}`);
+            }
+
+            // execute the app install command
+            await this.executeAppInstall();
+
+            if (this.jsonEnabled()) {
+                // In JSON mode, get the device and return it in the format of the DeviceSchema
+                const deviceManager = CommandLineUtils.platformFlagIsAndroid(this.platform)
+                    ? new AndroidDeviceManager()
+                    : new AppleDeviceManager();
+                const device = await deviceManager.getDevice(this.target);
+
+                if (!device) {
+                    throw new Error(messages.getMessage('error.target.doesNotExist', [this.target]));
+                }
+
+                const deviceInfo = DeviceSchema.parse(device);
+                return {
+                    device: deviceInfo,
+                    success: true,
+                    message: successMessage
+                };
+            } else {
+                // if cli mode, stop the CLI action
+                CommonUtils.stopCliAction(successMessage);
+            }
+        } catch (error) {
+            if (!this.jsonEnabled()) {
+                // if cli mode, stop the CLI action
                 CommonUtils.stopCliAction(messages.getMessage('app.install.failureStatus'));
-                return Promise.reject(error);
-            });
+            }
+            this.logger.warn(`App Install failed for ${this.platform} - ${(error as Error).message}`);
+            throw error;
+        }
     }
 
     protected populateCommandRequirements(): void {

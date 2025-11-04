@@ -10,11 +10,17 @@ import { Logger } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
 import {
+    AndroidDevice,
     AndroidDeviceManager,
+    AndroidOSType,
+    AppleDevice,
     AppleDeviceManager,
+    AppleOSType,
     CommonUtils,
+    DeviceType,
     LaunchArgument,
-    RequirementProcessor
+    RequirementProcessor,
+    Version
 } from '@salesforce/lwc-dev-mobile-core';
 import { expect } from 'chai';
 import { Launch } from '../../../../../../../../src/cli/commands/force/lightning/local/app/launch.js';
@@ -107,6 +113,38 @@ describe('App Launch Tests', () => {
             expect(loggerInfoMock.called).to.be.true;
         });
 
+        it('Should successfully launch app on Android device for JSON mode', async () => {
+            const androidDevice = new AndroidDevice(
+                androidTarget,
+                'Test Android Device',
+                DeviceType.mobile,
+                AndroidOSType.googleAPIs,
+                new Version(35, 0, 0),
+                false
+            );
+
+            const bootMock = stubMethod($$.SANDBOX, AndroidDevice.prototype, 'boot');
+            bootMock.resolves();
+            const launchAppMock = stubMethod($$.SANDBOX, AndroidDevice.prototype, 'launchApp');
+            launchAppMock.resolves();
+
+            const getDeviceMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'getDevice');
+            getDeviceMock.resolves(androidDevice);
+
+            const result = await Launch.run(['-p', 'android', '-t', androidTarget, '-i', bundleId, '-f', 'api']);
+
+            expect(executeSetupMock.called).to.be.false;
+            expect(getDeviceMock.calledWith(androidTarget)).to.be.true;
+            expect(bootMock.calledWith(true)).to.be.true;
+            expect(launchAppMock.calledWith(bundleId, undefined, undefined)).to.be.true;
+            expect(startCliActionMock.called).to.be.false;
+            expect(stopCliActionMock.called).to.be.false;
+            expect(loggerInfoMock.called).to.be.true;
+            expect(result).to.have.property('success', true);
+            expect(result).to.have.property('device');
+            expect(result).to.have.property('message');
+        });
+
         it('Should handle Android device not found error', async () => {
             const getDeviceMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'getDevice');
             getDeviceMock.resolves(null);
@@ -119,6 +157,22 @@ describe('App Launch Tests', () => {
                 expect(getDeviceMock.calledWith(androidTarget)).to.be.true;
                 expect(startCliActionMock.called).to.be.true;
                 expect(stopCliActionMock.called).to.be.true;
+                expect(loggerWarnMock.called).to.be.true;
+            }
+        });
+
+        it('Should handle Android device not found error for JSON mode', async () => {
+            const getDeviceMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'getDevice');
+            getDeviceMock.resolves(null);
+
+            try {
+                await Launch.run(['-p', 'android', '-t', androidTarget, '-i', bundleId, '--json']);
+                expect.fail('Should have thrown an error');
+            } catch (error) {
+                expect(executeSetupMock.called).to.be.false;
+                expect(getDeviceMock.calledWith(androidTarget)).to.be.true;
+                expect(startCliActionMock.called).to.be.false;
+                expect(stopCliActionMock.called).to.be.false;
                 expect(loggerWarnMock.called).to.be.true;
             }
         });
@@ -228,6 +282,37 @@ describe('App Launch Tests', () => {
             expect(loggerInfoMock.called).to.be.true;
         });
 
+        it('Should successfully launch app on iOS device for JSON mode', async () => {
+            const appleDevice = new AppleDevice(
+                iosTarget,
+                'Test iOS Device',
+                DeviceType.mobile,
+                AppleOSType.iOS,
+                new Version(18, 0, 0)
+            );
+
+            const bootMock = stubMethod($$.SANDBOX, AppleDevice.prototype, 'boot');
+            bootMock.resolves();
+            const launchAppMock = stubMethod($$.SANDBOX, AppleDevice.prototype, 'launchApp');
+            launchAppMock.resolves();
+
+            const getDeviceMock = stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'getDevice');
+            getDeviceMock.resolves(appleDevice);
+
+            const result = await Launch.run(['-p', 'ios', '-t', iosTarget, '-i', bundleId, '-f', 'api']);
+
+            expect(executeSetupMock.called).to.be.false;
+            expect(getDeviceMock.calledWith(iosTarget)).to.be.true;
+            expect(bootMock.calledWith(true)).to.be.true;
+            expect(launchAppMock.calledWith(bundleId, undefined, undefined)).to.be.true;
+            expect(startCliActionMock.called).to.be.false;
+            expect(stopCliActionMock.called).to.be.false;
+            expect(loggerInfoMock.called).to.be.true;
+            expect(result).to.have.property('success', true);
+            expect(result).to.have.property('device');
+            expect(result).to.have.property('message');
+        });
+
         it('Should handle iOS device not found error', async () => {
             const getDeviceMock = stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'getDevice');
             getDeviceMock.resolves(null);
@@ -240,6 +325,22 @@ describe('App Launch Tests', () => {
                 expect(getDeviceMock.calledWith(iosTarget)).to.be.true;
                 expect(startCliActionMock.called).to.be.true;
                 expect(stopCliActionMock.called).to.be.true;
+                expect(loggerWarnMock.called).to.be.true;
+            }
+        });
+
+        it('Should handle iOS device not found error for JSON mode', async () => {
+            const getDeviceMock = stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'getDevice');
+            getDeviceMock.resolves(null);
+
+            try {
+                await Launch.run(['-p', 'ios', '-t', iosTarget, '-i', bundleId, '--json']);
+                expect.fail('Should have thrown an error');
+            } catch (error) {
+                expect(executeSetupMock.called).to.be.false;
+                expect(getDeviceMock.calledWith(iosTarget)).to.be.true;
+                expect(startCliActionMock.called).to.be.false;
+                expect(stopCliActionMock.called).to.be.false;
                 expect(loggerWarnMock.called).to.be.true;
             }
         });

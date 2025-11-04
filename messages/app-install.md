@@ -32,5 +32,5 @@ error encountered
 
 # examples
 
--   <%= config.bin %> <%= command.id %> -p ios -t MyNewVirtualDevice -a \users\bob\myapp\myApp.app
--   <%= config.bin %> <%= command.id %> -p android -t MyNewVirtualDevice -a \users\bob\myapp\myApp.apk
+- <%= config.bin %> <%= command.id %> -p ios -t MyNewVirtualDevice -a \users\bob\myapp\myApp.app
+- <%= config.bin %> <%= command.id %> -p android -t MyNewVirtualDevice -a \users\bob\myapp\myApp.apk

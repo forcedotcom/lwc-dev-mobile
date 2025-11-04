@@ -10,10 +10,16 @@ import { Logger } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
 import {
+    AndroidDevice,
     AndroidDeviceManager,
+    AndroidOSType,
+    AppleDevice,
     AppleDeviceManager,
+    AppleOSType,
     CommonUtils,
-    RequirementProcessor
+    DeviceType,
+    RequirementProcessor,
+    Version
 } from '@salesforce/lwc-dev-mobile-core';
 import { expect } from 'chai';
 import { Install } from '../../../../../../../../src/cli/commands/force/lightning/local/app/install.js';
@@ -48,7 +54,7 @@ describe('App Install Tests', () => {
     });
 
     describe('Android Platform Tests', () => {
-        it('Should successfully install app on Android device', async () => {
+        it('Should successfully install app on Android device for cli mode', async () => {
             const mockDevice = {
                 boot: sinon.stub().resolves(),
                 installApp: sinon.stub().resolves()
@@ -68,7 +74,39 @@ describe('App Install Tests', () => {
             expect(loggerInfoMock.called).to.be.true;
         });
 
-        it('Should handle Android device not found error', async () => {
+        it('Should successfully install app on Android device for JSON mode', async () => {
+            const androidDevice = new AndroidDevice(
+                androidTarget,
+                'Test Android Device',
+                DeviceType.mobile,
+                AndroidOSType.googleAPIs,
+                new Version(35, 0, 0),
+                false
+            );
+
+            const bootMock = stubMethod($$.SANDBOX, AndroidDevice.prototype, 'boot');
+            bootMock.resolves();
+            const installAppMock = stubMethod($$.SANDBOX, AndroidDevice.prototype, 'installApp');
+            installAppMock.resolves();
+
+            const getDeviceMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'getDevice');
+            getDeviceMock.resolves(androidDevice);
+
+            const result = await Install.run(['-p', 'android', '-t', androidTarget, '-a', appBundlePath, '--json']);
+
+            expect(executeSetupMock.called).to.be.false;
+            expect(getDeviceMock.calledWith(androidTarget)).to.be.true;
+            expect(bootMock.calledWith(true)).to.be.true;
+            expect(installAppMock.calledWith(appBundlePath)).to.be.true;
+            expect(startCliActionMock.called).to.be.false;
+            expect(stopCliActionMock.called).to.be.false;
+            expect(loggerInfoMock.called).to.be.true;
+            expect(result).to.have.property('success', true);
+            expect(result).to.have.property('device');
+            expect(result).to.have.property('message');
+        });
+
+        it('Should handle Android device not found error for cli mode', async () => {
             const getDeviceMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'getDevice');
             getDeviceMock.resolves(null);
 
@@ -80,6 +118,22 @@ describe('App Install Tests', () => {
                 expect(getDeviceMock.calledWith(androidTarget)).to.be.true;
                 expect(startCliActionMock.called).to.be.true;
                 expect(stopCliActionMock.called).to.be.true;
+                expect(loggerWarnMock.called).to.be.true;
+            }
+        });
+
+        it('Should handle Android device not found error for JSON mode', async () => {
+            const getDeviceMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'getDevice');
+            getDeviceMock.resolves(null);
+
+            try {
+                await Install.run(['-p', 'android', '-t', androidTarget, '-a', appBundlePath, '--json']);
+                expect.fail('Should have thrown an error');
+            } catch (error) {
+                expect(executeSetupMock.called).to.be.false;
+                expect(getDeviceMock.calledWith(androidTarget)).to.be.true;
+                expect(startCliActionMock.called).to.be.false;
+                expect(stopCliActionMock.called).to.be.false;
                 expect(loggerWarnMock.called).to.be.true;
             }
         });
@@ -146,7 +200,7 @@ describe('App Install Tests', () => {
     });
 
     describe('iOS Platform Tests', () => {
-        it('Should successfully install app on iOS device', async () => {
+        it('Should successfully install app on iOS device cli mode', async () => {
             const mockDevice = {
                 boot: sinon.stub().resolves(),
                 installApp: sinon.stub().resolves()
@@ -166,7 +220,38 @@ describe('App Install Tests', () => {
             expect(loggerInfoMock.called).to.be.true;
         });
 
-        it('Should handle iOS device not found error', async () => {
+        it('Should successfully install app on iOS device for JSON mode', async () => {
+            const appleDevice = new AppleDevice(
+                iosTarget,
+                'Test iOS Device',
+                DeviceType.mobile,
+                AppleOSType.iOS,
+                new Version(18, 0, 0)
+            );
+
+            const bootMock = stubMethod($$.SANDBOX, AppleDevice.prototype, 'boot');
+            bootMock.resolves();
+            const installAppMock = stubMethod($$.SANDBOX, AppleDevice.prototype, 'installApp');
+            installAppMock.resolves();
+
+            const getDeviceMock = stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'getDevice');
+            getDeviceMock.resolves(appleDevice);
+
+            const result = await Install.run(['-p', 'ios', '-t', iosTarget, '-a', iosAppBundlePath, '--json']);
+
+            expect(executeSetupMock.called).to.be.false;
+            expect(getDeviceMock.calledWith(iosTarget)).to.be.true;
+            expect(bootMock.calledWith(true)).to.be.true;
+            expect(installAppMock.calledWith(iosAppBundlePath)).to.be.true;
+            expect(startCliActionMock.called).to.be.false;
+            expect(stopCliActionMock.called).to.be.false;
+            expect(loggerInfoMock.called).to.be.true;
+            expect(result).to.have.property('success', true);
+            expect(result).to.have.property('device');
+            expect(result).to.have.property('message');
+        });
+
+        it('Should handle iOS device not found error for cli mode', async () => {
             const getDeviceMock = stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'getDevice');
             getDeviceMock.resolves(null);
 
@@ -178,6 +263,22 @@ describe('App Install Tests', () => {
                 expect(getDeviceMock.calledWith(iosTarget)).to.be.true;
                 expect(startCliActionMock.called).to.be.true;
                 expect(stopCliActionMock.called).to.be.true;
+                expect(loggerWarnMock.called).to.be.true;
+            }
+        });
+
+        it('Should handle iOS device not found error for JSON mode', async () => {
+            const getDeviceMock = stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'getDevice');
+            getDeviceMock.resolves(null);
+
+            try {
+                await Install.run(['-p', 'ios', '-t', iosTarget, '-a', iosAppBundlePath, '--json']);
+                expect.fail('Should have thrown an error');
+            } catch (error) {
+                expect(executeSetupMock.called).to.be.false;
+                expect(getDeviceMock.calledWith(iosTarget)).to.be.true;
+                expect(startCliActionMock.called).to.be.false;
+                expect(stopCliActionMock.called).to.be.false;
                 expect(loggerWarnMock.called).to.be.true;
             }
         });

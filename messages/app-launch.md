@@ -40,5 +40,5 @@ error encountered
 
 # examples
 
--   <%= config.bin %> <%= command.id %> -p ios -t MyNewVirtualDevice -i com.company.app -a \users\bob\myapp\myApp.app
--   <%= config.bin %> <%= command.id %> -p android -t MyNewVirtualDevice -i com.company.app/.mainActivity -a \users\bob\myapp\myApp.apk
+- <%= config.bin %> <%= command.id %> -p ios -t MyNewVirtualDevice -i com.company.app -a \users\bob\myapp\myApp.app
+- <%= config.bin %> <%= command.id %> -p android -t MyNewVirtualDevice -i com.company.app/.mainActivity -a \users\bob\myapp\myApp.apk
