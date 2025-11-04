@@ -23,7 +23,7 @@ import {
     RequirementProcessor
 } from '@salesforce/lwc-dev-mobile-core';
 import { z } from 'zod';
-import { DeviceOperationResultSchema, DeviceOperationResultType, DeviceSchema } from '../schema/device.js';
+import { DeviceOperationResultSchema, DeviceOperationResultType, DeviceSchema } from '../../../../../schema/device.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'device-start');

@@ -21,7 +21,7 @@ import {
     FlagsConfigType,
     PerformanceMarkers
 } from '@salesforce/lwc-dev-mobile-core';
-import { DeviceListSchema } from '../schema/device.js';
+import { DeviceListSchema } from '../../../../../schema/device.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'device-list');
