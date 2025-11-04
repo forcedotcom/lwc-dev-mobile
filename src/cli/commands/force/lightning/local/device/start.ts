@@ -22,6 +22,8 @@ import {
     IOSEnvironmentRequirements,
     RequirementProcessor
 } from '@salesforce/lwc-dev-mobile-core';
+import { z } from 'zod';
+import { DeviceOperationResultSchema, DeviceOperationResultType, DeviceSchema } from '../schema/device.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'device-start');
@@ -33,6 +35,7 @@ export class Start extends BaseCommand {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     public static readonly flags = {
         ...CommandLineUtils.createFlag(FlagsConfigType.JsonFlag, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.OutputFormatFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.LogLevelFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.PlatformFlag, true),
         target: Flags.string({
@@ -64,10 +67,29 @@ export class Start extends BaseCommand {
         return this.flagValues.writablesystem as boolean;
     }
 
-    public async run(): Promise<void> {
+    protected static getOutputSchema(): z.ZodTypeAny {
+        return DeviceOperationResultSchema;
+    }
+
+    public async run(): Promise<DeviceOperationResultType | void> {
         this.logger.info(`Device Start command invoked for ${this.platform}`);
 
-        return RequirementProcessor.execute(this.commandRequirements).then(() => {
+        if (this.jsonEnabled()) {
+            // if in JSON mode, just execute the start command and return the device
+            const device = await this.executeDeviceStart();
+            const deviceInfo = DeviceSchema.parse(device);
+            const message = CommandLineUtils.platformFlagIsAndroid(this.platform)
+                ? this.getAndroidSuccessMessage(device as AndroidDevice)
+                : this.getIOSSuccessMessage();
+            return {
+                device: deviceInfo,
+                success: true,
+                message
+            };
+        }
+
+        // do the RequirementProcessor.execute if not in JSON mode
+        await RequirementProcessor.execute(this.commandRequirements).then(() => {
             // execute the start command
             this.logger.info('Setup requirements met, continuing with Device Start');
             return this.executeDeviceStart();
@@ -84,7 +106,7 @@ export class Start extends BaseCommand {
         this.commandRequirements = requirements;
     }
 
-    private async executeDeviceStart(): Promise<void> {
+    private async executeDeviceStart(): Promise<AndroidDevice | AppleDevice> {
         const isAndroid = CommandLineUtils.platformFlagIsAndroid(this.platform);
 
         const device = isAndroid
@@ -95,24 +117,38 @@ export class Start extends BaseCommand {
             return Promise.reject(messages.getMessage('error.target.doesNotExist', [this.target]));
         }
 
-        CommonUtils.startCliAction(
-            messages.getMessage('device.start.action'),
-            messages.getMessage('device.start.status', [this.target])
-        );
+        if (!this.jsonEnabled()) {
+            CommonUtils.startCliAction(
+                messages.getMessage('device.start.action'),
+                messages.getMessage('device.start.status', [this.target])
+            );
+        }
 
         if (isAndroid) {
             const avd = device as AndroidDevice;
             await avd.boot(true, this.writablesystem ? BootMode.systemWritableMandatory : BootMode.normal);
-            CommonUtils.stopCliAction(
-                messages.getMessage('device.start.successStatus.android', [
-                    this.target,
-                    avd.emulatorPort(),
-                    this.writablesystem
-                ])
-            );
+            if (!this.jsonEnabled()) {
+                CommonUtils.stopCliAction(this.getAndroidSuccessMessage(device as AndroidDevice));
+            }
         } else {
             await (device as AppleDevice).boot(true);
-            CommonUtils.stopCliAction(messages.getMessage('device.start.successStatus.ios', [this.target]));
+            if (!this.jsonEnabled()) {
+                CommonUtils.stopCliAction(this.getIOSSuccessMessage());
+            }
         }
+
+        return device;
+    }
+
+    private getAndroidSuccessMessage(deviceInfo: AndroidDevice): string {
+        return messages.getMessage('device.start.successStatus.android', [
+            this.target,
+            deviceInfo.emulatorPort(),
+            this.writablesystem
+        ]);
+    }
+
+    private getIOSSuccessMessage(): string {
+        return messages.getMessage('device.start.successStatus.ios', [this.target]);
     }
 }

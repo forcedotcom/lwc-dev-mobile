@@ -10,6 +10,8 @@ export * from './cli/commands/force/lightning/local/setup.js';
 export * from './cli/commands/force/lightning/local/device/create.js';
 export * from './cli/commands/force/lightning/local/device/list.js';
 export * from './cli/commands/force/lightning/local/device/start.js';
+export * from './cli/commands/force/lightning/local/app/install.js';
+export * from './cli/commands/force/lightning/local/app/launch.js';
 
 export * from './cli/commands/force/lightning/lwc/test/ui/mobile/configure.js';
 export * from './cli/commands/force/lightning/lwc/test/ui/mobile/run.js';

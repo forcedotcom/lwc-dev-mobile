@@ -23,6 +23,8 @@ import {
     Requirement,
     RequirementProcessor
 } from '@salesforce/lwc-dev-mobile-core';
+import { z } from 'zod';
+import { DeviceOperationResultSchema, DeviceOperationResultType, DeviceSchema } from '../schema/device.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('@salesforce/lwc-dev-mobile', 'device-create');
@@ -34,6 +36,7 @@ export class Create extends BaseCommand {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     public static readonly flags = {
         ...CommandLineUtils.createFlag(FlagsConfigType.JsonFlag, false),
+        ...CommandLineUtils.createFlag(FlagsConfigType.OutputFormatFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.LogLevelFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.ApiLevelFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.PlatformFlag, true),
@@ -70,28 +73,58 @@ export class Create extends BaseCommand {
         return this.flagValues.apilevel as string | undefined;
     }
 
-    public async run(): Promise<void> {
+    protected static getOutputSchema(): z.ZodTypeAny {
+        return DeviceOperationResultSchema;
+    }
+
+    public async run(): Promise<DeviceOperationResultType | void> {
         this.logger.info(`Device Create command invoked for ${this.platform}`);
 
-        return RequirementProcessor.execute(this.commandRequirements)
-            .then(() => {
-                // execute the create command
+        const creationSuccessMessage = messages.getMessage('device.create.successStatus', [
+            this.deviceName,
+            this.deviceType
+        ]);
+
+        try {
+            // if not in JSON mode, execute the requirements and start the CLI action
+            if (!this.jsonEnabled()) {
+                await RequirementProcessor.execute(this.commandRequirements);
                 this.logger.info('Setup requirements met, continuing with Device Create');
+
                 CommonUtils.startCliAction(
                     messages.getMessage('device.create.action'),
                     messages.getMessage('device.create.status', [this.deviceName, this.deviceType])
                 );
-                return this.executeDeviceCreate();
-            })
-            .then(() => {
-                const message = messages.getMessage('device.create.successStatus', [this.deviceName, this.deviceType]);
-                CommonUtils.stopCliAction(message);
-            })
-            .catch((error: Error) => {
+            }
+
+            // execute the device create command
+            await this.executeDeviceCreate();
+
+            if (this.jsonEnabled()) {
+                // In JSON mode, get the device and return it in the format of the DeviceSchema
+                const device = await (CommandLineUtils.platformFlagIsAndroid(this.platform)
+                    ? new AndroidDeviceManager()
+                    : new AppleDeviceManager()
+                ).getDevice(this.deviceName);
+
+                const deviceInfo = DeviceSchema.parse(device);
+                return {
+                    device: deviceInfo,
+                    success: true,
+                    message: creationSuccessMessage
+                };
+            } else {
+                // if cli mode, stop the CLI action
+                CommonUtils.stopCliAction(creationSuccessMessage);
+            }
+        } catch (error) {
+            if (!this.jsonEnabled()) {
+                // if cli mode, stop the CLI action
                 CommonUtils.stopCliAction(messages.getMessage('device.create.failureStatus'));
-                this.logger.warn(`Device Create failed for ${this.platform} - ${error.message}`);
-                return Promise.reject(error);
-            });
+            }
+            this.logger.warn(`Device Create failed for ${this.platform} - ${(error as Error).message}`);
+            throw error;
+        }
     }
 
     protected populateCommandRequirements(): void {
