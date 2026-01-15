@@ -7,6 +7,7 @@
 
 import chalk from 'chalk';
 import archy from 'archy';
+import { Flags } from '@salesforce/sf-plugins-core';
 import { Messages } from '@salesforce/core';
 import { z } from 'zod';
 
@@ -19,7 +20,9 @@ import {
     CommandLineUtils,
     CommonUtils,
     FlagsConfigType,
-    PerformanceMarkers
+    PerformanceMarkers,
+    PlatformConfig,
+    Version
 } from '@salesforce/lwc-dev-mobile-core';
 import { DeviceListSchema } from '../../../../../schema/device.js';
 
@@ -35,7 +38,13 @@ export class List extends BaseCommand {
         ...CommandLineUtils.createFlag(FlagsConfigType.JsonFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.OutputFormatFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.LogLevelFlag, false),
-        ...CommandLineUtils.createFlag(FlagsConfigType.PlatformFlag, true)
+        ...CommandLineUtils.createFlag(FlagsConfigType.PlatformFlag, true),
+        ostype: Flags.string({
+            description: messages.getMessage('flags.ostype.description'),
+            required: false,
+            options: ['default', 'all'],
+            helpValue: 'default|all'
+        })
     };
 
     protected _commandName = 'force:lightning:local:device:list';
@@ -45,6 +54,11 @@ export class List extends BaseCommand {
     private get platform(): string {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         return this.flagValues.platform as string;
+    }
+
+    private get ostype(): string | undefined {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return this.flagValues.ostype as string | undefined;
     }
 
     protected static getOutputSchema(): z.ZodTypeAny {
@@ -62,9 +76,24 @@ export class List extends BaseCommand {
         }
         performance.mark(this.perfMarker.startMarkName);
 
-        const devices = CommandLineUtils.platformFlagIsAndroid(this.platform)
-            ? await new AndroidDeviceManager().enumerateDevices()
-            : await new AppleDeviceManager().enumerateDevices();
+        let devices: AndroidDevice[] | AppleDevice[] = [];
+
+        if (CommandLineUtils.platformFlagIsAndroid(this.platform)) {
+            if (this.ostype === undefined) {
+                devices = await new AndroidDeviceManager().enumerateDevices();
+            } else if (this.ostype === 'all') {
+                devices = await new AndroidDeviceManager().enumerateDevices(null);
+            } else if (this.ostype === 'default') {
+                devices = await new AndroidDeviceManager().enumerateDevices([
+                    {
+                        osType: 'default',
+                        minOSVersion: Version.from(PlatformConfig.androidConfig().minSupportedRuntime)!
+                    }
+                ]);
+            }
+        } else {
+            devices = await new AppleDeviceManager().enumerateDevices();
+        }
 
         performance.mark(this.perfMarker.endMarkName);
         if (!this.jsonEnabled()) {
