@@ -20,9 +20,7 @@ import {
     CommandLineUtils,
     CommonUtils,
     FlagsConfigType,
-    PerformanceMarkers,
-    PlatformConfig,
-    Version
+    PerformanceMarkers
 } from '@salesforce/lwc-dev-mobile-core';
 import { DeviceListSchema } from '../../../../../schema/device.js';
 
@@ -39,7 +37,8 @@ export class List extends BaseCommand {
         ...CommandLineUtils.createFlag(FlagsConfigType.OutputFormatFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.LogLevelFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.PlatformFlag, true),
-        ostype: Flags.string({
+        'os-type': Flags.string({
+            char: 'o',
             description: messages.getMessage('flags.ostype.description'),
             required: false,
             options: ['default', 'all']
@@ -57,7 +56,7 @@ export class List extends BaseCommand {
 
     private get ostype(): string | undefined {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        return this.flagValues.ostype as string | undefined;
+        return this.flagValues['os-type'] as string | undefined;
     }
 
     protected static getOutputSchema(): z.ZodTypeAny {
@@ -75,24 +74,13 @@ export class List extends BaseCommand {
         }
         performance.mark(this.perfMarker.startMarkName);
 
-        let devices: AndroidDevice[] | AppleDevice[] = [];
+        // By setting filter = null we ask enumerateDevices to return everything.
+        // By setting filter = undefined we let enumerateDevices to assign default value to its parameter.
+        const filter = this.ostype === 'all' ? null : undefined;
 
-        if (CommandLineUtils.platformFlagIsAndroid(this.platform)) {
-            if (this.ostype === undefined) {
-                devices = await new AndroidDeviceManager().enumerateDevices();
-            } else if (this.ostype === 'all') {
-                devices = await new AndroidDeviceManager().enumerateDevices(null);
-            } else if (this.ostype === 'default') {
-                devices = await new AndroidDeviceManager().enumerateDevices([
-                    {
-                        osType: 'default',
-                        minOSVersion: Version.from(PlatformConfig.androidConfig().minSupportedRuntime)!
-                    }
-                ]);
-            }
-        } else {
-            devices = await new AppleDeviceManager().enumerateDevices();
-        }
+        const devices = CommandLineUtils.platformFlagIsAndroid(this.platform)
+            ? await new AndroidDeviceManager().enumerateDevices(filter)
+            : await new AppleDeviceManager().enumerateDevices(filter);
 
         performance.mark(this.perfMarker.endMarkName);
         if (!this.jsonEnabled()) {

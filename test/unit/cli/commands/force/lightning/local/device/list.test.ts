@@ -18,7 +18,6 @@ import {
     CommonUtils,
     DeviceType,
     IOSUtils,
-    PlatformConfig,
     Version
 } from '@salesforce/lwc-dev-mobile-core';
 import { expect } from 'chai';
@@ -32,15 +31,6 @@ describe('Device List Tests', () => {
         'Pixel 5 API 35',
         DeviceType.mobile,
         AndroidOSType.googleAPIs,
-        new Version(35, 0, 0),
-        false
-    );
-
-    const androidDeviceDefault = new AndroidDevice(
-        'Pixel_Default',
-        'Pixel Default',
-        DeviceType.mobile,
-        'default',
         new Version(35, 0, 0),
         false
     );
@@ -80,33 +70,24 @@ describe('Device List Tests', () => {
         expect(enumerateMock.calledWith()).to.be.true;
     });
 
-    it('Lists Android emulators with ostype flag set to default for cli mode', async () => {
+    it('Lists Android emulators with os-type flag set to default for cli mode', async () => {
         const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([
-            androidDeviceDefault,
             androidDeviceGoogleApi
         ]);
-        await List.run(['-p', 'android', '--ostype', 'default']);
+        await List.run(['-p', 'android', '--os-type', 'default']);
 
         expect(enumerateMock.called).to.be.true;
         expect(startCliActionMock.called).to.be.true;
         expect(stopCliActionMock.called).to.be.true;
 
-        expect(
-            enumerateMock.calledWith([
-                {
-                    osType: 'default',
-                    minOSVersion: Version.from(PlatformConfig.androidConfig().minSupportedRuntime)!
-                }
-            ])
-        ).to.be.true;
+        expect(enumerateMock.calledWith()).to.be.true;
     });
 
-    it('Lists Android emulators with ostype flag set to all for cli mode', async () => {
+    it('Lists Android emulators with os-type flag set to all for cli mode', async () => {
         const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([
-            androidDeviceDefault,
             androidDeviceGoogleApi
         ]);
-        await List.run(['-p', 'android', '--ostype', 'all']);
+        await List.run(['-p', 'android', '--os-type', 'all']);
 
         expect(enumerateMock.called).to.be.true;
         expect(startCliActionMock.called).to.be.true;
