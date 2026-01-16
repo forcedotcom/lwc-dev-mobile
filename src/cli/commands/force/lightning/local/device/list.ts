@@ -55,7 +55,7 @@ export class List extends BaseCommand {
         return this.flagValues.platform as string;
     }
 
-    private get ostype(): string | undefined {
+    private get ostype(): string {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         return this.flagValues['os-type'] as string;
     }

@@ -4,7 +4,7 @@ List the available virtual mobile devices for Lightning Web Component developmen
 
 # flags.os-type.description
 
-Filter by OS type. Options: 'default' (restricts to iOS or google_apis) or 'all'.
+Filter devices by operating system type. Use 'default' to show only default OS type devices, or 'all' to show all devices.
 
 # device.list.action
 
@@ -18,4 +18,4 @@ generating list of supported devices
 
 - <%= config.bin %> <%= command.id %> -p ios
 - <%= config.bin %> <%= command.id %> -p android
-- <%= config.bin %> <%= command.id %> -p android --os-type default
+- <%= config.bin %> <%= command.id %> -p android -o default
