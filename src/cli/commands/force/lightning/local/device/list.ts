@@ -7,6 +7,7 @@
 
 import chalk from 'chalk';
 import archy from 'archy';
+import { Flags } from '@salesforce/sf-plugins-core';
 import { Messages } from '@salesforce/core';
 import { z } from 'zod';
 
@@ -35,7 +36,14 @@ export class List extends BaseCommand {
         ...CommandLineUtils.createFlag(FlagsConfigType.JsonFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.OutputFormatFlag, false),
         ...CommandLineUtils.createFlag(FlagsConfigType.LogLevelFlag, false),
-        ...CommandLineUtils.createFlag(FlagsConfigType.PlatformFlag, true)
+        ...CommandLineUtils.createFlag(FlagsConfigType.PlatformFlag, true),
+        'os-type': Flags.string({
+            char: 'o',
+            description: messages.getMessage('flags.os-type.description'),
+            required: false,
+            options: ['default', 'all'],
+            default: 'default'
+        })
     };
 
     protected _commandName = 'force:lightning:local:device:list';
@@ -45,6 +53,11 @@ export class List extends BaseCommand {
     private get platform(): string {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         return this.flagValues.platform as string;
+    }
+
+    private get ostype(): string {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return this.flagValues['os-type'] as string;
     }
 
     protected static getOutputSchema(): z.ZodTypeAny {
@@ -62,9 +75,13 @@ export class List extends BaseCommand {
         }
         performance.mark(this.perfMarker.startMarkName);
 
+        // By setting filter = null we ask enumerateDevices to return everything.
+        // By setting filter = undefined we let enumerateDevices to assign default value to its parameter.
+        const filter = this.ostype === 'all' ? null : undefined;
+
         const devices = CommandLineUtils.platformFlagIsAndroid(this.platform)
-            ? await new AndroidDeviceManager().enumerateDevices()
-            : await new AppleDeviceManager().enumerateDevices();
+            ? await new AndroidDeviceManager().enumerateDevices(filter)
+            : await new AppleDeviceManager().enumerateDevices(filter);
 
         performance.mark(this.perfMarker.endMarkName);
         if (!this.jsonEnabled()) {

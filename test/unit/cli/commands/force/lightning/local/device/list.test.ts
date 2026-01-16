@@ -26,7 +26,7 @@ import { List } from '../../../../../../../../src/cli/commands/force/lightning/l
 describe('Device List Tests', () => {
     const $$ = new TestContext();
 
-    const androidDevice = new AndroidDevice(
+    const androidDeviceGoogleApi = new AndroidDevice(
         'Pixel_5_API_35',
         'Pixel 5 API 35',
         DeviceType.mobile,
@@ -59,18 +59,46 @@ describe('Device List Tests', () => {
 
     it('Lists Android emulators for cli mode', async () => {
         const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([
-            androidDevice
+            androidDeviceGoogleApi
         ]);
         await List.run(['-p', 'android']);
 
         expect(enumerateMock.called).to.be.true;
         expect(startCliActionMock.called).to.be.true;
         expect(stopCliActionMock.called).to.be.true;
+
+        expect(enumerateMock.calledWith()).to.be.true;
+    });
+
+    it('Lists Android emulators with os-type flag set to default for cli mode', async () => {
+        const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([
+            androidDeviceGoogleApi
+        ]);
+        await List.run(['-p', 'android', '--os-type', 'default']);
+
+        expect(enumerateMock.called).to.be.true;
+        expect(startCliActionMock.called).to.be.true;
+        expect(stopCliActionMock.called).to.be.true;
+
+        expect(enumerateMock.calledWith()).to.be.true;
+    });
+
+    it('Lists Android emulators with os-type flag set to all for cli mode', async () => {
+        const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([
+            androidDeviceGoogleApi
+        ]);
+        await List.run(['-p', 'android', '--os-type', 'all']);
+
+        expect(enumerateMock.called).to.be.true;
+        expect(startCliActionMock.called).to.be.true;
+        expect(stopCliActionMock.called).to.be.true;
+
+        expect(enumerateMock.calledWith(null)).to.be.true;
     });
 
     it('Lists Android emulators for json mode', async () => {
         const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([
-            androidDevice
+            androidDeviceGoogleApi
         ]);
         await List.run(['-p', 'android', '--json']);
 
