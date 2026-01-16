@@ -42,8 +42,7 @@ export class List extends BaseCommand {
         ostype: Flags.string({
             description: messages.getMessage('flags.ostype.description'),
             required: false,
-            options: ['default', 'all'],
-            helpValue: 'default|all'
+            options: ['default', 'all']
         })
     };
 
