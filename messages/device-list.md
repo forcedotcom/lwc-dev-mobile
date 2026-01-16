@@ -18,4 +18,4 @@ generating list of supported devices
 
 - <%= config.bin %> <%= command.id %> -p ios
 - <%= config.bin %> <%= command.id %> -p android
-- <%= config.bin %> <%= command.id %> -p android --ostype default
+- <%= config.bin %> <%= command.id %> -p android --os-type default
