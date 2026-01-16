@@ -2,7 +2,7 @@
 
 List the available virtual mobile devices for Lightning Web Component development.
 
-# flags.ostype.description
+# flags.os-type.description
 
 Filter by OS type. Options: 'default' (restricts to iOS or google_apis) or 'all'.
 

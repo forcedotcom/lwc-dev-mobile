@@ -39,9 +39,10 @@ export class List extends BaseCommand {
         ...CommandLineUtils.createFlag(FlagsConfigType.PlatformFlag, true),
         'os-type': Flags.string({
             char: 'o',
-            description: messages.getMessage('flags.ostype.description'),
+            description: messages.getMessage('flags.os-type.description'),
             required: false,
-            options: ['default', 'all']
+            options: ['default', 'all'],
+            default: 'default'
         })
     };
 
@@ -56,7 +57,7 @@ export class List extends BaseCommand {
 
     private get ostype(): string | undefined {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        return this.flagValues['os-type'] as string | undefined;
+        return this.flagValues['os-type'] as string;
     }
 
     protected static getOutputSchema(): z.ZodTypeAny {
