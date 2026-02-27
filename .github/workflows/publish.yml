@@ -3,6 +3,11 @@ run-name: Publish to NPM and Create Git Tag
 on:
     workflow_dispatch:
 
+permissions:
+    id-token: write # Required for OIDC
+    contents: write
+    packages: write
+
 jobs:
     publish:
         runs-on: ubuntu-latest
@@ -18,7 +23,7 @@ jobs:
             - name: Use Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: '20'
+                  node-version: '24'
                   registry-url: 'https://registry.npmjs.org/'
 
             - name: Get package version
@@ -49,9 +54,10 @@ jobs:
                   rm -f .npmrc
                   rm -f .yarnrc
 
+            # NB: We explicitly publish to 'latest', because we don't yet have support for
+            # tag-specific publishing in this action, and Node 24+ will not allow you to
+            # publish prerelease versions without an explicit tag.
             - name: Publish to NPM
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
               run: npm publish
 
             - name: Create and push git tag

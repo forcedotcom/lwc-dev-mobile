@@ -91,7 +91,7 @@ export class Launch extends BaseCommand {
         })
     };
 
-    protected _commandName = 'force:lightning:local:app:install';
+    protected _commandName = 'force:lightning:local:app:launch';
 
     private get platform(): string {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
