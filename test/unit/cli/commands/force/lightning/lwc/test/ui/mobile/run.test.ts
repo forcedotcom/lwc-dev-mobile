@@ -6,7 +6,7 @@
  */
 
 import fs from 'node:fs';
-import { Logger, Messages } from '@salesforce/core';
+import { Lifecycle, Logger, Messages } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { CommonUtils } from '@salesforce/lwc-dev-mobile-core';
@@ -95,5 +95,19 @@ describe('Mobile UI Test Run Tests', () => {
 
     it('Messages folder should be loaded', async () => {
         expect(!Run.summary).to.be.false;
+    });
+
+    it('Should emit telemetry with correct event name', async () => {
+        stubMethod($$.SANDBOX, fs, 'existsSync').returns(true);
+        stubMethod($$.SANDBOX, CommonUtils, 'enumerateFiles').returns([]);
+        stubMethod($$.SANDBOX, CommonUtils, 'spawnCommandAsync').resolves();
+        const emitTelemetryStub = stubMethod($$.SANDBOX, Lifecycle.getInstance(), 'emitTelemetry');
+
+        await Run.run(['--config', 'wdio.config.js', '--spec', 'mytest.spec.js']);
+
+        expect(emitTelemetryStub.calledOnce).to.be.true;
+        const payload = emitTelemetryStub.firstCall.args[0] as Record<string, unknown>;
+        expect(payload).to.have.property('eventName', 'force:lightning:lwc:test:ui:mobile:run.executed');
+        expect(payload).to.have.property('commandName', 'force:lightning:lwc:test:ui:mobile:run');
     });
 });

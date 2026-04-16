@@ -6,7 +6,7 @@
  */
 
 import sinon from 'sinon';
-import { Logger } from '@salesforce/core';
+import { Lifecycle, Logger } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
 import {
@@ -399,6 +399,25 @@ describe('App Install Tests', () => {
             expect(appBundlePathFlag.validate?.('')).to.not.be.ok;
             expect(appBundlePathFlag.validate?.('   ')).to.not.be.ok;
             expect(appBundlePathFlag.validate?.('/valid/path')).to.be.ok;
+        });
+    });
+
+    describe('Telemetry Tests', () => {
+        it('Should emit telemetry with correct event name', async () => {
+            const mockDevice = {
+                boot: sinon.stub().resolves(),
+                installApp: sinon.stub().resolves()
+            };
+
+            stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'getDevice').resolves(mockDevice);
+            const emitTelemetryStub = stubMethod($$.SANDBOX, Lifecycle.getInstance(), 'emitTelemetry');
+
+            await Install.run(['-p', 'android', '-t', androidTarget, '-a', appBundlePath]);
+
+            expect(emitTelemetryStub.calledOnce).to.be.true;
+            const payload = emitTelemetryStub.firstCall.args[0] as Record<string, unknown>;
+            expect(payload).to.have.property('eventName', 'force:lightning:local:app:install.executed');
+            expect(payload).to.have.property('commandName', 'force:lightning:local:app:install');
         });
     });
 

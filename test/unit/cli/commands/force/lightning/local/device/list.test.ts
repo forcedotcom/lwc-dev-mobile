@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { Logger } from '@salesforce/core';
+import { Lifecycle, Logger } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
 import {
@@ -139,5 +139,17 @@ describe('Device List Tests', () => {
 
     it('Messages folder should be loaded', async () => {
         expect(!List.summary).to.be.false;
+    });
+
+    it('Should emit telemetry with correct event name', async () => {
+        stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'enumerateDevices').resolves([appleDevice]);
+        const emitTelemetryStub = stubMethod($$.SANDBOX, Lifecycle.getInstance(), 'emitTelemetry');
+
+        await List.run(['-p', 'ios']);
+
+        expect(emitTelemetryStub.calledOnce).to.be.true;
+        const payload = emitTelemetryStub.firstCall.args[0] as Record<string, unknown>;
+        expect(payload).to.have.property('eventName', 'force:lightning:local:device:list.executed');
+        expect(payload).to.have.property('commandName', 'force:lightning:local:device:list');
     });
 });
