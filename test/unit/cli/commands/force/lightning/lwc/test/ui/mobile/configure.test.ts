@@ -6,7 +6,7 @@
  */
 
 import sinon from 'sinon';
-import { Logger, Messages } from '@salesforce/core';
+import { Lifecycle, Logger, Messages } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
 import {
@@ -270,5 +270,18 @@ describe('Mobile UI Test Configuration Tests', () => {
 
     it('Messages folder should be loaded', async () => {
         expect(!Configure.summary).to.be.false;
+    });
+
+    it('Should emit telemetry with correct event name', async () => {
+        stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'getDevice').resolves(appleDevice);
+        stubMethod($$.SANDBOX, CommonUtils, 'createTextFile').resolves();
+        const emitTelemetryStub = stubMethod($$.SANDBOX, Lifecycle.getInstance(), 'emitTelemetry');
+
+        await Configure.run(['-p', 'ios', '-d', 'iPhone 16']);
+
+        expect(emitTelemetryStub.calledOnce).to.be.true;
+        const payload = emitTelemetryStub.firstCall.args[0] as Record<string, unknown>;
+        expect(payload).to.have.property('eventName', 'force:lightning:lwc:test:ui:mobile:configure.executed');
+        expect(payload).to.have.property('commandName', 'force:lightning:lwc:test:ui:mobile:configure');
     });
 });

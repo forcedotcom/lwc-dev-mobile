@@ -6,7 +6,7 @@
  */
 
 import sinon from 'sinon';
-import { Logger } from '@salesforce/core';
+import { Lifecycle, Logger } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
 import {
@@ -550,6 +550,25 @@ describe('App Launch Tests', () => {
             // Should work without appbundlepath
             await Launch.run(['-p', 'android', '-t', androidTarget, '-i', bundleId]);
             expect(mockDevice.launchApp.calledWith(bundleId, undefined, undefined)).to.be.true;
+        });
+    });
+
+    describe('Telemetry Tests', () => {
+        it('Should emit telemetry with correct event name', async () => {
+            const mockDevice = {
+                boot: sinon.stub().resolves(),
+                launchApp: sinon.stub().resolves()
+            };
+
+            stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'getDevice').resolves(mockDevice);
+            const emitTelemetryStub = stubMethod($$.SANDBOX, Lifecycle.getInstance(), 'emitTelemetry');
+
+            await Launch.run(['-p', 'android', '-t', androidTarget, '-i', bundleId]);
+
+            expect(emitTelemetryStub.calledOnce).to.be.true;
+            const payload = emitTelemetryStub.firstCall.args[0] as Record<string, unknown>;
+            expect(payload).to.have.property('eventName', 'force:lightning:local:app:launch.executed');
+            expect(payload).to.have.property('commandName', 'force:lightning:local:app:launch');
         });
     });
 

@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { Logger } from '@salesforce/core';
+import { Lifecycle, Logger } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
 import {
@@ -26,7 +26,7 @@ import { List } from '../../../../../../../../src/cli/commands/force/lightning/l
 describe('Device List Tests', () => {
     const $$ = new TestContext();
 
-    const androidDevice = new AndroidDevice(
+    const androidDeviceGoogleApi = new AndroidDevice(
         'Pixel_5_API_35',
         'Pixel 5 API 35',
         DeviceType.mobile,
@@ -59,18 +59,46 @@ describe('Device List Tests', () => {
 
     it('Lists Android emulators for cli mode', async () => {
         const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([
-            androidDevice
+            androidDeviceGoogleApi
         ]);
         await List.run(['-p', 'android']);
 
         expect(enumerateMock.called).to.be.true;
         expect(startCliActionMock.called).to.be.true;
         expect(stopCliActionMock.called).to.be.true;
+
+        expect(enumerateMock.calledWith()).to.be.true;
+    });
+
+    it('Lists Android emulators with os-type flag set to default for cli mode', async () => {
+        const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([
+            androidDeviceGoogleApi
+        ]);
+        await List.run(['-p', 'android', '--os-type', 'default']);
+
+        expect(enumerateMock.called).to.be.true;
+        expect(startCliActionMock.called).to.be.true;
+        expect(stopCliActionMock.called).to.be.true;
+
+        expect(enumerateMock.calledWith()).to.be.true;
+    });
+
+    it('Lists Android emulators with os-type flag set to all for cli mode', async () => {
+        const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([
+            androidDeviceGoogleApi
+        ]);
+        await List.run(['-p', 'android', '--os-type', 'all']);
+
+        expect(enumerateMock.called).to.be.true;
+        expect(startCliActionMock.called).to.be.true;
+        expect(stopCliActionMock.called).to.be.true;
+
+        expect(enumerateMock.calledWith(null)).to.be.true;
     });
 
     it('Lists Android emulators for json mode', async () => {
         const enumerateMock = stubMethod($$.SANDBOX, AndroidDeviceManager.prototype, 'enumerateDevices').resolves([
-            androidDevice
+            androidDeviceGoogleApi
         ]);
         await List.run(['-p', 'android', '--json']);
 
@@ -111,5 +139,17 @@ describe('Device List Tests', () => {
 
     it('Messages folder should be loaded', async () => {
         expect(!List.summary).to.be.false;
+    });
+
+    it('Should emit telemetry with correct event name', async () => {
+        stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'enumerateDevices').resolves([appleDevice]);
+        const emitTelemetryStub = stubMethod($$.SANDBOX, Lifecycle.getInstance(), 'emitTelemetry');
+
+        await List.run(['-p', 'ios']);
+
+        expect(emitTelemetryStub.calledOnce).to.be.true;
+        const payload = emitTelemetryStub.firstCall.args[0] as Record<string, unknown>;
+        expect(payload).to.have.property('eventName', 'force:lightning:local:device:list.executed');
+        expect(payload).to.have.property('commandName', 'force:lightning:local:device:list');
     });
 });
