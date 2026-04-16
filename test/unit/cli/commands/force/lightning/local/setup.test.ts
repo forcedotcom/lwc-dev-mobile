@@ -21,7 +21,7 @@ import {
     Version
 } from '@salesforce/lwc-dev-mobile-core';
 import { expect } from 'chai';
-import { Logger } from '@salesforce/core';
+import { Lifecycle, Logger } from '@salesforce/core';
 import sinon from 'sinon';
 import { Setup } from '../../../../../../../src/cli/commands/force/lightning/local/setup.js';
 import { Start } from '../../../../../../../src/cli/commands/force/lightning/local/device/start.js';
@@ -42,6 +42,16 @@ describe('Setup Tests', () => {
     it('Should route to Setup in lwc-dev-mobile-core', async () => {
         await Setup.run(['-p', 'ios']);
         expect(executeSetupMock.called).to.be.true;
+    });
+
+    it('Should emit telemetry with correct event name', async () => {
+        const emitTelemetryStub = stubMethod($$.SANDBOX, Lifecycle.getInstance(), 'emitTelemetry');
+        await Setup.run(['-p', 'ios']);
+
+        expect(emitTelemetryStub.calledOnce).to.be.true;
+        const payload = emitTelemetryStub.firstCall.args[0] as Record<string, unknown>;
+        expect(payload).to.have.property('eventName', 'force:lightning:local:setup.executed');
+        expect(payload).to.have.property('commandName', 'force:lightning:local:setup');
     });
 });
 describe('Device Start Tests', () => {
