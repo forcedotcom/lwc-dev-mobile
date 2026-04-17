@@ -6,7 +6,7 @@
  */
 
 import sinon from 'sinon';
-import { Logger } from '@salesforce/core';
+import { Lifecycle, Logger } from '@salesforce/core';
 import { TestContext } from '@salesforce/core/testSetup';
 import { stubMethod } from '@salesforce/ts-sinon';
 import {
@@ -213,5 +213,18 @@ describe('Device Create Tests', () => {
 
     it('Messages folder should be loaded', async () => {
         expect(!Create.summary).to.be.false;
+    });
+
+    it('Should emit telemetry with correct event name', async () => {
+        stubMethod($$.SANDBOX, AppleDeviceManager.prototype, 'enumerateRuntimes').resolves([]);
+        stubMethod($$.SANDBOX, IOSUtils, 'createNewDevice').resolves('TestUDID');
+        const emitTelemetryStub = stubMethod($$.SANDBOX, Lifecycle.getInstance(), 'emitTelemetry');
+
+        await Create.run(['-p', 'ios', '-n', 'MyNewVirtualDevice', '-d', 'iPhone-8']);
+
+        expect(emitTelemetryStub.calledOnce).to.be.true;
+        const payload = emitTelemetryStub.firstCall.args[0] as Record<string, unknown>;
+        expect(payload).to.have.property('eventName', 'force:lightning:local:device:create.executed');
+        expect(payload).to.have.property('commandName', 'force:lightning:local:device:create');
     });
 });

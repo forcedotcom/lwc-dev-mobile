@@ -1,7 +1,7 @@
 {
     "name": "@salesforce/lwc-dev-mobile",
     "description": "Salesforce CLI plugin for mobile extensions to Local Development",
-    "version": "3.0.0-alpha.3",
+    "version": "3.0.0-alpha.4",
     "author": {
         "name": "Meisam Seyed Aliroteh",
         "email": "maliroteh@salesforce.com",
@@ -56,6 +56,9 @@
         "oclif": "^4.22.70",
         "ts-node": "^10.9.2",
         "typescript": "^5.9.3"
+    },
+    "peerDependencies": {
+        "@salesforce/cli": ">=2.126.0"
     },
     "engines": {
         "node": ">=20.0.0"
@@ -260,5 +263,8 @@
         }
     },
     "exports": "./dist/index.js",
-    "type": "module"
+    "type": "module",
+    "enableO11y": true,
+    "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
+    "productFeatureId": "aJCEE0000000mGf4AI"
 }
