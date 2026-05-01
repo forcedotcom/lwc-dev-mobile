@@ -55,7 +55,7 @@
         "eslint-plugin-sf-plugin": "^1.20.32",
         "oclif": "^4.23.0",
         "ts-node": "^10.9.2",
-        "typescript": "^5.9.3"
+        "typescript": "^6.0.3"
     },
     "peerDependencies": {
         "@salesforce/cli": ">=2.126.0"
