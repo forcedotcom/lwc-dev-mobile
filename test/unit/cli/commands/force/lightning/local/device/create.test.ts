@@ -140,7 +140,8 @@ describe('Device Create Tests', () => {
         expect(result).to.have.property('success', true);
         expect(result).to.have.property('device');
         expect(result).to.have.property('message');
-        expect(executeSetupMock.called).to.be.false;
+        // Requirement validation (device-type whitelist) must run even in JSON mode.
+        expect(executeSetupMock.called).to.be.true;
         expect(emulatorImagesMock.called).to.be.true;
         expect(
             createAvdMock.calledWith(
@@ -195,12 +196,43 @@ describe('Device Create Tests', () => {
         expect(result).to.have.property('success', true);
         expect(result).to.have.property('device');
         expect(result).to.have.property('message');
-        expect(executeSetupMock.called).to.be.false;
+        // Requirement validation (device-type whitelist) must run even in JSON mode.
+        expect(executeSetupMock.called).to.be.true;
         expect(runtimesMock.called).to.be.true;
         expect(createSimMock.calledWith(deviceName, iOSDeviceType, 'iOS-18-5', sinon.match.any)).to.be.true;
         expect(getDeviceMock.called).to.be.true;
         expect(startCliActionMock.called).to.be.false;
         expect(stopCliActionMock.called).to.be.false;
+    });
+
+    it('Enforces requirement validation in json mode and blocks device creation when unmet', async () => {
+        // Simulate RequirementProcessor.execute in JSON mode: it does not throw, it returns a
+        // result object. An unmet requirement (e.g. an invalid/unrecognized device type) must
+        // block the command from forwarding the untrusted device name/type to the create primitive.
+        executeSetupMock.resolves({
+            hasMetAllRequirements: false,
+            tests: [
+                {
+                    title: 'Validating specified device type',
+                    hasPassed: false,
+                    message: "Device type 'evil; rm -rf /' is invalid."
+                }
+            ]
+        });
+
+        const createAvdMock = stubMethod($$.SANDBOX, AndroidUtils, 'createNewVirtualDevice');
+        createAvdMock.resolves();
+
+        let thrown: Error | undefined;
+        try {
+            await Create.run(['-p', 'android', '-n', deviceName, '-d', 'evil; rm -rf /', '--json']);
+        } catch (error) {
+            thrown = error as Error;
+        }
+
+        expect(executeSetupMock.called).to.be.true;
+        expect(thrown, 'expected the command to throw when requirements are unmet in json mode').to.be.an('error');
+        expect(createAvdMock.called, 'device creation must not run when requirements are unmet').to.be.false;
     });
 
     it('Logger must be initialized and invoked', async () => {

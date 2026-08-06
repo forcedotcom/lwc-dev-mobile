@@ -7,7 +7,7 @@
 
 import util from 'node:util';
 import { Flags } from '@salesforce/sf-plugins-core';
-import { Logger, Messages } from '@salesforce/core';
+import { Logger, Messages, SfError } from '@salesforce/core';
 import {
     AndroidDeviceManager,
     AndroidEnvironmentRequirements,
@@ -86,11 +86,24 @@ export class Create extends BaseCommand {
         ]);
 
         try {
-            // if not in JSON mode, execute the requirements and start the CLI action
-            if (!this.jsonEnabled()) {
-                await RequirementProcessor.execute(this.commandRequirements);
-                this.logger.info('Setup requirements met, continuing with Device Create');
+            // Always validate the requirements (including the device-type whitelist) regardless of
+            // --json. In JSON mode RequirementProcessor.execute does not throw on unmet requirements;
+            // it returns a result object, so we inspect it and throw. This prevents an automation
+            // wrapper that passes --json from silently bypassing device-type validation before an
+            // (untrusted) device name/type is forwarded to the device-creation primitives.
+            const jsonMode = this.jsonEnabled();
+            const requirementResult = await RequirementProcessor.execute(this.commandRequirements, jsonMode);
+            if (jsonMode && requirementResult && !requirementResult.hasMetAllRequirements) {
+                throw new SfError(
+                    messages.getMessage('error:requirementCheckFailed'),
+                    'lwc-dev-mobile',
+                    requirementResult.tests.filter((test) => !test.hasPassed).map((test) => test.message ?? test.title)
+                );
+            }
+            this.logger.info('Setup requirements met, continuing with Device Create');
 
+            // Only the interactive spinner is gated behind non-JSON mode.
+            if (!jsonMode) {
                 CommonUtils.startCliAction(
                     messages.getMessage('device.create.action'),
                     messages.getMessage('device.create.status', [this.deviceName, this.deviceType])

@@ -50,6 +50,10 @@ virtual device '%s' of type '%s' created successfully
 
 error encountered
 
+# error:requirementCheckFailed
+
+Failed to meet the setup requirements for creating a virtual device.
+
 # examples
 
 - <%= config.bin %> <%= command.id %> -p ios -n MyNewVirtualDevice -d iPhone-16
