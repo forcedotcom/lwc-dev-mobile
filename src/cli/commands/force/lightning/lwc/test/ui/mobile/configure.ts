@@ -196,7 +196,6 @@ export class Configure extends BaseCommand {
         return new SfError(message, 'lwc-dev-mobile', Configure.examples);
     }
 
-    // eslint-disable-next-line class-methods-use-this
     private async executeCreateConfigFile(isAndroid: boolean, device: AndroidDevice | AppleDevice): Promise<void> {
         const placeholders = {
             specs: '${specs_placeholder}',
@@ -247,7 +246,7 @@ export class Configure extends BaseCommand {
                           'appium:platformName': 'iOS',
                           'appium:automationName': 'XCUITest',
                           'appium:app': this.bundlePath,
-                          'appium:udid': (device as AppleDevice).id
+                          'appium:udid': device.id
                       }
             ],
             framework: this.testFramework,

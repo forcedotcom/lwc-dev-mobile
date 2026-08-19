@@ -152,7 +152,7 @@ describe('App Launch Tests', () => {
             try {
                 await Launch.run(['-p', 'android', '-t', androidTarget, '-i', bundleId]);
                 expect.fail('Should have thrown an error');
-            } catch (error) {
+            } catch {
                 expect(executeSetupMock.called).to.be.true;
                 expect(getDeviceMock.calledWith(androidTarget)).to.be.true;
                 expect(startCliActionMock.called).to.be.true;
@@ -168,7 +168,7 @@ describe('App Launch Tests', () => {
             try {
                 await Launch.run(['-p', 'android', '-t', androidTarget, '-i', bundleId, '--json']);
                 expect.fail('Should have thrown an error');
-            } catch (error) {
+            } catch {
                 expect(executeSetupMock.called).to.be.false;
                 expect(getDeviceMock.calledWith(androidTarget)).to.be.true;
                 expect(startCliActionMock.called).to.be.false;
@@ -189,7 +189,7 @@ describe('App Launch Tests', () => {
             try {
                 await Launch.run(['-p', 'android', '-t', androidTarget, '-i', bundleId]);
                 expect.fail('Should have thrown an error');
-            } catch (error) {
+            } catch {
                 expect(executeSetupMock.called).to.be.true;
                 expect(getDeviceMock.calledWith(androidTarget)).to.be.true;
                 expect(mockDevice.boot.calledWith(true)).to.be.true;
@@ -212,7 +212,7 @@ describe('App Launch Tests', () => {
             try {
                 await Launch.run(['-p', 'android', '-t', androidTarget, '-i', bundleId]);
                 expect.fail('Should have thrown an error');
-            } catch (error) {
+            } catch {
                 expect(executeSetupMock.called).to.be.true;
                 expect(getDeviceMock.calledWith(androidTarget)).to.be.true;
                 expect(mockDevice.boot.calledWith(true)).to.be.true;
@@ -320,7 +320,7 @@ describe('App Launch Tests', () => {
             try {
                 await Launch.run(['-p', 'ios', '-t', iosTarget, '-i', bundleId]);
                 expect.fail('Should have thrown an error');
-            } catch (error) {
+            } catch {
                 expect(executeSetupMock.called).to.be.true;
                 expect(getDeviceMock.calledWith(iosTarget)).to.be.true;
                 expect(startCliActionMock.called).to.be.true;
@@ -336,7 +336,7 @@ describe('App Launch Tests', () => {
             try {
                 await Launch.run(['-p', 'ios', '-t', iosTarget, '-i', bundleId, '--json']);
                 expect.fail('Should have thrown an error');
-            } catch (error) {
+            } catch {
                 expect(executeSetupMock.called).to.be.false;
                 expect(getDeviceMock.calledWith(iosTarget)).to.be.true;
                 expect(startCliActionMock.called).to.be.false;
@@ -357,7 +357,7 @@ describe('App Launch Tests', () => {
             try {
                 await Launch.run(['-p', 'ios', '-t', iosTarget, '-i', bundleId]);
                 expect.fail('Should have thrown an error');
-            } catch (error) {
+            } catch {
                 expect(executeSetupMock.called).to.be.true;
                 expect(getDeviceMock.calledWith(iosTarget)).to.be.true;
                 expect(mockDevice.boot.calledWith(true)).to.be.true;
@@ -380,7 +380,7 @@ describe('App Launch Tests', () => {
             try {
                 await Launch.run(['-p', 'ios', '-t', iosTarget, '-i', bundleId]);
                 expect.fail('Should have thrown an error');
-            } catch (error) {
+            } catch {
                 expect(executeSetupMock.called).to.be.true;
                 expect(getDeviceMock.calledWith(iosTarget)).to.be.true;
                 expect(mockDevice.boot.calledWith(true)).to.be.true;
@@ -399,7 +399,7 @@ describe('App Launch Tests', () => {
             try {
                 await Launch.run(['-p', 'android', '-t', androidTarget, '-i', bundleId]);
                 expect.fail('Should have thrown an error');
-            } catch (error) {
+            } catch {
                 expect(executeSetupMock.called).to.be.true;
                 expect(loggerWarnMock.called).to.be.true;
                 expect(stopCliActionMock.called).to.be.true;
@@ -515,7 +515,7 @@ describe('App Launch Tests', () => {
             try {
                 await Launch.run(['-p', 'android', '-i', bundleId]);
                 expect.fail('Should have thrown an error for missing target');
-            } catch (error) {
+            } catch {
                 // Expected to fail due to missing required flag
             }
         });
@@ -524,7 +524,7 @@ describe('App Launch Tests', () => {
             try {
                 await Launch.run(['-p', 'android', '-t', androidTarget]);
                 expect.fail('Should have thrown an error for missing bundleid');
-            } catch (error) {
+            } catch {
                 // Expected to fail due to missing required flag
             }
         });
@@ -533,7 +533,7 @@ describe('App Launch Tests', () => {
             try {
                 await Launch.run(['-t', androidTarget, '-i', bundleId]);
                 expect.fail('Should have thrown an error for missing platform');
-            } catch (error) {
+            } catch {
                 // Expected to fail due to missing required flag
             }
         });

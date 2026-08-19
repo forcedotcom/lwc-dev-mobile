@@ -137,7 +137,7 @@ export class Install extends BaseCommand {
         const device = await deviceManager.getDevice(this.target);
 
         if (!device) {
-            return Promise.reject(messages.getMessage('error.target.doesNotExist', [this.target]));
+            return Promise.reject(new Error(messages.getMessage('error.target.doesNotExist', [this.target])));
         }
 
         await device.boot(true);

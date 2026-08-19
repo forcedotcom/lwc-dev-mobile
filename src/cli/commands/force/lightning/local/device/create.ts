@@ -201,7 +201,7 @@ class DeviceNameAvailableRequirement implements Requirement {
             : await new AppleDeviceManager().getDevice(this.owner.deviceName);
 
         return deviceAlreadyExists
-            ? Promise.reject(util.format(this.unfulfilledMessage, this.owner.deviceName))
+            ? Promise.reject(new Error(util.format(this.unfulfilledMessage, this.owner.deviceName)))
             : Promise.resolve(util.format(this.fulfilledMessage, this.owner.deviceName));
     }
 }
@@ -233,7 +233,9 @@ class ValidDeviceTypeRequirement implements Requirement {
         return match !== undefined
             ? Promise.resolve(util.format(this.fulfilledMessage, this.owner.deviceType))
             : Promise.reject(
-                  util.format(this.unfulfilledMessage, this.owner.deviceType, supportedDeviceTypes.join(', '))
+                  new Error(
+                      util.format(this.unfulfilledMessage, this.owner.deviceType, supportedDeviceTypes.join(', '))
+                  )
               );
     }
 }
