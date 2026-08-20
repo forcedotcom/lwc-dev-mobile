@@ -1,17 +1,15 @@
 {
-  "extends": "@salesforce/dev-config/tsconfig-strict-esm",
-  "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "experimentalDecorators": true,
-    "pretty": true,
-    "declarationMap": true,
-    "removeComments": true
-  },
-  "include": [
-    "./src/**/*.ts"
-  ]
+    "extends": "@salesforce/dev-config/tsconfig-strict-esm",
+    "compilerOptions": {
+        "outDir": "dist",
+        "rootDir": "src",
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "experimentalDecorators": true,
+        "pretty": true,
+        "declarationMap": true,
+        "removeComments": true,
+        "types": ["mocha", "node"]
+    },
+    "include": ["./src/**/*.ts"]
 }

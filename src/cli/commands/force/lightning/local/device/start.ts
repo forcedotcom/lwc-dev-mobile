@@ -114,7 +114,7 @@ export class Start extends BaseCommand {
             : await new AppleDeviceManager().getDevice(this.target);
 
         if (!device) {
-            return Promise.reject(messages.getMessage('error.target.doesNotExist', [this.target]));
+            return Promise.reject(new Error(messages.getMessage('error.target.doesNotExist', [this.target])));
         }
 
         if (!this.jsonEnabled()) {
@@ -131,7 +131,7 @@ export class Start extends BaseCommand {
                 CommonUtils.stopCliAction(this.getAndroidSuccessMessage(device as AndroidDevice));
             }
         } else {
-            await (device as AppleDevice).boot(true);
+            await device.boot(true);
             if (!this.jsonEnabled()) {
                 CommonUtils.stopCliAction(this.getIOSSuccessMessage());
             }
