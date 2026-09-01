@@ -66,7 +66,7 @@
         "@salesforce/cli": ">=2.126.0"
     },
     "engines": {
-        "node": ">=22.0.0"
+        "node": ">=22"
     },
     "volta": {
         "node": "22.21.1",
