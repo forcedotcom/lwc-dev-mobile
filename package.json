@@ -1,7 +1,7 @@
 {
     "name": "@salesforce/lwc-dev-mobile",
     "description": "Salesforce CLI plugin for mobile extensions to Local Development",
-    "version": "3.0.0-alpha.6",
+    "version": "3.0.0-alpha.7",
     "author": {
         "name": "Meisam Seyed Aliroteh",
         "email": "maliroteh@salesforce.com",
@@ -37,8 +37,8 @@
     "bugs": "https://github.com/forcedotcom/lwc-dev-mobile/issues",
     "dependencies": {
         "@oclif/core": "4.11.11",
-        "@salesforce/core": "8.31.5",
-        "@salesforce/lwc-dev-mobile-core": "4.0.0-alpha.16",
+        "@salesforce/core": "9.1.9",
+        "@salesforce/lwc-dev-mobile-core": "4.0.0-alpha.18",
         "@salesforce/sf-plugins-core": "^13.0.3",
         "archy": "^1.0.0",
         "chalk": "^6.0.0",
@@ -66,10 +66,10 @@
         "@salesforce/cli": ">=2.126.0"
     },
     "engines": {
-        "node": ">=20.0.0"
+        "node": ">=22"
     },
     "volta": {
-        "node": "20.18.0",
+        "node": "22.21.1",
         "yarn": "1.22.22"
     },
     "main": "dist/index.js",
