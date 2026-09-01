@@ -39,7 +39,7 @@
         "@oclif/core": "4.11.11",
         "@salesforce/core": "8.31.5",
         "@salesforce/lwc-dev-mobile-core": "4.0.0-alpha.16",
-        "@salesforce/sf-plugins-core": "^12.2.25",
+        "@salesforce/sf-plugins-core": "^13.0.3",
         "archy": "^1.0.0",
         "chalk": "^5.6.2",
         "zod": "^4.4.3"
