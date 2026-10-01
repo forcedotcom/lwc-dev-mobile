@@ -45,7 +45,7 @@
         "zod": "^4.6.5"
     },
     "devDependencies": {
-        "@oclif/plugin-command-snapshot": "5.4.0",
+        "@oclif/plugin-command-snapshot": "6.0.2",
         "@salesforce/cli-plugins-testkit": "5.3.66",
         "@salesforce/dev-scripts": "^13.0.2",
         "@salesforce/ts-sinon": "1.4.36",
