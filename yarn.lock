@@ -1205,12 +1205,12 @@
     wrap-ansi "^7.0.0"
     wsl-utils "^0.4.0"
 
-"@oclif/plugin-command-snapshot@5.4.0":
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/@oclif/plugin-command-snapshot/-/plugin-command-snapshot-5.4.0.tgz#a5f4a8c52c35a27b00fa2a1f2b9e7056e8c5f55f"
-  integrity sha512-ZU+PTQZZcHw96ntsUCPAYmbVft+raaYCVdHRTCDnCx0lzZCc3CST6vWqjKh0/hoKRS7D0x3c9F4M1ckbDKbMZw==
+"@oclif/plugin-command-snapshot@6.0.2":
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-command-snapshot/-/plugin-command-snapshot-6.0.2.tgz#6e78d983994ae21f48d15b6a2747f09e2c0be96d"
+  integrity sha512-BFlO7UhgiUpvEr8/nMAgQ9GJzcnS118QeDmK8wlcoa/GK+S79A7l2U+stj9k8T0IoMcDL9ov400k1U9DrWlqrQ==
   dependencies:
-    "@oclif/core" "^4"
+    "@oclif/core" "^5.0.0"
     ansis "^3.17.0"
     globby "^14.1.0"
     just-diff "^5.2.0"
